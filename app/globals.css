@@ -1,30 +1,122 @@
 @import "tailwindcss";
 
+/* Galter Font - Headings */
+@font-face {
+  font-family: "Galter";
+  src: url("/fonts/Galter.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Satoshi Font - Primary */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Medium.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Black.otf") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-LightItalic.otf") format("opentype");
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-MediumItalic.otf") format("opentype");
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-BoldItalic.otf") format("opentype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-BlackItalic.otf") format("opentype");
+  font-weight: 900;
+  font-style: italic;
+}
+
 :root {
-	--background: #ffffff;
-	--foreground: #171717;
-	--font-geist-sans: 'Sen', sans-serif;
-	--font-geist-mono: 'Geist Mono', monospace;
+  --background: #ffffff;
+  --foreground: #171717;
+  --font-geist-sans: "Sen", sans-serif;
+  --font-geist-mono: "Geist Mono", monospace;
+  --font-galter: "Galter", serif;
+  --font-satoshi: "Satoshi", sans-serif;
 }
 
 @theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--color-brand-blue: #005DB1;
-	--color-brand-yellow: #FCB417;
-	--font-sans: var(--font-geist-sans);
-	--font-mono: var(--font-geist-mono);
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+  --color-brand-blue: #005db1;
+  --color-brand-yellow: #fcb417;
+  --font-sans: var(--font-satoshi);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-galter);
+}
+
+/* Heading Styles */
+/* h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-galter);
+} */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-satoshi);
 }
 
 @media (prefers-color-scheme: dark) {
-	:root {
-		--background: #0a0a0a;
-		--foreground: #ededed;
-	}
-}
-
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: Arial, Helvetica, sans-serif;
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
