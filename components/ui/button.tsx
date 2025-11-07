@@ -2,20 +2,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:pointer-events-none font-satoshi font-semibold",
+  "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:pointer-events-none font-satoshi font-semibold cursor-pointer",
   {
     variants: {
       variant: {
         primary:
-          "bg-brand-blue text-white hover:bg-opacity-90 active:bg-opacity-80 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2",
+          "bg-brand-blue text-white active:bg-opacity-80 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 hover:bg-brand-yellow hover:text-brand-blue hover:ring-2 hover:ring-brand-yellow hover:ring-offset-2",
         secondary:
-          "bg-brand-yellow text-foreground hover:bg-opacity-90 active:bg-opacity-80 focus:ring-2 focus:ring-brand-yellow focus:ring-offset-2",
+          "bg-brand-yellow text-foreground active:bg-opacity-80 focus:ring-2 focus:ring-brand-yellow focus:ring-offset-2 hover:ring-2 hover:ring-brand-yellow hover:ring-offset-2",
         outline:
-          "border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:bg-opacity-5 active:bg-opacity-10 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2",
+          "border-2 border-brand-blue text-brand-blue hover:bg-brand-blue hover:text-white active:bg-opacity-10 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 hover:ring-2 hover:ring-brand-blue hover:ring-offset-2",
         ghost:
-          "text-foreground hover:bg-background-color active:bg-opacity-80 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2",
+          "text-foreground hover:bg-brand-blue hover:bg-opacity-10 active:bg-opacity-80 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 hover:ring-2 hover:ring-brand-blue hover:ring-offset-2",
         danger:
-          "bg-red-600 text-white hover:bg-opacity-90 active:bg-opacity-80 focus:ring-2 focus:ring-red-600 focus:ring-offset-2",
+          "bg-red-600 text-white active:bg-opacity-80 focus:ring-2 focus:ring-red-600 focus:ring-offset-2 hover:bg-red-700 hover:ring-2 hover:ring-red-600 hover:ring-offset-2",
       },
       size: {
         sm: "px-4 py-2 text-sm",

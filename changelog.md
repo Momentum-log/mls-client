@@ -5,6 +5,10 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachanglog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [version code: 1.0.1] - 2025-11-07 - Button component update
+
+- Changed: Updated button component hover states to include a ring effect and improved color contrast for better visibility.
+
 ### [version code: 1.0.0] - 2025-11-06 - Hero section and footer casing/styling
 
 - Added: Homepage hero section matching product context

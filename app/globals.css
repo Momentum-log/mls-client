@@ -84,11 +84,11 @@
   --foreground: #171717;
   --font-geist-sans: "Sen", sans-serif;
   --font-geist-mono: "Geist Mono", monospace;
-  --font-galter: "Galter", serif;
-  --font-satoshi: "Satoshi", sans-serif;
 }
 
 @theme inline {
+  --font-galter: "Galter", serif;
+  --font-satoshi: "Satoshi", sans-serif;
   --color-background: #ffffff;
   --color-foreground: #171717;
   --color-brand-blue: #005db1;

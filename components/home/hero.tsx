@@ -100,7 +100,7 @@ const Hero: React.FC = () => {
                   </div>
                   <div>
                     <p>Weight</p>
-                    <p className="text-foreground font-semibold">5kg</p>
+                    <p className="text-foreground font-semibold">52kg</p>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
