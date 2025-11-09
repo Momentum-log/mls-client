@@ -9,12 +9,12 @@ const Hero: React.FC = () => {
       <Container>
         <div className="flex flex-col items-center text-center">
           {/* Main Heading */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl text-black mb-6 max-w-5xl font-satoshi font-black">
+          <h1 className="text-4xl md:text-6xl lg:text-8xl mb-6 max-w-5xl font-satoshi font-black">
             <span className="relative inline-block">
               <span className="relative z-10">
-                YOUR TRUSTED <br /> LOGISTICS PARTNER
+                Your trusted <br /> logistics partner.
               </span>
-              <span className="absolute bottom-1 left-0 top-16 w-full h-8 md:h-20 bg-brand-yellow -rotate-4" />
+              <span className="absolute bottom-1 left-0 md:top-16 lg:top-30 w-full h-8 md:h-16 lg:h-20 bg-brand-yellow -rotate-3" />
             </span>
           </h1>
 
@@ -77,13 +77,13 @@ const Hero: React.FC = () => {
             </div>
 
             {/* Card 2 - Purple/Lavender */}
-            <div className="bg-[#c4b5fd] rounded-3xl p-3 text-left relative overflow-hidden min-h-80">
+            <div className="bg-accent-light rounded-3xl p-3 text-left relative overflow-hidden min-h-80">
               <div className="bg-white rounded-2xl p-6 shadow-lg mb-4 relative z-10">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-medium text-foreground">
                     Delivery Quote
                   </span>
-                  <div className="w-8 h-8 rounded-full bg-[#8b5cf6]"></div>
+                  <div className="w-8 h-8 rounded-full bg-accent-dark"></div>
                 </div>
                 <p className="text-xs text-foreground/60 mb-4">
                   Express Delivery

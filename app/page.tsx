@@ -1,4 +1,5 @@
 import Hero from "@/components/home/hero";
+import ValueProp from "@/components/home/value-prop";
 
 export default function Home() {
   return (
@@ -6,6 +7,9 @@ export default function Home() {
       <main>
         {/* Hero Section */}
         <Hero />
+
+        {/* Value Propositions Section */}
+        <ValueProp />
       </main>
     </div>
   );
