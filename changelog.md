@@ -5,7 +5,7 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [version code: 1.2.0] - 2025-11-10 - How It Works section with interactive step showcases
+### [1.2.0] - 2025-11-10 - How It Works section with interactive step showcases
 
 - Added: `HowItWorks` section component with three-step interactive workflow
   - Section heading with brand color highlight ("Momentum Moves")
@@ -70,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Responsive design tested across mobile (sm), tablet (md), and desktop (lg) breakpoints
   - Font stack uses `font-work-sans` for headings and proper weight hierarchy
 
-### [version code: 1.1.0] - 2025-11-08 - Value Proposition section with interactive showcases
+### [1.1.0] - 2025-11-08 - Value Proposition section with interactive showcases
 
 - Added: `ValueProp` section component showcasing three core value propositions
   - Multi-color bento grid layout (Instant Quotes, Live Tracking, Simplified Logistics)
@@ -97,11 +97,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added proper spacing with `pt-4` and responsive padding
   - Converted fixed heights to max-heights for flexible content
 
-### [version code: 1.0.1] - 2025-11-07 - Button component update
+### [1.0.1] - 2025-11-07 - Button component update
 
 - Changed: Updated button component hover states to include a ring effect and improved color contrast for better visibility.
 
-### [version code: 1.0.0] - 2025-11-06 - Hero section and footer casing/styling
+### [1.0.0] - 2025-11-06 - Hero section and footer casing/styling
 
 - Added: Homepage hero section matching product context
   - Bold headline with yellow highlight treatment
