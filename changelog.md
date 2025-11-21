@@ -5,6 +5,63 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.4.0] - 2025-11-21 - About Us page with interactive showcases and core values
+
+- Added: `AboutPage` (`/about`) with comprehensive company information and interactive storytelling
+  - **Hero Section**:
+    - Light-themed design with subtle animated background elements
+    - Two-column layout featuring text on the left and interactive showcase on the right
+    - "Revolutionizing Logistics" headline with brand color gradients
+  - **Mission & Vision Section**:
+    - Zig-zag layout alternating between text and visual showcases
+    - Distinct styling for Mission (White bg) and Vision (Gray bg)
+    - Interactive `MissionShowcase` visualizing "Instant Logistics" with automated process steps
+    - Interactive `VisionShowcase` visualizing "Global Connectivity" with abstract network animations
+  - **Core Values Section**:
+    - Bento Grid layout for dynamic visual hierarchy
+    - Four distinct value cards: Trust First, Innovation, Partnership, Global Mindset
+    - Interactive `TrustShowcase`: Glassmorphic card displaying security verifications and trust score
+    - Interactive `InnovationShowcase`: Tech-focused card with AI optimization stats and auto-routing visuals
+    - `PartnershipShowcase`: Subtle background animation with connecting rings and dots
+    - `GlobalMindsetShowcase`: Abstract map background with floating location markers
+  - **Problem vs Solution Section**:
+    - Comparative layout highlighting "The Old Way" vs "The Momentum Way"
+    - Visual cues using red/cross and brand-yellow/check icons
+  - **Integration**:
+    - Reused `CTASection` and `FaqSection` for consistent user journey
+- **Details**:
+  - All new components follow the strict design system (flat, minimalist, custom CSS variables)
+  - Responsive design ensuring optimal viewing on all devices
+  - "use client" directive used for all interactive components
+
+### [1.3.0] - 2025-11-21 - Home page enhancements, Contact page, and global navigation updates
+
+- Added: `CTASection` to Home page
+  - High-impact dark theme (`bg-brand-blue`) with split-screen layout
+  - Interactive `DashboardShowcase` component simulating user dashboard
+  - Floating animated elements and social proof indicators
+- Added: `FAQSection` to Home page
+  - Clean, light-themed accordion interface
+  - Expandable/collapsible questions about tracking, quotes, and services
+- Added: `ContactPage` (`/contact`)
+  - Split layout with contact information and form
+  - Disabled form state managed by global Zustand store (`utils-store.ts`)
+  - "Form Temporarily Unavailable" overlay guiding users to alternative channels
+- Added: Custom 404 Not Found page (`/not-found.tsx`)
+  - "Lost Shipment" theme with driving truck animation
+  - Interactive "Track Package" simulation
+  - Clear actions to return home or contact support
+- Changed: Footer redesign
+  - Updated background to `bg-brand-blue` with high-contrast text
+  - Added social media icons (Facebook, Twitter, Instagram, LinkedIn)
+  - Removed "Services" column and links for streamlined navigation
+- Changed: Global Navigation
+  - Removed "Services" link from Header and Footer menus
+- **Details**:
+  - Implemented `zustand` for global state management of UI utilities
+  - Enhanced accessibility with proper contrast ratios and semantic HTML
+  - Consistent use of `react-icons/fa6` for iconography
+
 ### [1.2.1] - 2025-11-11 - Logo assets and branding updates
 
 - Added: SVG logo assets for consistent branding across the application
