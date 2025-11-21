@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: "Momentum Logistics - Fast & Reliable Logistics Services",
   description:
     "Momentum Logistics provides fast and reliable logistics services. Ship packages, track deliveries, and manage your logistics needs with ease. From local to international shipping, we&apos;ve got you covered",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
