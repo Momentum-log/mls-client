@@ -37,14 +37,7 @@ const Header: FC = () => {
                   Home
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="hover:text-gray-300 hover:underline decoration-brand-yellow"
-                >
-                  Services
-                </Link>
-              </li>
+
               <li>
                 <Link
                   href="/about"
@@ -112,14 +105,7 @@ const Header: FC = () => {
                   Home
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/services"
-                  className="hover:text-gray-300 hover:underline decoration-brand-yellow"
-                >
-                  Services
-                </Link>
-              </li>
+
               <li>
                 <Link
                   href="/about"

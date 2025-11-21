@@ -249,3 +249,20 @@ body {
     --foreground: #ededed;
   }
 }
+
+@keyframes drive {
+  0% {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}

@@ -74,14 +74,7 @@ export default function Footer() {
                     About Us
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    href="/services"
-                    className="hover:text-brand-yellow transition-colors"
-                  >
-                    Services
-                  </Link>
-                </li>
+
                 <li>
                   <Link
                     href="/contact"
@@ -92,45 +85,7 @@ export default function Footer() {
                 </li>
               </ul>
             </div>
-            <div>
-              <h4 className="text-lg font-bold mb-4 text-brand-yellow">
-                Services
-              </h4>
-              <ul className="space-y-2 text-white/80 text-sm">
-                <li>
-                  <Link
-                    href="/services"
-                    className="hover:text-brand-yellow transition-colors"
-                  >
-                    Local Courier
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/services"
-                    className="hover:text-brand-yellow transition-colors"
-                  >
-                    International Freight
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/services"
-                    className="hover:text-brand-yellow transition-colors"
-                  >
-                    Warehousing
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/services"
-                    className="hover:text-brand-yellow transition-colors"
-                  >
-                    Supply Chain
-                  </Link>
-                </li>
-              </ul>
-            </div>
+
             <div>
               <h4 className="text-lg font-bold mb-4 text-brand-yellow">
                 Contact Us
