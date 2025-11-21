@@ -5,6 +5,24 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.2.1] - 2025-11-11 - Logo assets and branding updates
+
+- Added: SVG logo assets for consistent branding across the application
+  - `logo-landscape.svg`: Horizontal logo for header navigation
+  - `logo-footer.svg`: Compact logo for footer section
+  - `logo-square.svg`: Square version for potential future use
+  - `logo-white.svg`: White variant for dark backgrounds
+- Changed: Header component updated to include landscape logo
+  - Imported `logo-landscape.svg` as React component using Next.js Image
+  - Positioned logo on the left side of the navigation bar
+  - Maintained responsive design with appropriate sizing
+- Changed: Footer component updated to include footer logo
+  - Added `logo-footer.svg` using Next.js Image component
+  - Integrated logo with existing footer layout and styling
+  - Ensured proper alt text and accessibility
+- Removed: Temporary logo placeholder `logo-temp.jpg`
+  - Replaced with proper SVG logo assets
+
 ### [1.2.0] - 2025-11-10 - How It Works section with interactive step showcases
 
 - Added: `HowItWorks` section component with three-step interactive workflow

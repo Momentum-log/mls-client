@@ -12,7 +12,8 @@ const Hero: React.FC = () => {
           <h1 className="text-4xl md:text-6xl lg:text-8xl mb-6 max-w-5xl font-satoshi font-black">
             <span className="relative inline-block">
               <span className="relative z-10">
-                Your trusted <br /> logistics partner.
+                Your trusted <br />{" "}
+                <span className="text-brand-blue">logistics partner.</span>
               </span>
               <span className="absolute bottom-1 left-0 md:top-16 lg:top-30 w-full h-8 md:h-16 lg:h-20 bg-brand-yellow -rotate-3" />
             </span>
