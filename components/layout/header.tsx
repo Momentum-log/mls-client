@@ -1,9 +1,10 @@
 "use client";
 import Container from "@/components/shared/container";
-import Image from "next/image";
 import { FC, useState } from "react";
 import Button from "../ui/button";
 import Link from "next/link";
+import logoLandscape from "@/public/images/logo-landscape.svg";
+import Image from "next/image";
 
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,13 +20,10 @@ const Header: FC = () => {
           {/* logo */}
           <div className="flex items-center">
             <Image
-              src="/images/logo-temp.jpg"
-              alt="MLS Logo"
-              width={150}
-              height={50}
-              className="rounded-lg h-10 w-10 object-cover"
+              src={logoLandscape}
+              alt="Momentum Logistics Service Logo"
+              className="w-40"
             />
-            <span className="ml-2 font-bold text-xl">MLS</span>
           </div>
 
           {/* navbar */}
