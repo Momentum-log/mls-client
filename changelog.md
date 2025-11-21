@@ -5,6 +5,27 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.5.0] - 2025-11-22 - Mobile experience overhaul and brand assets
+
+- Added: Enhanced Mobile Navigation
+  - Full-screen immersive overlay with `brand-blue` background
+  - Smooth slide-in and fade-in animations for menu and links
+  - Dynamic logo switching: Shows white logo (`logo-landscape-white.svg`) when menu is open
+  - Auto-collapse functionality when a link is clicked
+  - Active state highlighting with pulsing arrow indicator
+  - Abstract background artifacts (glowing orbs, grid pattern) for premium feel
+- Added: Brand Assets
+  - `public/og-image.svg`: Custom Open Graph image for social sharing (1200x630)
+  - `docs/og-image-prompt.md`: Detailed AI prompt for generating future brand images
+  - Updated Favicon: Now using `public/favicon.svg` in `app/layout.tsx`
+- Changed: FAQ Section Refactor
+  - Moved `FAQSection` to `components/shared/` for reusability
+  - Added `FAQSection` to the bottom of the Contact page
+- **Details**:
+  - Improved mobile close button visibility (switches to white on dark background)
+  - Prevented body scrolling when mobile menu is open
+  - Verified all assets use correct brand colors (`#005db1`, `#fcb417`)
+
 ### [1.4.0] - 2025-11-21 - About Us page with interactive showcases and core values
 
 - Added: `AboutPage` (`/about`) with comprehensive company information and interactive storytelling
