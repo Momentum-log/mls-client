@@ -5,6 +5,20 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.6.0] - 2025-12-03 - Social links and contact information update
+
+- Changed: Updated social media links in Footer and Contact page
+  - Removed Facebook and Twitter (X)
+  - Added Instagram and LinkedIn
+  - Added WhatsApp link
+- Changed: Updated contact information
+  - Email: `info@momentumlogisticservice.com`
+  - Phone: `+48 795 069 276`
+- Changed: Updated FAQ support link to direct to WhatsApp
+- **Details**:
+  - Commented out unused social links in code instead of deleting them
+  - Ensured "Contact Us" buttons and links point to the correct new channels
+
 ### [1.5.0] - 2025-11-22 - Mobile experience overhaul and brand assets
 
 - Added: Enhanced Mobile Navigation

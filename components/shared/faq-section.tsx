@@ -119,7 +119,9 @@ const FAQSection: React.FC = () => {
             <p className="text-gray-600">
               Still have questions?{" "}
               <a
-                href="#"
+                href="https://wa.me/48795069276"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-brand-blue font-bold hover:underline decoration-2 underline-offset-2"
               >
                 Contact our support team

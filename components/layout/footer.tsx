@@ -6,6 +6,7 @@ import {
   FaTwitter,
   FaInstagram,
   FaLinkedinIn,
+  FaWhatsapp,
 } from "react-icons/fa6";
 
 export default function Footer() {
@@ -27,7 +28,7 @@ export default function Footer() {
                 excellence, one shipment at a time.
               </p>
               <div className="flex gap-4 pt-2">
-                <a
+                {/* <a
                   href="#"
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
                 >
@@ -38,18 +39,30 @@ export default function Footer() {
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
                 >
                   <FaTwitter className="w-4 h-4" />
-                </a>
+                </a> */}
                 <a
-                  href="#"
+                  href="https://www.instagram.com/momentumlogservices"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
                 >
                   <FaInstagram className="w-4 h-4" />
                 </a>
                 <a
-                  href="#"
+                  href="https://www.linkedin.com/company/momentum-logistics-services/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
                 >
                   <FaLinkedinIn className="w-4 h-4" />
+                </a>
+                <a
+                  href="https://wa.me/48795069276"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
+                >
+                  <FaWhatsapp className="w-4 h-4" />
                 </a>
               </div>
             </div>
@@ -94,19 +107,19 @@ export default function Footer() {
                 <li>
                   <span className="block font-semibold text-white">Email:</span>
                   <a
-                    href="mailto:info@momentumlogistics.com"
+                    href="mailto:info@momentumlogisticservice.com"
                     className="hover:text-brand-yellow transition-colors"
                   >
-                    info@momentumlogistics.com
+                    info@momentumlogisticservice.com
                   </a>
                 </li>
                 <li>
                   <span className="block font-semibold text-white">Phone:</span>
                   <a
-                    href="tel:+11234567890"
+                    href="tel:+48795069276"
                     className="hover:text-brand-yellow transition-colors"
                   >
-                    +1 (123) 456-7890
+                    +48 795 069 276
                   </a>
                 </li>
                 <li>
