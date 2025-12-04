@@ -8,10 +8,12 @@ import logoLandscapeWhite from "@/public/images/logo-landscape-white.svg";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { FaArrowRight, FaXmark, FaBars } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -87,7 +89,11 @@ const Header: FC = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:block">
-            <Button rounded="full" size="md">
+            <Button
+              onClick={() => router.push("/shipping-estimate")}
+              rounded="full"
+              size="md"
+            >
               Get a Quote
             </Button>
           </div>
@@ -178,6 +184,7 @@ const Header: FC = () => {
             }`}
           >
             <Button
+              onClick={() => router.push("/shipping-estimate")}
               rounded="full"
               size="lg"
               className="w-full justify-center bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none"
