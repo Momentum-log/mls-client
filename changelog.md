@@ -5,6 +5,38 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.7.0] - 2025-12-04 - Shipping Estimate page redesign and geolocation enhancements
+
+- Added: Redesigned Shipping Estimate Hero Section
+  - New `ShippingHero` component with 2-column layout (Text + Showcase)
+  - New `ShippingProcessShowcase` component with animated steps (Enter Details -> Get Quote -> Ship It)
+  - Replaced fixed background hero with contained, interactive layout for better usability
+- Added: Enhanced Geolocation Features
+  - Implemented Reverse Geocoding using OpenStreetMap Nominatim API
+  - "Use current location" now fills the input with the full, building-level address instead of coordinates
+  - Improved error handling with specific alerts for permission denial and timeouts
+- Changed: Navigation Updates
+  - Updated "Get a Quote" buttons in Header, How It Works, and CTA sections to link to `/shipping-estimate`
+- Fixed: Hydration Mismatch Error
+  - Replaced `styled-jsx` animations with Tailwind utilities in `ShippingProcessShowcase` to resolve server/client class name mismatches
+- **Details**:
+  - Configured geocoding with `zoom=18` for maximum address precision
+  - Preserved existing form layout while improving the visual hierarchy above it
+
+### [1.6.0] - 2025-12-03 - Social links and contact information update
+
+- Changed: Updated social media links in Footer and Contact page
+  - Removed Facebook and Twitter (X)
+  - Added Instagram and LinkedIn
+  - Added WhatsApp link
+- Changed: Updated contact information
+  - Email: `info@momentumlogisticservice.com`
+  - Phone: `+48 795 069 276`
+- Changed: Updated FAQ support link to direct to WhatsApp
+- **Details**:
+  - Commented out unused social links in code instead of deleting them
+  - Ensured "Contact Us" buttons and links point to the correct new channels
+
 ### [1.5.0] - 2025-11-22 - Mobile experience overhaul and brand assets
 
 - Added: Enhanced Mobile Navigation

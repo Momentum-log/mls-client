@@ -12,6 +12,8 @@ import {
   FaWhatsapp,
   FaXTwitter,
   FaFacebookF,
+  FaInstagram,
+  FaLinkedinIn,
 } from "react-icons/fa6";
 
 export default function ContactPage() {
@@ -45,7 +47,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 mb-1">Phone</h3>
-                    <p className="text-gray-600 mb-1">+1 (123) 456-7890</p>
+                    <p className="text-gray-600 mb-1">+48 795 069 276</p>
                     <p className="text-sm text-gray-500">Mon-Fri 9am-6pm EST</p>
                   </div>
                 </div>
@@ -56,7 +58,9 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 mb-1">Email</h3>
-                    <p className="text-gray-600">info@momentumlogistics.com</p>
+                    <p className="text-gray-600">
+                      info@momentumlogisticservice.com
+                    </p>
                     <p className="text-sm text-gray-500">
                       We reply within 24 hours
                     </p>
@@ -86,13 +90,15 @@ export default function ContactPage() {
                 </h3>
                 <div className="flex gap-4">
                   <a
-                    href="#"
+                    href="https://wa.me/48795069276"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors"
                     aria-label="WhatsApp"
                   >
                     <FaWhatsapp className="w-5 h-5" />
                   </a>
-                  <a
+                  {/* <a
                     href="#"
                     className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors"
                     aria-label="X (Twitter)"
@@ -105,6 +111,24 @@ export default function ContactPage() {
                     aria-label="Facebook"
                   >
                     <FaFacebookF className="w-5 h-5" />
+                  </a> */}
+                  <a
+                    href="https://www.instagram.com/momentumlogservices"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-pink-600 text-white flex items-center justify-center hover:bg-pink-700 transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <FaInstagram className="w-5 h-5" />
+                  </a>
+                  <a
+                    href="https://www.linkedin.com/company/momentum-logistics-services/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-10 h-10 rounded-full bg-[#0077b5] text-white flex items-center justify-center hover:bg-[#006396] transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <FaLinkedinIn className="w-5 h-5" />
                   </a>
                 </div>
               </div>
@@ -125,7 +149,14 @@ export default function ContactPage() {
                       We are currently upgrading our support system. Please
                       contact us via phone or WhatsApp for immediate assistance.
                     </p>
-                    <Button className="w-full">Chat on WhatsApp</Button>
+                    <a
+                      href="https://wa.me/48795069276"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full block"
+                    >
+                      <Button className="w-full">Chat on WhatsApp</Button>
+                    </a>
                   </div>
                 </div>
               )}

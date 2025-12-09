@@ -8,6 +8,7 @@ import ShipmentShowcase from "./shipment-showcase";
 import TrackingStepShowcase from "./tracking-step-showcase";
 import Button from "../ui/button";
 import { FaClipboard } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 const HowItWorks: FC = () => {
   const stepsData = [
@@ -81,6 +82,7 @@ const HowItWorks: FC = () => {
       accentColor: "accent-light",
     },
   ];
+  const router = useRouter();
 
   return (
     <section className="py-16 md:py-24 bg-background text-foreground">
@@ -99,7 +101,10 @@ const HowItWorks: FC = () => {
               deliveries stay on time and hassle-free
             </p>
 
-            <Button className="mt-6">
+            <Button
+              onClick={() => router.push("/shipping-estimate")}
+              className="mt-6"
+            >
               <FaClipboard className="mr-2" /> Get a Free Quote
             </Button>
           </div>

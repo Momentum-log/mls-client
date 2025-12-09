@@ -5,8 +5,10 @@ import Container from "@/components/shared/container";
 import Button from "../ui/button";
 import DashboardShowcase from "./dashboard-showcase";
 import { FaArrowRight, FaCircleCheck } from "react-icons/fa6";
+import { useRouter } from "next/navigation";
 
 const CTASection: React.FC = () => {
+  const router = useRouter();
   return (
     <section className="py-20 md:py-32 bg-brand-blue overflow-hidden relative">
       {/* Background Elements */}
@@ -35,12 +37,17 @@ const CTASection: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
+                onClick={() => router.push("/shipping-estimate")}
                 variant="primary"
                 className="bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none text-base px-8 py-4 h-auto"
               >
-                Get Started for Free
+                Get a Free Quote
               </Button>
-              <Button variant="outline" className="text-brand-yellow">
+              <Button
+                onClick={() => router.push("/contact")}
+                variant="outline"
+                className="text-brand-yellow"
+              >
                 Contact Sales <FaArrowRight className="ml-2" />
               </Button>
             </div>
