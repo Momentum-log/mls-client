@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useFormik } from "formik";
+import { toFormikValidationSchema } from "zod-formik-adapter";
 import Container from "@/components/shared/container";
 import Button from "@/components/ui/button";
 import {
@@ -8,14 +10,24 @@ import {
   FaBoxOpen,
   FaTruckFast,
   FaCalculator,
-  FaCheck,
   FaCircleExclamation,
-  FaEnvelope,
-  FaBook,
-  FaLaptop,
-  FaSuitcase,
-  FaCube,
 } from "react-icons/fa6";
+
+import ShippingHero from "@/components/shipping/shipping-hero";
+import { shippingFormSchema, ShippingFormValues } from "./schema";
+// import { resolveAddressFromString } from "@/utils/address-helper"; // Removed in favor of presets
+import { useGetShippingEstimate } from "@/hooks/shipping/use-shipping";
+import { useToast } from "@/hooks/use-toast";
+import {
+  POLAND_CITIES,
+  SUPPORTED_COUNTRIES,
+  SHIPPING_MODES,
+  ShippingMode,
+} from "./constants";
+import { Select } from "@/components/ui/select";
+// Make sure to import types correctly
+import { ShippingEstimatePayload } from "@/api/shipping/types";
+import { transformShippingData } from "./utils";
 
 // Package Presets
 const PACKAGE_PRESETS = [
@@ -56,34 +68,206 @@ const PACKAGE_PRESETS = [
   },
 ];
 
-import ShippingHero from "@/components/shipping/shipping-hero";
-
 export default function ShippingEstimatePage() {
-  // State
-  const [pickupLocation, setPickupLocation] = useState("");
-  const [dropoffLocation, setDropoffLocation] = useState("");
-  const [selectedPreset, setSelectedPreset] = useState(PACKAGE_PRESETS[0].id);
-  const [dimensions, setDimensions] = useState(PACKAGE_PRESETS[0].dims);
-  const [weight, setWeight] = useState(PACKAGE_PRESETS[0].weight);
-  const [isStackable, setIsStackable] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [quoteResult, setQuoteResult] = useState<null | {
-    price: number;
-    eta: string;
-  }>(null);
+
+  const { addToast } = useToast();
+
+  // React Query Mutation
+  const {
+    mutate: estimateMutation,
+    isPending: isEstimating,
+    data: rawEstimateData,
+  } = useGetShippingEstimate();
+
+  const estimateData = rawEstimateData
+    ? transformShippingData(rawEstimateData)
+    : undefined;
+
+  const formik = useFormik<ShippingFormValues>({
+    initialValues: {
+      shippingMode: "local",
+      pickupLocation: "",
+      dropoffLocation: "",
+      selectedPreset: PACKAGE_PRESETS[0].id,
+      package: {
+        weight: PACKAGE_PRESETS[0].weight,
+        dimensions: PACKAGE_PRESETS[0].dims,
+      },
+      isStackable: true,
+    },
+    validationSchema: toFormikValidationSchema(shippingFormSchema),
+    onSubmit: async (values) => {
+      try {
+        // Construct Payload from Constants
+        let pickupAddr, dropoffAddr;
+
+        // Pickup Resolution
+        if (values.shippingMode === "import") {
+          const details = SUPPORTED_COUNTRIES.find(
+            (c) => c.id === values.pickupLocation
+          );
+          pickupAddr = details
+            ? {
+                city: details.capital || "Unknown",
+                countryCode: details.country,
+                postalCode: details.zip || "00000",
+                streetLines: [details.street || "Main St"],
+                stateOrProvinceCode: details.state || "XX", // Use defined state or XX fallback
+                residential: false,
+              }
+            : null;
+        } else {
+          const details = POLAND_CITIES.find(
+            (c) => c.id === values.pickupLocation
+          );
+          pickupAddr = details
+            ? {
+                city: details.name,
+                countryCode: details.country,
+                postalCode: details.zip,
+                streetLines: [details.street],
+                stateOrProvinceCode: details.state,
+                residential: values.isStackable,
+              }
+            : null;
+        }
+
+        // Dropoff Resolution
+        if (values.shippingMode === "export") {
+          const details = SUPPORTED_COUNTRIES.find(
+            (c) => c.id === values.dropoffLocation
+          );
+          dropoffAddr = details
+            ? {
+                city: details.capital || "Unknown",
+                countryCode: details.country,
+                postalCode: details.zip || "00000",
+                streetLines: [details.street || "Main St"],
+                stateOrProvinceCode: details.state || "XX",
+                residential: false,
+              }
+            : null;
+        } else {
+          const details = POLAND_CITIES.find(
+            (c) => c.id === values.dropoffLocation
+          );
+          dropoffAddr = details
+            ? {
+                city: details.name,
+                countryCode: details.country,
+                postalCode: details.zip,
+                streetLines: [details.street],
+                stateOrProvinceCode: details.state,
+                residential: false,
+              }
+            : null;
+        }
+
+        if (!pickupAddr || !dropoffAddr) {
+          addToast({
+            type: "error",
+            title: "Invalid Selection",
+            message: "Please select valid locations from the list.",
+          });
+          return;
+        }
+
+        // Add "Fetching Quote" Toast immediately on valid submit
+        addToast({
+          type: "info",
+          title: "Fetching Quote",
+          message: "Please wait while we retrieve your estimate...",
+          duration: 3000,
+        });
+
+        // Determine Packaging Type & Logic
+        // If Envelope is selected, we should generally NOT send custom dimensions as it overrides valid envelope defaults,
+        // BUT user might have modified them.
+        // FedEx often errors if you send 'FEDEX_ENVELOPE' with arbitrary dims that don't match standard envelope.
+        // SAFE BET: If 'envelope', use 'FEDEX_ENVELOPE'. If custom/box, use 'YOUR_PACKAGING'.
+        const isEnvelope = values.selectedPreset === "envelope";
+        const packagingType = isEnvelope ? "FEDEX_ENVELOPE" : "YOUR_PACKAGING";
+
+        const payload: ShippingEstimatePayload = {
+          pickup: { ...pickupAddr, residential: values.isStackable },
+          dropoff: dropoffAddr,
+          // packagingType,
+          package: {
+            weight: {
+              value: parseFloat(Number(values.package.weight).toFixed(2)), // Return to Number type, 2 decimal precision
+              units: "KG",
+            },
+            dimensions: {
+              length: parseFloat(
+                Number(values.package.dimensions.length).toFixed(1)
+              ), // Return to Number type, 1 decimal precision
+              width: parseFloat(
+                Number(values.package.dimensions.width).toFixed(1)
+              ),
+              height: parseFloat(
+                Number(values.package.dimensions.height).toFixed(1)
+              ),
+              units: "CM",
+            },
+          },
+          guestId: "guest-123",
+        };
+
+        console.log(
+          "Submitting Shipping Payload:",
+          JSON.stringify(payload, null, 2)
+        );
+
+        estimateMutation(payload, {
+          onSuccess: () => {
+            addToast({
+              type: "success",
+              title: "Quote Received!",
+              message:
+                "Your shipping estimate has been calculated successfully.",
+            });
+          },
+          onError: (error) => {
+            // Check if error is specifically about packaging
+            const isPackagingError =
+              error.message?.includes("PACKAGECOMBINATION") ||
+              JSON.stringify(error).includes("PACKAGECOMBINATION");
+            addToast({
+              type: "error",
+              title: isPackagingError
+                ? "Invalid Package Type"
+                : "Estimation Failed",
+              message: isPackagingError
+                ? "This package type isn't available for the selected route. Try using 'Custom' or a different box."
+                : error.message || "Something went wrong. Please try again.",
+            });
+          },
+        });
+      } catch (error) {
+        console.error("Submission error:", error);
+        addToast({
+          type: "error",
+          title: "Application Error",
+          message: "An unexpected error occurred.",
+        });
+      }
+    },
+  });
 
   // Handle Preset Change
   const handlePresetChange = (presetId: string) => {
-    setSelectedPreset(presetId);
     const preset = PACKAGE_PRESETS.find((p) => p.id === presetId);
-    if (preset && presetId !== "custom") {
-      setDimensions(preset.dims);
-      setWeight(preset.weight);
+    if (preset) {
+      formik.setFieldValue("selectedPreset", presetId);
+      if (presetId !== "custom") {
+        formik.setFieldValue("package.weight", preset.weight);
+        formik.setFieldValue("package.dimensions", preset.dims);
+      }
     }
   };
 
-  // Reverse Geocoding Helper
+  // Reverse Geocoding Helper (Client Side for button)
   const reverseGeocode = async (lat: number, lon: number) => {
     try {
       const response = await fetch(
@@ -113,7 +297,7 @@ export default function ShippingEstimatePage() {
         const { latitude, longitude } = position.coords;
         // Fetch address from coordinates
         const address = await reverseGeocode(latitude, longitude);
-        setPickupLocation(address);
+        formik.setFieldValue("pickupLocation", address);
         setIsLocating(false);
       },
       (error) => {
@@ -141,29 +325,6 @@ export default function ShippingEstimatePage() {
         setIsLocating(false);
       }
     );
-  };
-
-  // Handle Calculate Quote
-  const handleCalculateQuote = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsCalculating(true);
-    setQuoteResult(null);
-
-    // Simulate API call
-    setTimeout(() => {
-      // Mock calculation logic
-      const volume = dimensions.length * dimensions.width * dimensions.height;
-      const basePrice = 20;
-      const weightCost = weight * 2;
-      const volumeCost = volume * 0.001;
-      const total = basePrice + weightCost + volumeCost;
-
-      setQuoteResult({
-        price: Math.round(total * 100) / 100,
-        eta: "2-3 Business Days",
-      });
-      setIsCalculating(false);
-    }, 1500);
   };
 
   return (
@@ -194,7 +355,37 @@ export default function ShippingEstimatePage() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Form Section */}
               <div className="lg:col-span-3 space-y-6">
-                <form onSubmit={handleCalculateQuote}>
+                <form onSubmit={formik.handleSubmit}>
+                  {/* Location Details */}
+                  {/* Shipping Mode */}
+                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 mb-6">
+                    <h2 className="font-bold text-xl text-gray-900 mb-4">
+                      Where are you shipping?
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {SHIPPING_MODES.map((mode) => (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => {
+                            formik.setFieldValue("shippingMode", mode.id);
+                            // Reset locations when processing mode changes to avoid invalid states
+                            formik.setFieldValue("pickupLocation", "");
+                            formik.setFieldValue("dropoffLocation", "");
+                          }}
+                          className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${
+                            formik.values.shippingMode === mode.id
+                              ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
+                              : "border-gray-200 hover:border-brand-blue/50 text-gray-600"
+                          }`}
+                        >
+                          <span className="text-2xl mb-2">{mode.icon}</span>
+                          <span className="font-semibold">{mode.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Location Details */}
                   <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
                     <div className="flex items-center gap-3 mb-6">
@@ -206,49 +397,99 @@ export default function ShippingEstimatePage() {
                       </h2>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Pickup Field */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           Pickup Location
                         </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={pickupLocation}
-                            onChange={(e) => setPickupLocation(e.target.value)}
-                            placeholder="Enter full address"
-                            className="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all bg-gray-50"
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={handleUseCurrentLocation}
-                            disabled={isLocating}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-blue hover:text-brand-blue/80 p-2 rounded-full hover:bg-brand-blue/5 transition-colors cursor-pointer"
-                            title="Use current location"
-                            aria-label="Use current location"
-                          >
-                            <FaLocationCrosshairs
-                              className={`w-5 h-5 ${
-                                isLocating ? "animate-pulse" : ""
-                              }`}
-                            />
-                          </button>
-                        </div>
+                        <Select
+                          label=""
+                          placeholder={
+                            formik.values.shippingMode === "import"
+                              ? "Select Country"
+                              : "Select City"
+                          }
+                          options={
+                            formik.values.shippingMode === "import"
+                              ? SUPPORTED_COUNTRIES.map((c) => ({
+                                  label: c.name,
+                                  value: c.id,
+                                  icon:
+                                    c.country === "UK"
+                                      ? "🇬🇧"
+                                      : c.country === "US"
+                                      ? "🇺🇸"
+                                      : c.country === "CN"
+                                      ? "🇨🇳"
+                                      : c.country === "NG"
+                                      ? "🇳🇬"
+                                      : "🇩🇪",
+                                }))
+                              : POLAND_CITIES.map((c) => ({
+                                  label: c.name,
+                                  value: c.id,
+                                  icon: "🏙️",
+                                }))
+                          }
+                          value={formik.values.pickupLocation}
+                          onChange={(val) =>
+                            formik.setFieldValue("pickupLocation", val)
+                          }
+                        />
+                        {formik.touched.pickupLocation &&
+                          formik.errors.pickupLocation && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {formik.errors.pickupLocation}
+                            </p>
+                          )}
                       </div>
 
+                      {/* Dropoff Field */}
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
                           Drop-off Location
                         </label>
-                        <input
-                          type="text"
-                          value={dropoffLocation}
-                          onChange={(e) => setDropoffLocation(e.target.value)}
-                          placeholder="Enter full address"
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all bg-gray-50"
-                          required
+                        <Select
+                          label=""
+                          placeholder={
+                            formik.values.shippingMode === "export"
+                              ? "Select Country"
+                              : "Select City"
+                          }
+                          options={
+                            formik.values.shippingMode === "export"
+                              ? SUPPORTED_COUNTRIES.map((c) => ({
+                                  label: c.name,
+                                  value: c.id,
+                                  icon:
+                                    c.country === "UK"
+                                      ? "🇬🇧"
+                                      : c.country === "US"
+                                      ? "🇺🇸"
+                                      : c.country === "CN"
+                                      ? "🇨🇳"
+                                      : c.country === "NG"
+                                      ? "🇳🇬"
+                                      : "🇩🇪",
+                                }))
+                              : POLAND_CITIES.map((c) => ({
+                                  label: c.name,
+                                  value: c.id,
+                                  icon: "🏙️",
+                                }))
+                          }
+                          value={formik.values.dropoffLocation}
+                          onChange={(val) =>
+                            formik.setFieldValue("dropoffLocation", val)
+                          }
                         />
+                        {formik.touched.dropoffLocation &&
+                          formik.errors.dropoffLocation && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {formik.errors.dropoffLocation}
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -276,7 +517,7 @@ export default function ShippingEstimatePage() {
                             type="button"
                             onClick={() => handlePresetChange(preset.id)}
                             className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                              selectedPreset === preset.id
+                              formik.values.selectedPreset === preset.id
                                 ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
                                 : "border-gray-200 hover:border-brand-blue/50 text-gray-600"
                             }`}
@@ -300,16 +541,15 @@ export default function ShippingEstimatePage() {
                           <div className="flex flex-col">
                             <input
                               type="number"
-                              value={dimensions.length}
-                              onChange={(e) =>
-                                setDimensions({
-                                  ...dimensions,
-                                  length: Number(e.target.value),
-                                })
-                              }
+                              name="package.dimensions.length"
+                              value={formik.values.package.dimensions.length}
+                              onChange={formik.handleChange}
+                              onBlur={formik.handleBlur}
                               placeholder="L"
                               className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
-                              disabled={selectedPreset !== "custom"}
+                              disabled={
+                                formik.values.selectedPreset !== "custom"
+                              }
                             />
                             <span className="text-xs text-gray-500 text-center block mt-1">
                               Length
@@ -318,16 +558,15 @@ export default function ShippingEstimatePage() {
                           <div className="flex flex-col">
                             <input
                               type="number"
-                              value={dimensions.width}
-                              onChange={(e) =>
-                                setDimensions({
-                                  ...dimensions,
-                                  width: Number(e.target.value),
-                                })
-                              }
+                              name="package.dimensions.width"
+                              value={formik.values.package.dimensions.width}
+                              onChange={formik.handleChange}
+                              onBlur={formik.handleBlur}
                               placeholder="W"
                               className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
-                              disabled={selectedPreset !== "custom"}
+                              disabled={
+                                formik.values.selectedPreset !== "custom"
+                              }
                             />
                             <span className="text-xs text-gray-500 text-center block mt-1">
                               Width
@@ -336,22 +575,26 @@ export default function ShippingEstimatePage() {
                           <div className="flex flex-col">
                             <input
                               type="number"
-                              value={dimensions.height}
-                              onChange={(e) =>
-                                setDimensions({
-                                  ...dimensions,
-                                  height: Number(e.target.value),
-                                })
-                              }
+                              name="package.dimensions.height"
+                              value={formik.values.package.dimensions.height}
+                              onChange={formik.handleChange}
+                              onBlur={formik.handleBlur}
                               placeholder="H"
                               className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
-                              disabled={selectedPreset !== "custom"}
+                              disabled={
+                                formik.values.selectedPreset !== "custom"
+                              }
                             />
                             <span className="text-xs text-gray-500 text-center block mt-1">
                               Height
                             </span>
                           </div>
                         </div>
+                        {formik.errors.package?.dimensions && (
+                          <p className="text-red-500 text-xs">
+                            Invalid dimensions
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-4">
@@ -361,19 +604,28 @@ export default function ShippingEstimatePage() {
                           </label>
                           <input
                             type="number"
-                            value={weight}
-                            onChange={(e) => setWeight(Number(e.target.value))}
+                            name="package.weight"
+                            value={formik.values.package.weight}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
                             className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none h-11"
-                            disabled={selectedPreset !== "custom"}
+                            disabled={formik.values.selectedPreset !== "custom"}
                           />
+                          {formik.touched.package?.weight &&
+                            formik.errors.package?.weight && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {formik.errors.package.weight as string}
+                              </p>
+                            )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 pt-2">
                         <input
                           type="checkbox"
                           id="stackable"
-                          checked={isStackable}
-                          onChange={(e) => setIsStackable(e.target.checked)}
+                          name="isStackable"
+                          checked={formik.values.isStackable}
+                          onChange={formik.handleChange}
                           className="w-4 h-4 text-brand-blue rounded border-gray-300 focus:ring-brand-blue"
                         />
                         <label
@@ -388,9 +640,10 @@ export default function ShippingEstimatePage() {
 
                   <Button
                     className="w-full py-4 text-lg font-bold shadow-lg shadow-brand-blue/20 mt-6"
-                    disabled={isCalculating}
+                    disabled={formik.isSubmitting || isEstimating}
+                    type="submit"
                   >
-                    {isCalculating ? (
+                    {formik.isSubmitting || isEstimating ? (
                       <span className="flex items-center gap-2">
                         <FaCalculator className="animate-pulse" />{" "}
                         Calculating...
@@ -407,7 +660,7 @@ export default function ShippingEstimatePage() {
                 <div className="bg-brand-blue text-white rounded-3xl p-6 md:p-8 sticky top-32">
                   <h3 className="font-bold text-xl mb-6">Quote Summary</h3>
 
-                  {!quoteResult ? (
+                  {!estimateData ? (
                     <div className="text-center py-8 text-white/60">
                       <FaCircleExclamation className="w-12 h-12 mx-auto mb-4 opacity-50" />
                       <p>
@@ -421,24 +674,37 @@ export default function ShippingEstimatePage() {
                           Estimated Cost
                         </p>
                         <p className="text-4xl font-black text-brand-yellow">
-                          ${quoteResult.price.toFixed(2)}
+                          {/* Displaying first rate charge */}
+                          {estimateData.rates?.[0]?.ratedShipmentDetails?.[0]?.totalNetCharge?.toFixed(
+                            2
+                          )}{" "}
+                          <span className="text-lg text-white/80">
+                            {
+                              estimateData.rates?.[0]?.ratedShipmentDetails?.[0]
+                                ?.currency
+                            }
+                          </span>
                         </p>
                       </div>
 
                       <div className="space-y-4">
                         <div className="flex justify-between items-center border-b border-white/10 pb-3">
                           <span className="text-white/70">Service</span>
-                          <span className="font-semibold">Standard Ground</span>
-                        </div>
-                        <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                          <span className="text-white/70">Est. Delivery</span>
-                          <span className="font-semibold">
-                            {quoteResult.eta}
+                          <span className="font-semibold text-right">
+                            {estimateData.rates?.[0]?.serviceName ||
+                              "Standard Shipping"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                          <span className="text-white/70">Distance</span>
-                          <span className="font-semibold">Calculated</span>
+                          <span className="text-white/70">Est. Delivery</span>
+                          <span className="font-semibold">Standard</span>
+                        </div>
+                        <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                          {/* Using the rate type or generic as no distance field */}
+                          <span className="text-white/70">Type</span>
+                          <span className="font-semibold">
+                            {estimateData.rates?.[0]?.serviceType || "Ground"}
+                          </span>
                         </div>
                       </div>
 

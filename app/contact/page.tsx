@@ -76,9 +76,9 @@ export default function ContactPage() {
                       Headquarters
                     </h3>
                     <p className="text-gray-600">
-                      123 Logistics Way, Suite 100
+                      ul. kpt pilota zwirki 17,
                       <br />
-                      New York, NY 10001
+                      90-539 Łódź
                     </p>
                   </div>
                 </div>
@@ -98,14 +98,16 @@ export default function ContactPage() {
                   >
                     <FaWhatsapp className="w-5 h-5" />
                   </a>
-                  {/* <a
-                    href="#"
+                  <a
+                    href="https://x.com/momentumlogserv?s=21"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition-colors"
                     aria-label="X (Twitter)"
                   >
                     <FaXTwitter className="w-5 h-5" />
                   </a>
-                  <a
+                  {/* <a
                     href="#"
                     className="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:bg-[#166fe5] transition-colors"
                     aria-label="Facebook"

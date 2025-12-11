@@ -2,11 +2,10 @@ import Link from "next/link";
 import Container from "../shared/container";
 import Image from "next/image";
 import {
-  FaFacebookF,
-  FaTwitter,
   FaInstagram,
   FaLinkedinIn,
   FaWhatsapp,
+  FaXTwitter,
 } from "react-icons/fa6";
 
 export default function Footer() {
@@ -28,18 +27,14 @@ export default function Footer() {
                 excellence, one shipment at a time.
               </p>
               <div className="flex gap-4 pt-2">
-                {/* <a
-                  href="#"
-                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
-                >
-                  <FaFacebookF className="w-4 h-4" />
-                </a>
                 <a
-                  href="#"
+                  href="https://x.com/momentumlogserv?s=21"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-yellow hover:text-brand-blue transition-colors"
                 >
-                  <FaTwitter className="w-4 h-4" />
-                </a> */}
+                  <FaXTwitter className="w-4 h-4" />
+                </a>
                 <a
                   href="https://www.instagram.com/momentumlogservices"
                   target="_blank"
@@ -126,9 +121,9 @@ export default function Footer() {
                   <span className="block font-semibold text-white">
                     Address:
                   </span>
-                  123 Logistics Way, Suite 100
+                  ul. kpt pilota zwirki 17,
                   <br />
-                  New York, NY 10001
+                  90-539 Łódź
                 </li>
               </ul>
             </div>
