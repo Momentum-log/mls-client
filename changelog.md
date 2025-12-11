@@ -5,6 +5,20 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.8.0] - 2025-12-11 - Shipping Estimate Rebranding and Contact Updates
+
+- Changed: Rebranded all FedEx shipping estimates to MLS
+  - Replaced "FedEx" with "MLS" in all shipping rates and service descriptions
+  - Simplified service names (e.g., "International Connect Plus" -> "MLS Connect+")
+- Changed: Updated contact information
+  - Address: ul. kpt pilota zwirki 17, 90-539 Łódź
+- Changed: Updated social media links
+  - Added X (Twitter) link pointing to `@momentumlogserv`
+  - Removed placeholder Facebook link
+- **Details**:
+  - Implemented `transformShippingData` utility for deep recursive cleaning of shipping API responses to ensure consistent branding.
+  - Verified social links and address in Footer and Contact page.
+
 ### [1.7.0] - 2025-12-04 - Shipping Estimate page redesign and geolocation enhancements
 
 - Added: Redesigned Shipping Estimate Hero Section
