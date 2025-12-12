@@ -6,6 +6,7 @@ import Header from "@/components/layout/header";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import Footer from "@/components/layout/footer";
+import GuestIDInitializer from "@/components/auth/guest-id-initializer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
         <QueryProvider>
           <ToastProvider>
             <Header />
+            <GuestIDInitializer />
             {children}
             <Footer />
           </ToastProvider>

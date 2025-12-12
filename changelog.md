@@ -5,6 +5,13 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.8.1] - 2025-12-11 - Guest ID Integration Refinement
+
+- Changed: Renamed `GuestIDInitializer` to `guest-id-initializer.tsx` for file naming consistency
+- Fixed: Integrated dynamic `guestId` into Shipping Estimate payload (replaced hardcoded value)
+- **Details**:
+  - Validated that shipping estimates now correctly associate with the anonymous guest session.
+
 ### [1.8.0] - 2025-12-11 - Shipping Estimate Rebranding and Contact Updates
 
 - Changed: Rebranded all FedEx shipping estimates to MLS
@@ -15,9 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: Updated social media links
   - Added X (Twitter) link pointing to `@momentumlogserv`
   - Removed placeholder Facebook link
+- Added: Anonymous Guest Tracking
+  - Implemented persistent `mls_guest_id` cookie for tracking unauthenticated sessions
+  - Added Axios interceptor to automatically inject `X-Guest-ID` header into API requests
 - **Details**:
   - Implemented `transformShippingData` utility for deep recursive cleaning of shipping API responses to ensure consistent branding.
   - Verified social links and address in Footer and Contact page.
+  - Guest ID format: `mls_guest_[uuid]`
 
 ### [1.7.0] - 2025-12-04 - Shipping Estimate page redesign and geolocation enhancements
 

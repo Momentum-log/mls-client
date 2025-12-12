@@ -28,6 +28,7 @@ import { Select } from "@/components/ui/select";
 // Make sure to import types correctly
 import { ShippingEstimatePayload } from "@/api/shipping/types";
 import { transformShippingData } from "./utils";
+import { getOrSetGuestId } from "@/utils/auth-helper";
 
 // Package Presets
 const PACKAGE_PRESETS = [
@@ -211,7 +212,7 @@ export default function ShippingEstimatePage() {
               units: "CM",
             },
           },
-          guestId: "guest-123",
+          guestId: getOrSetGuestId(),
         };
 
         console.log(
