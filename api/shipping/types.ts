@@ -128,11 +128,15 @@ export interface RatedShipmentDetail {
 export interface Rate {
   serviceType: string;
   serviceName: string;
-  packagingType: string;
-  ratedShipmentDetails: RatedShipmentDetail[];
-  operationalDetail: OperationalDetail;
-  signatureOptionType: string;
-  serviceDescription: ServiceDescription;
+  packagingType?: string;
+  ratedShipmentDetails?: RatedShipmentDetail[];
+  operationalDetail?: OperationalDetail;
+  signatureOptionType?: string;
+  serviceDescription?: ServiceDescription;
+  deliveryDescription?: string;
+  warnings?: string[];
+  price?: number;
+  currency?: string;
 }
 
 export interface ShippingEstimateResponse {

@@ -6,7 +6,6 @@ import { toFormikValidationSchema } from "zod-formik-adapter";
 import Container from "@/components/shared/container";
 import Button from "@/components/ui/button";
 import {
-  FaLocationCrosshairs,
   FaBoxOpen,
   FaTruckFast,
   FaCalculator,
@@ -22,7 +21,6 @@ import {
   POLAND_CITIES,
   SUPPORTED_COUNTRIES,
   SHIPPING_MODES,
-  ShippingMode,
 } from "./constants";
 import { Select } from "@/components/ui/select";
 // Make sure to import types correctly
@@ -187,8 +185,8 @@ export default function ShippingEstimatePage() {
         // BUT user might have modified them.
         // FedEx often errors if you send 'FEDEX_ENVELOPE' with arbitrary dims that don't match standard envelope.
         // SAFE BET: If 'envelope', use 'FEDEX_ENVELOPE'. If custom/box, use 'YOUR_PACKAGING'.
-        const isEnvelope = values.selectedPreset === "envelope";
-        const packagingType = isEnvelope ? "FEDEX_ENVELOPE" : "YOUR_PACKAGING";
+        // const isEnvelope = values.selectedPreset === "envelope";
+        // const packagingType = isEnvelope ? "FEDEX_ENVELOPE" : "YOUR_PACKAGING";
 
         const payload: ShippingEstimatePayload = {
           pickup: { ...pickupAddr, residential: values.isStackable },
@@ -336,397 +334,413 @@ export default function ShippingEstimatePage() {
       {/* Estimate Form Section */}
       <div className="bg-gray-50 py-20">
         <Container>
-          <div className="max-w-6xl mx-auto">
-            {/* Header */}
-            <div className="text-center mb-12">
-              <div className="inline-block bg-brand-blue/10 border border-brand-blue/20 rounded-full px-4 py-1.5 mb-6">
-                <span className="text-brand-blue font-bold text-xs uppercase tracking-wider">
-                  Get a Quote
-                </span>
-              </div>
-              <h1 className="font-work-sans font-black text-4xl md:text-5xl text-gray-900 mb-6">
-                Estimate Your <span className="text-brand-blue">Shipping</span>
-              </h1>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Get an instant estimate for your shipment. Enter your details
-                below to see our competitive rates and delivery times.
-              </p>
+          {/* <div className="max-w-6xl mx-auto"> */}
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-block bg-brand-blue/10 border border-brand-blue/20 rounded-full px-4 py-1.5 mb-6">
+              <span className="text-brand-blue font-bold text-xs uppercase tracking-wider">
+                Get a Quote
+              </span>
             </div>
+            <h1 className="font-work-sans font-black text-4xl md:text-5xl text-gray-900 mb-6">
+              Estimate Your <span className="text-brand-blue">Shipping</span>
+            </h1>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Get an instant estimate for your shipment. Enter your details
+              below to see our competitive rates and delivery times.
+            </p>
+          </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-              {/* Form Section */}
-              <div className="lg:col-span-3 space-y-6">
-                <form onSubmit={formik.handleSubmit}>
-                  {/* Location Details */}
-                  {/* Shipping Mode */}
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 mb-6">
-                    <h2 className="font-bold text-xl text-gray-900 mb-4">
-                      Where are you shipping?
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Form Section */}
+            <div className="lg:col-span-3 space-y-6">
+              <form onSubmit={formik.handleSubmit}>
+                {/* Location Details */}
+                {/* Shipping Mode */}
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 mb-6">
+                  <h2 className="font-bold text-xl text-gray-900 mb-4">
+                    Where are you shipping?
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {SHIPPING_MODES.map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => {
+                          formik.setFieldValue("shippingMode", mode.id);
+                          // Reset locations when processing mode changes to avoid invalid states
+                          formik.setFieldValue("pickupLocation", "");
+                          formik.setFieldValue("dropoffLocation", "");
+                        }}
+                        className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${
+                          formik.values.shippingMode === mode.id
+                            ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
+                            : "border-gray-200 hover:border-brand-blue/50 text-gray-600"
+                        }`}
+                      >
+                        <span className="text-2xl mb-2">{mode.icon}</span>
+                        <span className="font-semibold">{mode.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Location Details */}
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-brand-yellow/20 flex items-center justify-center text-brand-blue">
+                      <FaTruckFast className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-bold text-xl text-gray-900">
+                      Route Details
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {SHIPPING_MODES.map((mode) => (
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Pickup Field */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Pickup Location
+                      </label>
+                      <Select
+                        label=""
+                        placeholder={
+                          formik.values.shippingMode === "import"
+                            ? "Select Country"
+                            : "Select City"
+                        }
+                        options={
+                          formik.values.shippingMode === "import"
+                            ? SUPPORTED_COUNTRIES.map((c) => ({
+                                label: c.name,
+                                value: c.id,
+                                icon:
+                                  c.country === "UK"
+                                    ? "🇬🇧"
+                                    : c.country === "US"
+                                    ? "🇺🇸"
+                                    : c.country === "CN"
+                                    ? "🇨🇳"
+                                    : c.country === "NG"
+                                    ? "🇳🇬"
+                                    : "🇩🇪",
+                              }))
+                            : POLAND_CITIES.map((c) => ({
+                                label: c.name,
+                                value: c.id,
+                                icon: "🏙️",
+                              }))
+                        }
+                        value={formik.values.pickupLocation}
+                        onChange={(val) =>
+                          formik.setFieldValue("pickupLocation", val)
+                        }
+                      />
+                      {formik.touched.pickupLocation &&
+                        formik.errors.pickupLocation && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {formik.errors.pickupLocation}
+                          </p>
+                        )}
+                    </div>
+
+                    {/* Dropoff Field */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Drop-off Location
+                      </label>
+                      <Select
+                        label=""
+                        placeholder={
+                          formik.values.shippingMode === "export"
+                            ? "Select Country"
+                            : "Select City"
+                        }
+                        options={
+                          formik.values.shippingMode === "export"
+                            ? SUPPORTED_COUNTRIES.map((c) => ({
+                                label: c.name,
+                                value: c.id,
+                                icon:
+                                  c.country === "UK"
+                                    ? "🇬🇧"
+                                    : c.country === "US"
+                                    ? "🇺🇸"
+                                    : c.country === "CN"
+                                    ? "🇨🇳"
+                                    : c.country === "NG"
+                                    ? "🇳🇬"
+                                    : "🇩🇪",
+                              }))
+                            : POLAND_CITIES.map((c) => ({
+                                label: c.name,
+                                value: c.id,
+                                icon: "🏙️",
+                              }))
+                        }
+                        value={formik.values.dropoffLocation}
+                        onChange={(val) =>
+                          formik.setFieldValue("dropoffLocation", val)
+                        }
+                      />
+                      {formik.touched.dropoffLocation &&
+                        formik.errors.dropoffLocation && (
+                          <p className="text-red-500 text-xs mt-1">
+                            {formik.errors.dropoffLocation}
+                          </p>
+                        )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Package Details */}
+                <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 mt-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+                      <FaBoxOpen className="w-5 h-5" />
+                    </div>
+                    <h2 className="font-bold text-xl text-gray-900">
+                      Package Details
+                    </h2>
+                  </div>
+
+                  {/* Presets */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      Package Type
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                      {PACKAGE_PRESETS.map((preset) => (
                         <button
-                          key={mode.id}
+                          key={preset.id}
                           type="button"
-                          onClick={() => {
-                            formik.setFieldValue("shippingMode", mode.id);
-                            // Reset locations when processing mode changes to avoid invalid states
-                            formik.setFieldValue("pickupLocation", "");
-                            formik.setFieldValue("dropoffLocation", "");
-                          }}
-                          className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all ${
-                            formik.values.shippingMode === mode.id
+                          onClick={() => handlePresetChange(preset.id)}
+                          className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                            formik.values.selectedPreset === preset.id
                               ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
                               : "border-gray-200 hover:border-brand-blue/50 text-gray-600"
                           }`}
                         >
-                          <span className="text-2xl mb-2">{mode.icon}</span>
-                          <span className="font-semibold">{mode.label}</span>
+                          <span className="text-2xl mb-1">{preset.icon}</span>
+                          <span className="text-xs font-medium">
+                            {preset.name}
+                          </span>
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Location Details */}
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-full bg-brand-yellow/20 flex items-center justify-center text-brand-blue">
-                        <FaTruckFast className="w-5 h-5" />
-                      </div>
-                      <h2 className="font-bold text-xl text-gray-900">
-                        Route Details
-                      </h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Pickup Field */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Pickup Location
-                        </label>
-                        <Select
-                          label=""
-                          placeholder={
-                            formik.values.shippingMode === "import"
-                              ? "Select Country"
-                              : "Select City"
-                          }
-                          options={
-                            formik.values.shippingMode === "import"
-                              ? SUPPORTED_COUNTRIES.map((c) => ({
-                                  label: c.name,
-                                  value: c.id,
-                                  icon:
-                                    c.country === "UK"
-                                      ? "🇬🇧"
-                                      : c.country === "US"
-                                      ? "🇺🇸"
-                                      : c.country === "CN"
-                                      ? "🇨🇳"
-                                      : c.country === "NG"
-                                      ? "🇳🇬"
-                                      : "🇩🇪",
-                                }))
-                              : POLAND_CITIES.map((c) => ({
-                                  label: c.name,
-                                  value: c.id,
-                                  icon: "🏙️",
-                                }))
-                          }
-                          value={formik.values.pickupLocation}
-                          onChange={(val) =>
-                            formik.setFieldValue("pickupLocation", val)
-                          }
-                        />
-                        {formik.touched.pickupLocation &&
-                          formik.errors.pickupLocation && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {formik.errors.pickupLocation}
-                            </p>
-                          )}
-                      </div>
-
-                      {/* Dropoff Field */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Drop-off Location
-                        </label>
-                        <Select
-                          label=""
-                          placeholder={
-                            formik.values.shippingMode === "export"
-                              ? "Select Country"
-                              : "Select City"
-                          }
-                          options={
-                            formik.values.shippingMode === "export"
-                              ? SUPPORTED_COUNTRIES.map((c) => ({
-                                  label: c.name,
-                                  value: c.id,
-                                  icon:
-                                    c.country === "UK"
-                                      ? "🇬🇧"
-                                      : c.country === "US"
-                                      ? "🇺🇸"
-                                      : c.country === "CN"
-                                      ? "🇨🇳"
-                                      : c.country === "NG"
-                                      ? "🇳🇬"
-                                      : "🇩🇪",
-                                }))
-                              : POLAND_CITIES.map((c) => ({
-                                  label: c.name,
-                                  value: c.id,
-                                  icon: "🏙️",
-                                }))
-                          }
-                          value={formik.values.dropoffLocation}
-                          onChange={(val) =>
-                            formik.setFieldValue("dropoffLocation", val)
-                          }
-                        />
-                        {formik.touched.dropoffLocation &&
-                          formik.errors.dropoffLocation && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {formik.errors.dropoffLocation}
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Package Details */}
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 mt-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
-                        <FaBoxOpen className="w-5 h-5" />
-                      </div>
-                      <h2 className="font-bold text-xl text-gray-900">
-                        Package Details
-                      </h2>
-                    </div>
-
-                    {/* Presets */}
-                    <div className="mb-6">
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Package Type
+                  {/* Dimensions & Weight */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <label className="block text-sm font-semibold text-gray-700">
+                        Dimensions (cm)
                       </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                        {PACKAGE_PRESETS.map((preset) => (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => handlePresetChange(preset.id)}
-                            className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                              formik.values.selectedPreset === preset.id
-                                ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
-                                : "border-gray-200 hover:border-brand-blue/50 text-gray-600"
-                            }`}
-                          >
-                            <span className="text-2xl mb-1">{preset.icon}</span>
-                            <span className="text-xs font-medium">
-                              {preset.name}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Dimensions & Weight */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Dimensions (cm)
-                        </label>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="flex flex-col">
-                            <input
-                              type="number"
-                              name="package.dimensions.length"
-                              value={formik.values.package.dimensions.length}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              placeholder="L"
-                              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
-                              disabled={
-                                formik.values.selectedPreset !== "custom"
-                              }
-                            />
-                            <span className="text-xs text-gray-500 text-center block mt-1">
-                              Length
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <input
-                              type="number"
-                              name="package.dimensions.width"
-                              value={formik.values.package.dimensions.width}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              placeholder="W"
-                              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
-                              disabled={
-                                formik.values.selectedPreset !== "custom"
-                              }
-                            />
-                            <span className="text-xs text-gray-500 text-center block mt-1">
-                              Width
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <input
-                              type="number"
-                              name="package.dimensions.height"
-                              value={formik.values.package.dimensions.height}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              placeholder="H"
-                              className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
-                              disabled={
-                                formik.values.selectedPreset !== "custom"
-                              }
-                            />
-                            <span className="text-xs text-gray-500 text-center block mt-1">
-                              Height
-                            </span>
-                          </div>
-                        </div>
-                        {formik.errors.package?.dimensions && (
-                          <p className="text-red-500 text-xs">
-                            Invalid dimensions
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-4">
-                            Weight (kg)
-                          </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="flex flex-col">
                           <input
                             type="number"
-                            name="package.weight"
-                            value={formik.values.package.weight}
+                            name="package.dimensions.length"
+                            value={formik.values.package.dimensions.length}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
-                            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none h-11"
+                            placeholder="L"
+                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
                             disabled={formik.values.selectedPreset !== "custom"}
                           />
-                          {formik.touched.package?.weight &&
-                            formik.errors.package?.weight && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {formik.errors.package.weight as string}
-                              </p>
-                            )}
+                          <span className="text-xs text-gray-500 text-center block mt-1">
+                            Length
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <input
+                            type="number"
+                            name="package.dimensions.width"
+                            value={formik.values.package.dimensions.width}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="W"
+                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
+                            disabled={formik.values.selectedPreset !== "custom"}
+                          />
+                          <span className="text-xs text-gray-500 text-center block mt-1">
+                            Width
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <input
+                            type="number"
+                            name="package.dimensions.height"
+                            value={formik.values.package.dimensions.height}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            placeholder="H"
+                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center h-11"
+                            disabled={formik.values.selectedPreset !== "custom"}
+                          />
+                          <span className="text-xs text-gray-500 text-center block mt-1">
+                            Height
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 pt-2">
-                        <input
-                          type="checkbox"
-                          id="stackable"
-                          name="isStackable"
-                          checked={formik.values.isStackable}
-                          onChange={formik.handleChange}
-                          className="w-4 h-4 text-brand-blue rounded border-gray-300 focus:ring-brand-blue"
-                        />
-                        <label
-                          htmlFor="stackable"
-                          className="text-sm text-gray-600 select-none"
-                        >
-                          This item is stackable
+                      {formik.errors.package?.dimensions && (
+                        <p className="text-red-500 text-xs">
+                          Invalid dimensions
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-4">
+                          Weight (kg)
                         </label>
+                        <input
+                          type="number"
+                          name="package.weight"
+                          value={formik.values.package.weight}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none h-11"
+                          disabled={formik.values.selectedPreset !== "custom"}
+                        />
+                        {formik.touched.package?.weight &&
+                          formik.errors.package?.weight && (
+                            <p className="text-red-500 text-xs mt-1">
+                              {formik.errors.package.weight as string}
+                            </p>
+                          )}
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <input
+                        type="checkbox"
+                        id="stackable"
+                        name="isStackable"
+                        checked={formik.values.isStackable}
+                        onChange={formik.handleChange}
+                        className="w-4 h-4 text-brand-blue rounded border-gray-300 focus:ring-brand-blue"
+                      />
+                      <label
+                        htmlFor="stackable"
+                        className="text-sm text-gray-600 select-none"
+                      >
+                        This item is stackable
+                      </label>
                     </div>
                   </div>
+                </div>
 
-                  <Button
-                    className="w-full py-4 text-lg font-bold shadow-lg shadow-brand-blue/20 mt-6"
-                    disabled={formik.isSubmitting || isEstimating}
-                    type="submit"
-                  >
-                    {formik.isSubmitting || isEstimating ? (
-                      <span className="flex items-center gap-2">
-                        <FaCalculator className="animate-pulse" />{" "}
-                        Calculating...
-                      </span>
-                    ) : (
-                      "Get My Quote"
-                    )}
-                  </Button>
-                </form>
-              </div>
-
-              {/* Summary / Result Section */}
-              <div className="lg:col-span-2">
-                <div className="bg-brand-blue text-white rounded-3xl p-6 md:p-8 sticky top-32">
-                  <h3 className="font-bold text-xl mb-6">Quote Summary</h3>
-
-                  {!estimateData ? (
-                    <div className="text-center py-8 text-white/60">
-                      <FaCircleExclamation className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>
-                        Fill out the form to see your estimated shipping cost.
-                      </p>
-                    </div>
+                <Button
+                  className="w-full py-4 text-lg font-bold shadow-lg shadow-brand-blue/20 mt-6"
+                  disabled={formik.isSubmitting || isEstimating}
+                  type="submit"
+                >
+                  {formik.isSubmitting || isEstimating ? (
+                    <span className="flex items-center gap-2">
+                      <FaCalculator className="animate-pulse" /> Calculating...
+                    </span>
                   ) : (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                        <p className="text-sm text-white/60 mb-1">
-                          Estimated Cost
-                        </p>
-                        <p className="text-4xl font-black text-brand-yellow">
-                          {/* Displaying first rate charge */}
-                          {estimateData.rates?.[0]?.ratedShipmentDetails?.[0]?.totalNetCharge?.toFixed(
-                            2
-                          )}{" "}
-                          <span className="text-lg text-white/80">
-                            {
-                              estimateData.rates?.[0]?.ratedShipmentDetails?.[0]
-                                ?.currency
-                            }
-                          </span>
-                        </p>
-                      </div>
+                    "Get My Quote"
+                  )}
+                </Button>
+              </form>
+            </div>
 
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                          <span className="text-white/70">Service</span>
-                          <span className="font-semibold text-right">
-                            {estimateData.rates?.[0]?.serviceName ||
-                              "Standard Shipping"}
-                          </span>
+            {/* Summary / Result Section */}
+            <div className="lg:col-span-2">
+              <div className="bg-brand-blue text-white rounded-3xl p-6 md:p-8 sticky top-32">
+                <h3 className="font-bold text-xl mb-6">Quote Summary</h3>
+
+                {!estimateData && !isEstimating ? (
+                  <div className="text-center py-8 text-white/60">
+                    <FaCircleExclamation className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>
+                      Fill out the form to see your estimated shipping cost.
+                    </p>
+                  </div>
+                ) : isEstimating ? (
+                  // Skeleton Loader
+                  <div className="space-y-6 animate-pulse">
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="bg-white/10 rounded-2xl p-4 border border-white/10"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="space-y-2">
+                            <div className="h-6 w-32 bg-white/20 rounded"></div>
+                            <div className="h-4 w-24 bg-white/10 rounded"></div>
+                          </div>
+                          <div className="h-8 w-20 bg-white/20 rounded"></div>
                         </div>
-                        <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                          <span className="text-white/70">Est. Delivery</span>
-                          <span className="font-semibold">Standard</span>
-                        </div>
-                        <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                          {/* Using the rate type or generic as no distance field */}
-                          <span className="text-white/70">Type</span>
-                          <span className="font-semibold">
-                            {estimateData.rates?.[0]?.serviceType || "Ground"}
-                          </span>
+                        <div className="space-y-2">
+                          <div className="h-4 w-full bg-white/10 rounded"></div>
+                          <div className="h-4 w-2/3 bg-white/10 rounded"></div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Rates List */}
+                    {estimateData?.rates?.map((rate, index) => (
+                      <div
+                        key={`${rate.serviceType}-${index}`}
+                        className="bg-white/10 rounded-2xl p-5 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors"
+                      >
+                        <div className="mb-4">
+                          <h4 className="font-bold text-lg text-white">
+                            {rate.serviceName}
+                          </h4>
+                          {rate.deliveryDescription && (
+                            <p className="text-sm text-brand-yellow font-medium mt-1 flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-brand-yellow inline-block"></span>
+                              {rate.deliveryDescription}
+                            </p>
+                          )}
+                        </div>
 
-                      <div className="pt-4">
+                        {/* Service Details */}
+                        <div className="space-y-2 border-t border-white/10 pt-3 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-white/60 text-sm">Price</span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl font-black text-brand-yellow">
+                                {rate.price?.toFixed(2)}
+                              </span>
+                              <span className="text-xs text-white/60 font-medium">
+                                {rate.currency}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
                         <Button
                           variant="outline"
-                          className="w-full bg-white text-brand-blue hover:bg-brand-yellow hover:text-brand-blue border-none"
+                          className="w-full bg-white text-brand-blue hover:bg-brand-yellow hover:text-brand-blue border-none font-bold py-2.5 h-auto"
+                          onClick={() => {
+                            addToast({
+                              type: "info",
+                              title: "Coming Soon",
+                              message: "Booking integration is coming soon.",
+                            });
+                          }}
                         >
-                          Book This Shipment
+                          Book {rate.serviceName}
                         </Button>
-                        <p className="text-xs text-center text-white/40 mt-4">
-                          *Final price may vary based on exact weight and
-                          dimensions.
-                        </p>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                    <p className="text-xs text-center text-white/40 mt-4 px-4 sticky bottom-0 bg-brand-blue py-2">
+                      *Final price may vary based on exact weight and
+                      dimensions.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
+          {/* </div> */}
         </Container>
       </div>
     </main>
