@@ -5,6 +5,18 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.9.0] - 2025-12-16 - Enhanced Shipping Estimate Page
+
+- Added: Display of all available shipping rates in estimate results
+- Added: Skeleton loading state for better user experience during estimation
+- Changed: Updated API types to include `deliveryDescription` and `warnings`
+- **Details**:
+  - Implemented a list view for rates showing service name, delivery description, and price.
+  - Replaced "Type" section with Price display.
+  - Removed Warnings display as per user request.
+  - Fixed: Updated `Rate` type and display logic to correctly show price and currency from new API structure.
+  - Added a "Book" button placeholder for each rate.
+
 ### [1.8.1] - 2025-12-11 - Guest ID Integration Refinement
 
 - Changed: Renamed `GuestIDInitializer` to `guest-id-initializer.tsx` for file naming consistency

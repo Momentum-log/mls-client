@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 
-const BASE_URL = "https://mls-server-omoq.onrender.com/api";
+const BASE_URL = "http://localhost:8000/api";
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

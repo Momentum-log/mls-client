@@ -57,6 +57,7 @@ const humanizeServiceTerms = (text: string): string => {
 };
 
 // Deep recursive cleaner
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const deepClean = (obj: any): any => {
   if (typeof obj === "string") {
     return humanizeServiceTerms(obj);
@@ -65,6 +66,7 @@ const deepClean = (obj: any): any => {
     return obj.map((item) => deepClean(item));
   }
   if (obj && typeof obj === "object") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newObj: any = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
