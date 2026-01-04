@@ -7,11 +7,13 @@ import logoLandscape from "@/public/images/logo-landscape.svg";
 import logoLandscapeWhite from "@/public/images/logo-landscape-white.svg";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { FaArrowRight, FaXmark, FaBars } from "react-icons/fa6";
+import { FaArrowRight, FaXmark, FaBars, FaUser } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth-store";
 
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -39,6 +41,7 @@ const Header: FC = () => {
     { href: "/", label: "Home" },
     { href: "/about", label: "About Us" },
     { href: "/contact", label: "Contact" },
+    { href: "/shipping-estimate", label: "Get a Quote" },
   ];
 
   return (
@@ -88,14 +91,26 @@ const Header: FC = () => {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:block">
-            <Button
-              onClick={() => router.push("/shipping-estimate")}
-              rounded="full"
-              size="md"
-            >
-              Get a Quote
-            </Button>
+          <div className="hidden md:flex items-center gap-4">
+            {isAuthenticated ? (
+              <Button
+                onClick={() => router.push("/app/dashboard")}
+                rounded="full"
+                size="md"
+                className="gap-2"
+              >
+                <FaUser className="w-4 h-4" />
+                Account
+              </Button>
+            ) : (
+              <Button
+                onClick={() => router.push("/register")}
+                rounded="full"
+                size="md"
+              >
+                Get Started
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -183,14 +198,36 @@ const Header: FC = () => {
                 : "translate-y-10 opacity-0"
             }`}
           >
-            <Button
-              onClick={() => router.push("/shipping-estimate")}
-              rounded="full"
-              size="lg"
-              className="w-full justify-center bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none"
-            >
-              Get a Quote
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                onClick={() => router.push("/app/dashboard")}
+                rounded="full"
+                size="lg"
+                className="w-full justify-center bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none gap-2"
+              >
+                <FaUser className="w-5 h-5" />
+                My Account
+              </Button>
+            ) : (
+              <Button
+                onClick={() => router.push("/register")}
+                rounded="full"
+                size="lg"
+                className="w-full justify-center bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none"
+              >
+                Create Account
+              </Button>
+            )}
+
+            <div className="mt-6 text-center">
+              <Link
+                href="/login"
+                className="text-white text-lg font-medium hover:text-brand-yellow"
+                onClick={closeMenu}
+              >
+                Login
+              </Link>
+            </div>
 
             <div className="mt-8 flex justify-center gap-6 text-white/40">
               <div className="text-xs uppercase tracking-widest">

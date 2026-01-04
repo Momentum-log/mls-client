@@ -1,10 +1,30 @@
-interface Address {
-  postalCode: string;
-  countryCode: string;
+export interface ShippingRate {
+  carrier: "FedEx" | "DHL";
+  serviceType: string;
+  serviceName: string;
+  carrierPrice: number;
+  actualPrice: number;
+  currency: string;
+  deliveryDate?: string;
+  deliveryDescription?: string;
+  warnings?: string[];
+}
+
+export interface ShippingEstimate {
+  estimateId: string;
+  rates: ShippingRate[];
+  errors: any[]; // Define more specifically if needed
+  guestId?: string;
+  createdAt?: string;
+}
+
+export interface Address {
   streetLines: string[];
   city: string;
-  stateOrProvinceCode: string;
-  residential: boolean;
+  stateOrProvinceCode?: string;
+  postalCode: string;
+  countryCode: string;
+  residential?: boolean;
 }
 
 interface Weight {
@@ -144,3 +164,5 @@ export interface ShippingEstimateResponse {
   rates: Rate[];
   guestId: string;
 }
+
+// ... other types for Shipment

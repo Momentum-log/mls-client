@@ -5,6 +5,30 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.10.0] - 2026-01-04 - App Structure Refactor and Authentication Enhancements
+
+- Changed: Major Application Restructuring (`/app` separation)
+  - Public marketing pages moved to `app/(marketing)` group (Home, About, Contact, Login, Register, Tracking, Estimator)
+  - Authenticated application pages moved to `app/app` segment (Dashboard, Shipments, Account)
+  - **URL Changes**: Dashboard is now `/app/dashboard`, Shipments `/app/shipments`, Account `/app/account`
+- Changed: Layout Architecture
+  - Created `MarketingLayout` (`app/(marketing)/layout.tsx`) for public pages (includes Header/Footer)
+  - Created `AppLayout` (`app/app/layout.tsx`) for authenticated pages (includes SidebarNav, auto-login check)
+  - Updated Root Layout `app/layout.tsx` to only handle global providers
+- Changed: Authentication System Refactor
+  - Replaced local storage usage with persistent Zustand store (`persist` middleware)
+  - Created cleaner API abstraction layer in `api/auth`
+  - Updated hooks (`useLogin`, `useRegister`, `useLogout`) to manage store state and API calls
+  - Removed aggressive 401 logging from console to reduce noise
+- Added: Enhanced User Feedback
+  - Integrated `useToast` for Login and Registration flows
+  - Added specific error messages extracted from API responses (e.g., "Invalid Credentials", "Account Exists")
+  - Added "Signing in..." and "Creating Account..." loading toasts
+- **Details**:
+  - Updated `SidebarNav` to link to new `/app` routes
+  - Updated `DashboardPage` and `ShipmentsPage` internal links
+  - Login redirects successful users to `/app/dashboard`
+
 ### [1.9.0] - 2025-12-16 - Enhanced Shipping Estimate Page
 
 - Added: Display of all available shipping rates in estimate results

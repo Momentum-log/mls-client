@@ -37,11 +37,11 @@ const CTASection: React.FC = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                onClick={() => router.push("/shipping-estimate")}
+                onClick={() => router.push("/register")}
                 variant="primary"
                 className="bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none text-base px-8 py-4 h-auto"
               >
-                Get a Free Quote
+                Get Started
               </Button>
               <Button
                 onClick={() => router.push("/contact")}
