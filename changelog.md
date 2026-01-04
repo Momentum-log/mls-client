@@ -5,6 +5,14 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.11.0] - 2026-01-04 - Dashboard UI Refresh
+
+- Changed: Dashboard UI Enhancements
+  - **Stats Cards**: Redesigned with solid brand colors (Blue, Yellow, Lavender) and added icons.
+  - **Create Shipment Button**: Added "Plus" icon for better visibility.
+  - **Recent Shipments**: Added distinctive "View All" button with arrow icon.
+  - **Empty State**: Created colorful, illustrated empty state for new accounts.
+
 ### [1.10.0] - 2026-01-04 - App Structure Refactor and Authentication Enhancements
 
 - Changed: Major Application Restructuring (`/app` separation)
