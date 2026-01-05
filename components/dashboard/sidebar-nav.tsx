@@ -47,7 +47,21 @@ export function SidebarNav() {
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          // Check if pathname starts with the item href to support nested routes
+          // But exact match for dashboard to avoid it being active for everything if href was just /app
+          // Logic to differentiate "New Shipment" (/app/shipments/new) from "My Shipments" (/app/shipments)
+          let isActive = false;
+          if (item.href === "/app/dashboard") {
+            isActive = pathname === item.href;
+          } else if (item.href === "/app/shipments") {
+            // Active if starts with /app/shipments BUT NOT /app/shipments/new
+            isActive =
+              pathname.startsWith(item.href) &&
+              !pathname.startsWith("/app/shipments/new");
+          } else {
+            // Standard prefix matching for other routes
+            isActive = pathname.startsWith(item.href);
+          }
           return (
             <Link
               key={item.href}

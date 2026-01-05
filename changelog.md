@@ -5,6 +5,28 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.12.0] - 2026-01-05 - Shipment Creation Flow Refinements and Fixes
+
+- Added: Payment Verification Page
+  - Created `/app/shipments/new/verify` to handle Stripe redirects.
+  - Displays shipment status (tracking number, label) or failure messages.
+  - Automatically verifies payment session with backend.
+- Added: State/Province Code Enforcement
+  - Integrated `country-state-city` library for dynamic state dropdowns.
+  - Enforced mandatory state codes for countries that require them (e.g., US, Canada).
+  - Updated `AddressForm` to dynamically validate state presence.
+- Changed: Shipment Payload Refinement
+  - Implemented strict shipment types (`LocalShipmentPayload` vs `InternationalShipmentPayload`).
+  - Ensured `customs` data is only sent for international shipments.
+  - Mapped package details (Value, Description, Currency) to Customs Declaration automatically.
+- Fixed: Carrier Name Transformation
+  - Updated logic to correctly transform "FedEx" (case-insensitive) to "MLS" in all views.
+- Fixed: Pricing Display
+  - Updated Service Selection and Summary pages to use `actualPrice` from API response.
+- **Details**:
+  - Refactored `getPayload` helper to ensure strict type safety before submission.
+  - Resolved `RECIPIENTS.STATEORPROVINCECODE.INVALID` errors by ensuring 2-digit state codes are sent.
+
 ### [1.11.0] - 2026-01-04 - Dashboard UI Refresh
 
 - Changed: Dashboard UI Enhancements

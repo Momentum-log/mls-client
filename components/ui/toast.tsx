@@ -43,8 +43,16 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
   const remainingTimeRef = React.useRef<number>(toast.duration || 5000);
 
   const [msgDuration, setMsgDuration] = React.useState<number>(
-    toast.duration || 5000
+    toast.duration || Math.max(5000, (toast.message?.length || 0) * 50)
   );
+
+  useEffect(() => {
+    // Re-eval if props change, though usually toast instance is static
+    const calcDuration =
+      toast.duration || Math.max(5000, (toast.message?.length || 0) * 50);
+    remainingTimeRef.current = calcDuration;
+    setMsgDuration(calcDuration);
+  }, [toast.duration, toast.message]);
 
   useEffect(() => {
     if (isPaused) {

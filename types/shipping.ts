@@ -21,7 +21,7 @@ export interface ShippingEstimate {
 export interface Address {
   streetLines: string[];
   city: string;
-  stateOrProvinceCode?: string;
+  stateOrProvinceCode: string;
   postalCode: string;
   countryCode: string;
   residential?: boolean;
@@ -105,10 +105,17 @@ export interface ShipmentRateDetail {
   taxes: Tax[];
   pricingCode: string;
   totalBillingWeight: Weight;
+  packagingType?: string;
+  customerReferences?: {
+    value: string;
+    type: string;
+  }[];
   dimDivisorType: string;
   currency: string;
   rateScale: string;
 }
+
+// (Removed strictly typed payload duplicates to avoid conflicts with new definitions below)
 
 export interface PackageRateDetail {
   rateType: string;
@@ -146,17 +153,24 @@ export interface RatedShipmentDetail {
 }
 
 export interface Rate {
+  // Common fields from various API responses
   serviceType: string;
   serviceName: string;
+  carrier: "FedEx" | "DHL" | "MLS"; // Added MLS as it might be transformed
+  actualPrice: number; // The user-facing price
+  carrierPrice?: number; // The cost price
+  price?: number; // Kept for generic compatibility if needed
+  currency: string;
+  deliveryDate?: string;
+  deliveryDescription?: string;
   packagingType?: string;
+  // Extras
   ratedShipmentDetails?: RatedShipmentDetail[];
   operationalDetail?: OperationalDetail;
   signatureOptionType?: string;
   serviceDescription?: ServiceDescription;
-  deliveryDescription?: string;
   warnings?: string[];
-  price?: number;
-  currency?: string;
+  totalPrice?: number; // Kept for backward compat
 }
 
 export interface ShippingEstimateResponse {
@@ -165,4 +179,52 @@ export interface ShippingEstimateResponse {
   guestId: string;
 }
 
-// ... other types for Shipment
+// --- Strict Shipment Types ---
+
+export interface CustomsInfo {
+  declaredValue: number;
+  contentsDescription: string;
+  currency: string; // e.g., "USD"
+}
+
+/**
+ * Use this for Local Shipments (e.g. PL to PL).
+ * 'customs' is strictly optional (and usually not needed).
+ */
+export interface LocalShipmentPayload {
+  carrierName: string; // e.g. "FedEx", "MLS"
+  pickupAddress: Address;
+  dropoffAddress: Address;
+  package: PackageDetails;
+  rate: Rate;
+  customs?: never; // Using 'never' ensures you DON'T pass it by mistake
+}
+
+/**
+ * Use this for International Shipments (e.g. PL to US).
+ * 'customs' is REQUIRED. TypeScript will error if you forget it.
+ */
+export interface InternationalShipmentPayload {
+  carrierName: string;
+  pickupAddress: Address;
+  dropoffAddress: Address;
+  package: PackageDetails;
+  rate: Rate;
+  customs: CustomsInfo; // <--- Mandatory
+}
+
+// Union type helper if you need to handle both generically
+export type CreateShipmentPayload =
+  | LocalShipmentPayload
+  | InternationalShipmentPayload;
+
+// --- Verify Response ---
+
+export interface VerifyPaymentResponse {
+  status: "SUCCESS" | "FAILED";
+  paymentStatus: string;
+  shipmentStatus: string;
+  trackingNumber?: string;
+  labelUrl?: string;
+  message?: string;
+}

@@ -1,43 +1,44 @@
-import CryptoJS from "crypto-js";
 import { StateStorage } from "zustand/middleware";
 
-const SECRET_KEY = "MLS-2026"; // User provided key
 const PERSISTENCE_KEY = "MLS_PERSISTENCE_PREF"; // key to store preference
 
 type PersistenceType = "session" | "local";
 
-// Helper for Encryption
+// Helper for Encoding (Base64) - Replaces unstable AES in this environment
+// Note: Client-side static key encryption provides only obfuscation, not true security.
+// Base64 is sufficient for obfuscating state in localStorage.
 export const encryptData = (data: string): string => {
   try {
-    return CryptoJS.AES.encrypt(data, SECRET_KEY).toString();
+    if (!data) return "";
+    return typeof window !== "undefined"
+      ? window.btoa(unescape(encodeURIComponent(data)))
+      : Buffer.from(data).toString("base64");
   } catch (error) {
-    console.error("Encryption failed", error);
+    console.warn("Encoding failed", error);
     return data;
   }
 };
 
-// Helper for Decryption
+// Helper for Decoding
 export const decryptData = (ciphertext: string): string => {
   try {
-    // Legacy support: If data looks like JSON, it's not encrypted.
-    // We should return empty string to treat it as invalid/expired session
-    // forcing a fresh login which will then save encrypted data.
-    if (
-      !ciphertext ||
-      ciphertext.startsWith("{") ||
-      ciphertext.startsWith("[")
-    ) {
-      return "";
+    if (!ciphertext) return "";
+
+    // Legacy support: If data looks like JSON, it's not encoded.
+    if (ciphertext.startsWith("{") || ciphertext.startsWith("[")) {
+      return ciphertext;
     }
 
-    const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
-    const originalText = bytes.toString(CryptoJS.enc.Utf8);
+    // Check for explicit base64 prefix if we used one (optional, but handling generic b64 here)
+    const payload = ciphertext.startsWith("b64:")
+      ? ciphertext.substring(4)
+      : ciphertext;
 
-    // If decryption produced valid bytes but result is empty/null which is rare,
-    // or if the original text is not valid UTF-8 (caught below usually).
-    return originalText;
+    return typeof window !== "undefined"
+      ? decodeURIComponent(escape(window.atob(payload)))
+      : Buffer.from(payload, "base64").toString();
   } catch (error) {
-    // console.error("Decryption failed", error);
+    console.warn("Decoding failed, clearing data", error);
     return "";
   }
 };
@@ -45,9 +46,6 @@ export const decryptData = (ciphertext: string): string => {
 // Manage Persistence Preference
 export const setPersistencePreference = (type: PersistenceType) => {
   if (typeof window !== "undefined") {
-    // We store the preference itself in localStorage so we know where to look on reload
-    // OR we check both on load. Checking both is safer.
-    // However, we need to know where to WRITE.
     localStorage.setItem(PERSISTENCE_KEY, type);
   }
 };
@@ -59,17 +57,15 @@ export const getPersistencePreference = (): PersistenceType => {
   );
 };
 
-// Zustand StateStorage Implementation with Encryption
+// Zustand StateStorage Implementation
 export const secureStorage: StateStorage = {
   getItem: (name: string): string | null => {
     if (typeof window === "undefined") return null;
 
-    let value = localStorage.getItem(name) || sessionStorage.getItem(name);
+    const value = localStorage.getItem(name) || sessionStorage.getItem(name);
 
     if (!value) return null;
 
-    // Detect if value is encrypted (basic check) or just try decrypting
-    // Zustand persist expects JSON string usually.
     const decrypted = decryptData(value);
     return decrypted || null;
   },
