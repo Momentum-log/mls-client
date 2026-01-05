@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated logic to correctly transform "FedEx" (case-insensitive) to "MLS" in all views.
 - Fixed: Pricing Display
   - Updated Service Selection and Summary pages to use `actualPrice` from API response.
+- Added: SEO Enhancements
+  - Configured Open Graph image in `app/layout.tsx` using `public/images/og-image.png`.
 - **Details**:
   - Refactored `getPayload` helper to ensure strict type safety before submission.
   - Resolved `RECIPIENTS.STATEORPROVINCECODE.INVALID` errors by ensuring 2-digit state codes are sent.
