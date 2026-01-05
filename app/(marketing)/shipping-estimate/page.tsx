@@ -24,9 +24,13 @@ import {
 } from "./constants";
 import { Select } from "@/components/ui/select";
 // Make sure to import types correctly
-import { ShippingEstimatePayload } from "@/api/shipping/types";
 import { transformShippingData } from "./utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
+import {
+  ShippingEstimatePayload,
+  ShippingEstimateResponse,
+  Rate,
+} from "@/types/shipping";
 
 // Package Presets
 const PACKAGE_PRESETS = [
@@ -684,7 +688,7 @@ export default function ShippingEstimatePage() {
                 ) : (
                   <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     {/* Rates List */}
-                    {estimateData?.rates?.map((rate, index) => (
+                    {estimateData?.rates?.map((rate: Rate, index: number) => (
                       <div
                         key={`${rate.serviceType}-${index}`}
                         className="bg-white/10 rounded-2xl p-5 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors"

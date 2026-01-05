@@ -3,11 +3,10 @@ import { getShippingEstimate } from "@/api/shipping";
 import {
   ShippingEstimatePayload,
   ShippingEstimateResponse,
-} from "@/api/shipping/types";
+} from "@/types/shipping";
 
 export const useGetShippingEstimate = () => {
   return useMutation<ShippingEstimateResponse, Error, ShippingEstimatePayload>({
-    mutationFn: (payload: ShippingEstimatePayload) =>
-      getShippingEstimate(payload),
+    mutationFn: getShippingEstimate,
   });
 };

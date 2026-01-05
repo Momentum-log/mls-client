@@ -1,24 +1,24 @@
-import { ShippingEstimateResponse } from "@/api/shipping/types";
+import { ShippingEstimateResponse } from "@/types/shipping";
 
+// Core replacements
 // Core replacements
 const replaceFedExText = (text: string): string => {
   if (!text) return text;
 
   let result = text;
 
-  // 1. Global Aggressive Replace "FedEx" -> "MLS"
-  // Handles: FedEx, FEDEX, fedex -> MLS, MLS, mls
-  // We use a regex with case insensitive flag, but we might want to respect case?
-  // User said: "If it is lowercase, it should also be lowercase mls, but as long as it is FedEx, it should be changed to MLS."
+  // 1. Precise Logic:
+  // "fedex" (lowercase) -> "mls"
+  // "FedEx" / "FEDEX" / "Fedex" (mixed/caps) -> "MLS"
 
-  // Simplest sturdy approach:
+  // We use lookahead/behind or just precise string replacement order.
+  // Replacing lowercase specific first might be safer if we want to preserve it,
+  // but since 'FedEx' usually appears as a substring, global replace with function is best.
+
+  result = result.replace(/fedex/g, "mls"); // Exact lowercase match
   result = result.replace(/FedEx/g, "MLS"); // Standard
-  result = result.replace(/FEDEX/g, "MLS"); // ALL CAPS -> MLS (User said "maxed to MLS")
-  result = result.replace(/fedex/g, "mls"); // lowercase
-
-  // Also handle the specific case of "FEDEX_" in enums/codes if they are just strings
-  // e.g. "FEDEX_INTERNATIONAL" -> "MLS_INTERNATIONAL"
-  // The above replace(/FEDEX/g, "MLS") handles "FEDEX_" -> "MLS_"
+  result = result.replace(/FEDEX/g, "MLS"); // ALL CAPS
+  result = result.replace(/Fedex/g, "MLS"); // Title case
 
   return result;
 };
@@ -85,4 +85,38 @@ export const transformShippingData = (
 ): ShippingEstimateResponse => {
   // We deep clean the entire structure
   return deepClean(data) as ShippingEstimateResponse;
+};
+
+// --- Payload Helper ---
+
+import {
+  CreateShipmentPayload,
+  LocalShipmentPayload,
+  InternationalShipmentPayload,
+} from "@/types/shipping";
+
+export const getPayload = (
+  isInternational: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any
+): CreateShipmentPayload => {
+  if (isInternational) {
+    // TypeScript enforces 'customs' here
+    const payload: InternationalShipmentPayload = {
+      ...data,
+      customs: {
+        declaredValue: data.customs?.declaredValue || 10,
+        contentsDescription: data.customs?.contentsDescription || "Merchandise",
+        currency: data.customs?.currency || "USD",
+      },
+    };
+    return payload;
+  } else {
+    // TypeScript ensures 'customs' is undefined here
+    const payload: LocalShipmentPayload = {
+      ...data,
+      customs: undefined,
+    };
+    return payload;
+  }
 };

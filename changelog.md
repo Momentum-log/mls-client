@@ -5,6 +5,60 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.12.0] - 2026-01-05 - Shipment Creation Flow Refinements and Fixes
+
+- Added: Payment Verification Page
+  - Created `/app/shipments/new/verify` to handle Stripe redirects.
+  - Displays shipment status (tracking number, label) or failure messages.
+  - Automatically verifies payment session with backend.
+- Added: State/Province Code Enforcement
+  - Integrated `country-state-city` library for dynamic state dropdowns.
+  - Enforced mandatory state codes for countries that require them (e.g., US, Canada).
+  - Updated `AddressForm` to dynamically validate state presence.
+- Changed: Shipment Payload Refinement
+  - Implemented strict shipment types (`LocalShipmentPayload` vs `InternationalShipmentPayload`).
+  - Ensured `customs` data is only sent for international shipments.
+  - Mapped package details (Value, Description, Currency) to Customs Declaration automatically.
+- Fixed: Carrier Name Transformation
+  - Updated logic to correctly transform "FedEx" (case-insensitive) to "MLS" in all views.
+- Fixed: Pricing Display
+  - Updated Service Selection and Summary pages to use `actualPrice` from API response.
+- **Details**:
+  - Refactored `getPayload` helper to ensure strict type safety before submission.
+  - Resolved `RECIPIENTS.STATEORPROVINCECODE.INVALID` errors by ensuring 2-digit state codes are sent.
+
+### [1.11.0] - 2026-01-04 - Dashboard UI Refresh
+
+- Changed: Dashboard UI Enhancements
+  - **Stats Cards**: Redesigned with solid brand colors (Blue, Yellow, Lavender) and added icons.
+  - **Create Shipment Button**: Added "Plus" icon for better visibility.
+  - **Recent Shipments**: Added distinctive "View All" button with arrow icon.
+  - **Empty State**: Created colorful, illustrated empty state for new accounts.
+
+### [1.10.0] - 2026-01-04 - App Structure Refactor and Authentication Enhancements
+
+- Changed: Major Application Restructuring (`/app` separation)
+  - Public marketing pages moved to `app/(marketing)` group (Home, About, Contact, Login, Register, Tracking, Estimator)
+  - Authenticated application pages moved to `app/app` segment (Dashboard, Shipments, Account)
+  - **URL Changes**: Dashboard is now `/app/dashboard`, Shipments `/app/shipments`, Account `/app/account`
+- Changed: Layout Architecture
+  - Created `MarketingLayout` (`app/(marketing)/layout.tsx`) for public pages (includes Header/Footer)
+  - Created `AppLayout` (`app/app/layout.tsx`) for authenticated pages (includes SidebarNav, auto-login check)
+  - Updated Root Layout `app/layout.tsx` to only handle global providers
+- Changed: Authentication System Refactor
+  - Replaced local storage usage with persistent Zustand store (`persist` middleware)
+  - Created cleaner API abstraction layer in `api/auth`
+  - Updated hooks (`useLogin`, `useRegister`, `useLogout`) to manage store state and API calls
+  - Removed aggressive 401 logging from console to reduce noise
+- Added: Enhanced User Feedback
+  - Integrated `useToast` for Login and Registration flows
+  - Added specific error messages extracted from API responses (e.g., "Invalid Credentials", "Account Exists")
+  - Added "Signing in..." and "Creating Account..." loading toasts
+- **Details**:
+  - Updated `SidebarNav` to link to new `/app` routes
+  - Updated `DashboardPage` and `ShipmentsPage` internal links
+  - Login redirects successful users to `/app/dashboard`
+
 ### [1.9.0] - 2025-12-16 - Enhanced Shipping Estimate Page
 
 - Added: Display of all available shipping rates in estimate results
