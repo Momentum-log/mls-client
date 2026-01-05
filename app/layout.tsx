@@ -23,6 +23,16 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
   },
+  openGraph: {
+    images: [
+      {
+        url: "/images/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Momentum Logistics Service",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
