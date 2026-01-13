@@ -15,7 +15,7 @@ import {
 import ShippingHero from "@/components/shipping/shipping-hero";
 import { shippingFormSchema, ShippingFormValues } from "./schema";
 // import { resolveAddressFromString } from "@/utils/address-helper"; // Removed in favor of presets
-import { useGetShippingEstimate } from "@/hooks/shipping/use-shipping";
+import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
 import { useToast } from "@/hooks/use-toast";
 import {
   POLAND_CITIES,

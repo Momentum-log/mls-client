@@ -5,6 +5,28 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.13.0] - 2026-01-13 - API Refactoring and Dashboard Data Integration
+
+- Added: Real-time Dashboard Statistics
+  - Implemented `useShipmentStats` hook for frontend-side calculation of active/completed shipments and monthly spend.
+  - Replaced mock dashboard data with live API data from `get-shipment-history`.
+- Added: Enhanced Shipment Identification
+  - **New Title Logic**: Priority given to `Recipient Name • City` (e.g., "Adedotun Gabriel • New York City") for better identification.
+  - **Custom Tracking Numbers**: Standardized display of `MLS-TRK-...` custom identifiers across all shipment lists.
+  - **Subtitles**: Added concise subtitles showing `Creation Date • Price` (e.g., "13 Jan 2026 • 1658.01 PLN") for quick context.
+- Changed: Comprehensive API Route Refactoring
+  - Migrated all frontend API calls to use new descriptive backend routes (e.g., `/auth/login-user`, `/shipments/get-shipment-history`).
+  - Consolidated shipping and shipments APIs into a single `api/shipments` service.
+- Fixed: Dashboard & Statistics Refinements
+  - **Robust Spend Calculation**: Improved monthly/lifetime spend logic to be case-insensitive for payment statuses (e.g., matching "PAID", "succeeded").
+  - **Human-Readable Statuses**: Integrated a status formatter to convert enums like `IN_TRANSIT` to "In Transit".
+- Added: Centralized `shipment-helper` Utility
+  - Created `utils/shipment-helper.ts` to unify status formatting and display name generation logic across the application.
+- **Details**:
+  - Unified data presentation between the Dashboard "Recent Shipments" list and the "Shipment History" page.
+  - Optimized statistics aggregation to happen during the data fetching layer for zero-latency UI updates.
+  - Updated `Shipment` type definitions to include expanded address and tracking metadata.
+
 ### [1.12.0] - 2026-01-05 - Shipment Creation Flow Refinements and Fixes
 
 - Added: Payment Verification Page

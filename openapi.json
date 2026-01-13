@@ -22,9 +22,11 @@
     "parameters": {}
   },
   "paths": {
-    "/auth/register": {
+    "/auth/register-user": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "\n### Register New User\n**Frontend Usage Guide:**\nCreates a new user account. Upon success, the user is automatically logged in (or you might need to redirect them to login, depending on implementation - check response).\n\n**Data handling:**\n- **Email**: Must be unique.\n- **Password**: Enforce strong password complexity on the frontend (min 8 chars, mixed case, numbers).\n- **Format**: Returns the user profile. Does **NOT** return tokens (user must login separately) OR returns tokens (check response schema). *Correction: This implementation currently returns only the user object, so User must call Login after Register.*\n",
         "summary": "Register User",
         "requestBody": {
@@ -49,7 +51,11 @@
                     "type": "string"
                   }
                 },
-                "required": ["email", "password", "name"],
+                "required": [
+                  "email",
+                  "password",
+                  "name"
+                ],
                 "description": "Registration details"
               }
             }
@@ -109,7 +115,9 @@
                       ]
                     }
                   },
-                  "required": ["user"]
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
@@ -141,7 +149,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -173,7 +184,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -205,7 +219,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -213,9 +230,11 @@
         }
       }
     },
-    "/auth/login": {
+    "/auth/login-user": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "\n### User Login\n**Frontend Usage Guide:**\nAuthenticates a user and issues JWT tokens.\n\n**Token Management (CRITICAL):**\n1. **Access Token** (`accessToken`): Short-lived (e.g., 15 mins). Use this in the `Authorization: Bearer <token>` header for all requests.\n2. **Refresh Token** (`refreshToken`): Long-lived (e.g., 7 days). Store this securely (e.g., HTTPOnly cookie or secure storage). \n\n**Auto-Refresh Logic:**\n- Frontend should intercept 401 errors.\n- If 401 received, call `/auth/refresh` with the `refreshToken`.\n- If refresh success, retry the original failed request with the new `accessToken`.\n- If refresh fails, log the user out.\n",
         "summary": "Login User",
         "requestBody": {
@@ -232,7 +251,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["email", "password"]
+                "required": [
+                  "email",
+                  "password"
+                ]
               }
             }
           }
@@ -299,7 +321,11 @@
                       ]
                     }
                   },
-                  "required": ["accessToken", "refreshToken", "user"]
+                  "required": [
+                    "accessToken",
+                    "refreshToken",
+                    "user"
+                  ]
                 }
               }
             }
@@ -331,7 +357,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -363,7 +392,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -395,7 +427,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -403,9 +438,11 @@
         }
       }
     },
-    "/auth/refresh": {
+    "/auth/refresh-token": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "\n### Refresh Access Token\n**Frontend Usage Guide:**\nCall this endpoint to get a new `accessToken` when the current one expires.\n\n**Rotation Policy:**\n- This endpoint implements **Refresh Token Rotation**.\n- A **NEW** `refreshToken` is returned. You **MUST** replace the old one with this new one.\n- The old refresh token becomes invalid immediately.\n",
         "summary": "Refresh Token",
         "requestBody": {
@@ -418,7 +455,9 @@
                     "type": "string"
                   }
                 },
-                "required": ["refreshToken"],
+                "required": [
+                  "refreshToken"
+                ],
                 "description": "Valid Refresh Token"
               }
             }
@@ -440,7 +479,10 @@
                       "description": "New Rotated Refresh Token"
                     }
                   },
-                  "required": ["accessToken", "refreshToken"]
+                  "required": [
+                    "accessToken",
+                    "refreshToken"
+                  ]
                 }
               }
             }
@@ -472,7 +514,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -504,7 +549,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -536,7 +584,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -544,9 +595,11 @@
         }
       }
     },
-    "/auth/logout": {
+    "/auth/logout-user": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Logout user by revoking the specific refresh token.",
         "summary": "Logout",
         "requestBody": {
@@ -560,7 +613,9 @@
                     "description": "Refresh Token to revoke"
                   }
                 },
-                "required": ["refreshToken"]
+                "required": [
+                  "refreshToken"
+                ]
               }
             }
           }
@@ -577,7 +632,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -609,7 +666,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -641,7 +701,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -673,7 +736,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -681,9 +747,11 @@
         }
       }
     },
-    "/auth/me": {
+    "/auth/get-current-user": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "description": "Get current logged-in user profile. Useful for app initialization to check if user is still logged in.",
         "summary": "Get Me",
         "security": [
@@ -745,7 +813,9 @@
                       ]
                     }
                   },
-                  "required": ["user"]
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
@@ -777,7 +847,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -809,7 +882,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -817,9 +893,11 @@
         }
       }
     },
-    "/auth/profile": {
+    "/auth/update-user-profile": {
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "description": "Update user profile details",
         "summary": "Update Profile",
         "security": [
@@ -920,7 +998,9 @@
                       ]
                     }
                   },
-                  "required": ["user"]
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
@@ -952,7 +1032,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -984,7 +1067,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1016,7 +1102,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1024,9 +1113,11 @@
         }
       }
     },
-    "/auth/email/change": {
+    "/auth/initiate-email-change": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Initiate email change process. Sends a verification code to the new email address.",
         "summary": "Initiate Email Change",
         "security": [
@@ -1045,7 +1136,9 @@
                     "format": "email"
                   }
                 },
-                "required": ["newEmail"],
+                "required": [
+                  "newEmail"
+                ],
                 "description": "New Email Address"
               }
             }
@@ -1063,7 +1156,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1095,7 +1190,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1127,7 +1225,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1159,7 +1260,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1191,7 +1295,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1199,9 +1306,11 @@
         }
       }
     },
-    "/auth/email/confirm": {
+    "/auth/confirm-email-change": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Confirm pending email change using the verification code sent to the new email.",
         "summary": "Confirm Email Change",
         "security": [
@@ -1220,7 +1329,9 @@
                     "minLength": 1
                   }
                 },
-                "required": ["code"],
+                "required": [
+                  "code"
+                ],
                 "description": "Verification Code"
               }
             }
@@ -1238,7 +1349,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1270,7 +1383,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1302,7 +1418,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1334,7 +1453,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1344,7 +1466,9 @@
     },
     "/auth/send-verification-code": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Send validation email to the currently logged in user to verify their account.",
         "summary": "Send Verification Code",
         "security": [
@@ -1364,7 +1488,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1396,7 +1522,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1428,7 +1557,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1438,7 +1570,9 @@
     },
     "/auth/verify-email": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Verify the user's email address using the code sent to them.",
         "summary": "Verify Email",
         "security": [
@@ -1458,7 +1592,9 @@
                     "maxLength": 6
                   }
                 },
-                "required": ["code"],
+                "required": [
+                  "code"
+                ],
                 "description": "Verification Code"
               }
             }
@@ -1476,7 +1612,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1508,7 +1646,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1540,7 +1681,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1550,7 +1694,9 @@
     },
     "/auth/verify-email-temporary": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Temporary endpoint to manually verify email without code (Maintenance Mode).",
         "summary": "Manual Verify Email (Temp)",
         "security": [
@@ -1569,7 +1715,9 @@
                     "format": "email"
                   }
                 },
-                "required": ["email"],
+                "required": [
+                  "email"
+                ],
                 "description": "User Email"
               }
             }
@@ -1587,7 +1735,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1619,7 +1769,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1651,7 +1804,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1683,7 +1839,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1693,7 +1852,9 @@
     },
     "/auth/forgot-password": {
       "post": {
-        "tags": ["Password"],
+        "tags": [
+          "Password"
+        ],
         "description": "Initiate password reset process. Sends a reset code to the user's email.",
         "summary": "Forgot Password",
         "requestBody": {
@@ -1707,7 +1868,9 @@
                     "format": "email"
                   }
                 },
-                "required": ["email"],
+                "required": [
+                  "email"
+                ],
                 "description": "User Email"
               }
             }
@@ -1725,7 +1888,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1757,7 +1922,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1789,7 +1957,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1799,7 +1970,9 @@
     },
     "/auth/reset-password": {
       "post": {
-        "tags": ["Password"],
+        "tags": [
+          "Password"
+        ],
         "description": "Reset password using the code received via email.",
         "summary": "Reset Password",
         "requestBody": {
@@ -1818,7 +1991,10 @@
                     "minLength": 6
                   }
                 },
-                "required": ["code", "newPassword"],
+                "required": [
+                  "code",
+                  "newPassword"
+                ],
                 "description": "New Password & Code"
               }
             }
@@ -1836,7 +2012,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1868,7 +2046,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1900,7 +2081,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1910,7 +2094,9 @@
     },
     "/auth/change-password": {
       "post": {
-        "tags": ["Password"],
+        "tags": [
+          "Password"
+        ],
         "description": "Change password for logged-in user.",
         "summary": "Change Password",
         "security": [
@@ -1932,7 +2118,10 @@
                     "minLength": 6
                   }
                 },
-                "required": ["oldPassword", "newPassword"],
+                "required": [
+                  "oldPassword",
+                  "newPassword"
+                ],
                 "description": "Old & New Password"
               }
             }
@@ -1950,7 +2139,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1982,7 +2173,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -2014,7 +2208,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -2022,235 +2219,7 @@
         }
       }
     },
-    "/shipping/estimate": {
-      "post": {
-        "description": "\n### Get Shipping Rates\n**Frontend Usage Guide:**\nCalculates shipping rates for a given package and route.\n\n**How to use:**\n1. Call this endpoint with the `pickupAddress`, `dropoffAddress`, and `package` details.\n2. The response includes a list of available services (e.g. FedEx Ground, Priority Overnight).\n3. **Important:** The `actualPrice` includes the platform commission. Display this price to the user.\n4. Pass the *entire selected rate object* to `POST /shipments` when creating the shipment.\n\n**Validation:**\n- `weight`: Ensure units (KG/LB) match the value.\n- `dimensions`: Optional but recommended for accurate pricing.\n",
-        "summary": "Get Shipping Estimate",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "pickup": {
-                    "type": "object",
-                    "properties": {
-                      "postalCode": {
-                        "type": "string"
-                      },
-                      "countryCode": {
-                        "type": "string",
-                        "minLength": 2,
-                        "maxLength": 2
-                      },
-                      "residential": {
-                        "type": "boolean"
-                      },
-                      "streetLines": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "city": {
-                        "type": "string"
-                      },
-                      "stateOrProvinceCode": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "postalCode",
-                      "countryCode",
-                      "streetLines",
-                      "city"
-                    ]
-                  },
-                  "dropoff": {
-                    "type": "object",
-                    "properties": {
-                      "postalCode": {
-                        "type": "string"
-                      },
-                      "countryCode": {
-                        "type": "string",
-                        "minLength": 2,
-                        "maxLength": 2
-                      },
-                      "residential": {
-                        "type": "boolean"
-                      },
-                      "streetLines": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "city": {
-                        "type": "string"
-                      },
-                      "stateOrProvinceCode": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "postalCode",
-                      "countryCode",
-                      "streetLines",
-                      "city"
-                    ]
-                  },
-                  "package": {
-                    "type": "object",
-                    "properties": {
-                      "weight": {
-                        "type": "object",
-                        "properties": {
-                          "units": {
-                            "type": "string",
-                            "enum": ["LB", "KG"]
-                          },
-                          "value": {
-                            "type": "number"
-                          }
-                        },
-                        "required": ["units", "value"]
-                      },
-                      "dimensions": {
-                        "type": "object",
-                        "properties": {
-                          "length": {
-                            "type": "number"
-                          },
-                          "width": {
-                            "type": "number"
-                          },
-                          "height": {
-                            "type": "number"
-                          },
-                          "units": {
-                            "type": "string",
-                            "enum": ["IN", "CM"]
-                          }
-                        },
-                        "required": ["length", "width", "height", "units"]
-                      }
-                    },
-                    "required": ["weight"]
-                  },
-                  "guestId": {
-                    "type": "string"
-                  }
-                },
-                "required": ["pickup", "dropoff", "package"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Shipping estimate retrieved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "estimateId": {
-                      "type": "string"
-                    },
-                    "rates": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "carrier": {
-                            "type": "string",
-                            "enum": ["FedEx", "DHL"]
-                          },
-                          "serviceType": {
-                            "type": "string"
-                          },
-                          "serviceName": {
-                            "type": "string"
-                          },
-                          "carrierPrice": {
-                            "type": "number"
-                          },
-                          "actualPrice": {
-                            "type": "number"
-                          },
-                          "currency": {
-                            "type": "string"
-                          },
-                          "deliveryDate": {
-                            "type": "string",
-                            "description": "Estimated delivery date (YYYY-MM-DD)"
-                          },
-                          "deliveryDescription": {
-                            "type": "string",
-                            "description": "Estimated duration description (e.g. '1-2 Business Days')"
-                          },
-                          "warnings": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            },
-                            "description": "Important info/warnings"
-                          }
-                        },
-                        "required": [
-                          "carrier",
-                          "serviceType",
-                          "serviceName",
-                          "carrierPrice",
-                          "actualPrice",
-                          "currency"
-                        ]
-                      },
-                      "description": "List of available shipping rates"
-                    },
-                    "errors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "carrier": {
-                            "type": "string"
-                          },
-                          "hasError": {
-                            "type": "boolean"
-                          },
-                          "errorCode": {
-                            "type": "number"
-                          },
-                          "details": {
-                            "type": "string"
-                          }
-                        },
-                        "required": ["carrier", "hasError"]
-                      },
-                      "description": "List of errors per carrier"
-                    },
-                    "guestId": {
-                      "type": "string",
-                      "nullable": true
-                    }
-                  },
-                  "required": ["estimateId", "rates"]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation Error"
-          },
-          "500": {
-            "description": "Shipping API Error"
-          }
-        }
-      }
-    },
-    "/shipments": {
+    "/create-shipment": {
       "post": {
         "description": "\n### Create Shipment & Initiate Payment\n**Frontend Usage Guide:**\nThis endpoint initializes a shipment in the database and creates a localized Stripe Checkout session.\n\n**Rules & Validation:**\n- **Addresses**: Must be valid postal addresses. For international shipments, ensure `countryCode` is standard (e.g. \"PL\", \"US\"). \n- **Packages**: Dimensions (CM/IN) and Weight (KG/LB) must match limits of the selected service.\n- **Rates**: You must pass the rate structure obtained from `GET /shipping/estimate`. The backend verifies the price integrity.\n\n**Response Flow:**\n1. Success (201) returns a `checkoutUrl`.\n2. Frontend **must redirect the user** to this URL for payment.\n3. After payment, the user is returned to the success URL where you call `GET /payments/verify`.\n",
         "summary": "Create Shipment",
@@ -2267,7 +2236,9 @@
                 "properties": {
                   "carrierName": {
                     "type": "string",
-                    "enum": ["FedEx"]
+                    "enum": [
+                      "FedEx"
+                    ]
                   },
                   "pickupAddress": {
                     "type": "object",
@@ -2309,7 +2280,10 @@
                             "type": "string"
                           }
                         },
-                        "required": ["personName", "phoneNumber"]
+                        "required": [
+                          "personName",
+                          "phoneNumber"
+                        ]
                       }
                     },
                     "required": [
@@ -2361,7 +2335,10 @@
                             "type": "string"
                           }
                         },
-                        "required": ["personName", "phoneNumber"]
+                        "required": [
+                          "personName",
+                          "phoneNumber"
+                        ]
                       }
                     },
                     "required": [
@@ -2384,10 +2361,16 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": ["KG", "LB"]
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ]
                           }
                         },
-                        "required": ["value", "units"]
+                        "required": [
+                          "value",
+                          "units"
+                        ]
                       },
                       "dimensions": {
                         "type": "object",
@@ -2403,31 +2386,23 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": ["CM", "IN"]
+                            "enum": [
+                              "CM",
+                              "IN"
+                            ]
                           }
                         },
-                        "required": ["length", "width", "height", "units"]
+                        "required": [
+                          "length",
+                          "width",
+                          "height",
+                          "units"
+                        ]
                       }
                     },
-                    "required": ["weight"]
-                  },
-                  "customs": {
-                    "type": "object",
-                    "properties": {
-                      "declaredValue": {
-                        "type": "number",
-                        "description": "Declared value for customs"
-                      },
-                      "currency": {
-                        "type": "string",
-                        "default": "USD"
-                      },
-                      "contentsDescription": {
-                        "type": "string",
-                        "description": "General description of contents"
-                      }
-                    },
-                    "required": ["declaredValue", "contentsDescription"]
+                    "required": [
+                      "weight"
+                    ]
                   },
                   "rate": {
                     "type": "object",
@@ -2504,7 +2479,7 @@
         }
       }
     },
-    "/shipments/{trackingNumber}/track": {
+    "/track-shipment/{trackingNumber}": {
       "get": {
         "description": "\n### Track Shipment\n**Frontend Usage Guide:**\nRetrieves the real-time status of a shipment using the **MLS Custom Tracking Number**.\n\n**⚠️ SANDBOX vs PRODUCTION:**\n- **In Sandbox**: Real-time tracking of *newly created* sandbox shipments is **NOT supported** by FedEx. \n  - The API will automatically substitute your tracking number with a **FedEx Test Tracking Number** (e.g., delivered, in-transit) to simulate a response.\n  - You will see \"In Transit\" or \"Delivered\" data even if your physical package doesn't exist.\n- **In Production**: This connects to the live carrier API and returns actual status.\n\n**Polling Strategy:**\n- You can poll this every 15-30 minutes for long-running shipments.\n- For immediate status after payment, rely on `GET /payments/verify`.\n",
         "summary": "Track Shipment",
@@ -2529,7 +2504,404 @@
         }
       }
     },
-    "/payments/verify": {
+    "/get-shipment-history": {
+      "get": {
+        "description": "Retrieve all shipments for the authenticated user (history).",
+        "summary": "Get Shipment History",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of user shipments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "shipmentStatus": {
+                        "type": "string"
+                      },
+                      "paymentStatus": {
+                        "type": "string"
+                      },
+                      "actualPrice": {
+                        "type": "number"
+                      },
+                      "labelUrl": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "shipmentStatus",
+                      "paymentStatus",
+                      "actualPrice",
+                      "labelUrl",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/get-shipment-stats": {
+      "get": {
+        "description": "Retrieve total spent and shipment count statistics.",
+        "summary": "Get Shipment Stats",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalSpent": {
+                      "type": "number"
+                    },
+                    "totalShipments": {
+                      "type": "number"
+                    },
+                    "currency": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "totalSpent",
+                    "totalShipments",
+                    "currency"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/get-shipping-estimate": {
+      "post": {
+        "description": "\n### Get Shipping Rates\n**Frontend Usage Guide:**\nCalculates shipping rates for a given package and route.\n\n**How to use:**\n1. Call this endpoint with the `pickupAddress`, `dropoffAddress`, and `package` details.\n2. The response includes a list of available services (e.g. FedEx Ground, Priority Overnight).\n3. **Important:** The `actualPrice` includes the platform commission. Display this price to the user.\n4. Pass the *entire selected rate object* to `POST /create-shipment` when creating the shipment.\n\n**Validation:**\n- `weight`: Ensure units (KG/LB) match the value.\n- `dimensions`: Optional but recommended for accurate pricing.\n",
+        "summary": "Get Shipping Estimate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pickup": {
+                    "type": "object",
+                    "properties": {
+                      "streetLines": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "stateOrProvinceCode": {
+                        "type": "string"
+                      },
+                      "postalCode": {
+                        "type": "string"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2
+                      },
+                      "residential": {
+                        "type": "boolean"
+                      },
+                      "contact": {
+                        "type": "object",
+                        "properties": {
+                          "personName": {
+                            "type": "string"
+                          },
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "companyName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "personName",
+                          "phoneNumber"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "streetLines",
+                      "city",
+                      "postalCode",
+                      "countryCode",
+                      "residential",
+                      "contact"
+                    ]
+                  },
+                  "dropoff": {
+                    "type": "object",
+                    "properties": {
+                      "streetLines": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "stateOrProvinceCode": {
+                        "type": "string"
+                      },
+                      "postalCode": {
+                        "type": "string"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2
+                      },
+                      "residential": {
+                        "type": "boolean"
+                      },
+                      "contact": {
+                        "type": "object",
+                        "properties": {
+                          "personName": {
+                            "type": "string"
+                          },
+                          "phoneNumber": {
+                            "type": "string"
+                          },
+                          "companyName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "personName",
+                          "phoneNumber"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "streetLines",
+                      "city",
+                      "postalCode",
+                      "countryCode",
+                      "residential",
+                      "contact"
+                    ]
+                  },
+                  "package": {
+                    "type": "object",
+                    "properties": {
+                      "weight": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "number"
+                          },
+                          "units": {
+                            "type": "string",
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "value",
+                          "units"
+                        ]
+                      },
+                      "dimensions": {
+                        "type": "object",
+                        "properties": {
+                          "length": {
+                            "type": "number"
+                          },
+                          "width": {
+                            "type": "number"
+                          },
+                          "height": {
+                            "type": "number"
+                          },
+                          "units": {
+                            "type": "string",
+                            "enum": [
+                              "CM",
+                              "IN"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "length",
+                          "width",
+                          "height",
+                          "units"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "weight"
+                    ]
+                  },
+                  "guestId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "pickup",
+                  "dropoff",
+                  "package"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shipping estimate retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "estimateId": {
+                      "type": "string"
+                    },
+                    "rates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "carrier": {
+                            "type": "string",
+                            "enum": [
+                              "FedEx",
+                              "DHL"
+                            ]
+                          },
+                          "serviceType": {
+                            "type": "string"
+                          },
+                          "serviceName": {
+                            "type": "string"
+                          },
+                          "carrierPrice": {
+                            "type": "number"
+                          },
+                          "actualPrice": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string"
+                          },
+                          "deliveryDate": {
+                            "type": "string",
+                            "description": "Estimated delivery date (YYYY-MM-DD)"
+                          },
+                          "deliveryDescription": {
+                            "type": "string",
+                            "description": "Estimated duration description (e.g. '1-2 Business Days')"
+                          },
+                          "warnings": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Important info/warnings"
+                          }
+                        },
+                        "required": [
+                          "carrier",
+                          "serviceType",
+                          "serviceName",
+                          "carrierPrice",
+                          "actualPrice",
+                          "currency"
+                        ]
+                      },
+                      "description": "List of available shipping rates"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "carrier": {
+                            "type": "string"
+                          },
+                          "hasError": {
+                            "type": "boolean"
+                          },
+                          "errorCode": {
+                            "type": "number"
+                          },
+                          "details": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "carrier",
+                          "hasError"
+                        ]
+                      },
+                      "description": "List of errors per carrier"
+                    },
+                    "guestId": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "estimateId",
+                    "rates"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Shipping API Error"
+          }
+        }
+      }
+    },
+    "/payments/verify-payment": {
       "get": {
         "description": "\n### Verify Payment Status\n**Frontend Usage Guide:**\nAfter a user completes a payment on the Stripe Checkout page, they are redirected back to your application (success URL). The frontend **must** call this endpoint immediately to verify the payment and retrieve the final shipment details.\n\n**How it works:**\n1. Frontend extracts `session_id` from the URL query parameters.\n2. Frontend calls `GET /payments/verify?session_id={session_id}`.\n3. Backend verifies the session with Stripe.\n4. If valid, Backend finalizes the shipment (generates label, updates status).\n5. Returns the final `trackingNumber` and `labelUrl`.\n\n**Response Handling:**\n- **SUCCESS**: Display the success page, show the tracking number, and provide a button to download the label.\n- **FAILED**: Show an error message and prompt the user to try payment again.\n",
         "summary": "Verify Payment",
@@ -2554,7 +2926,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["SUCCESS", "FAILED"],
+                      "enum": [
+                        "SUCCESS",
+                        "FAILED"
+                      ],
                       "description": "Overall verification status"
                     },
                     "paymentStatus": {
@@ -2578,7 +2953,11 @@
                       "description": "Error or status message"
                     }
                   },
-                  "required": ["status", "paymentStatus", "shipmentStatus"]
+                  "required": [
+                    "status",
+                    "paymentStatus",
+                    "shipmentStatus"
+                  ]
                 }
               }
             }
@@ -2586,7 +2965,7 @@
         }
       }
     },
-    "/payments/webhook": {
+    "/payments/stripe-webhook": {
       "post": {
         "description": "\n### Stripe Webhook Endpoint\n**⚠️ SERVER-TO-SERVER ONLY**\nThis endpoint is designed to be called **only** by Stripe's servers. Frontend applications should **never** call this endpoint directly.\n\n**Functionality:**\n- Listens for `checkout.session.completed` events.\n- When payment is confirmed asynchronously, this webhook ensures the shipment is finalized even if the user closes their browser before redirection.\n- Updates shipment status to `CREATED` and generates labels in the background.\n\n**Frontend Relevance:**\n- While you don't call this, it guarantees that if a user pays but loses connection, their shipment is still processed.\n- You can rely on polling `/payments/verify` or checking shipment status history to see updates triggered by this webhook.\n",
         "summary": "Stripe Webhook",
@@ -2597,7 +2976,7 @@
         }
       }
     },
-    "/carriers": {
+    "/carriers/get-carriers": {
       "get": {
         "description": "\n### List Active Carriers\n**Frontend Usage Guide:**\nRetrieves a list of all supported shipping carriers (e.g., FedEx) along with their configured commission rates.\nUse this to populate carrier selection dropdowns or display available shipping options.\n",
         "summary": "List Carriers",
@@ -2613,7 +2992,7 @@
         }
       }
     },
-    "/carriers/{carrierId}/commission": {
+    "/carriers/update-carrier-commission/{carrierId}": {
       "put": {
         "description": "\n### Update Carrier Commission\n**⚠️ ADMIN ONLY**\nUpdates the commission percentage added to the base carrier rates.\n\n**Calculation Logic:**\nThe system calculates the final user price as:\n`User Price = Carrier Rate + (Carrier Rate * Commission Percentage)`\n\n**Validation:**\n- `commissionPercentage`: Must be between 0 (0%) and 1 (100%).\n",
         "summary": "Update Carrier Rates",
@@ -2644,7 +3023,9 @@
                     "maximum": 1
                   }
                 },
-                "required": ["commissionPercentage"]
+                "required": [
+                  "commissionPercentage"
+                ]
               }
             }
           }

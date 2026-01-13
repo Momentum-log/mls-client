@@ -11,7 +11,7 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
-import { useGetShippingEstimate } from "@/hooks/shipping/use-shipping";
+import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
 import { ShippingEstimatePayload, Rate } from "@/types/shipping";
 import { v4 as uuidv4 } from "uuid";
 import { getOrSetGuestId } from "@/utils/auth-helper";

@@ -25,6 +25,11 @@ export interface Address {
   postalCode: string;
   countryCode: string;
   residential?: boolean;
+  contact?: {
+    personName: string;
+    phoneNumber: string;
+    companyName?: string;
+  };
 }
 
 interface Weight {
@@ -227,4 +232,38 @@ export interface VerifyPaymentResponse {
   trackingNumber?: string;
   labelUrl?: string;
   message?: string;
+}
+
+export interface Shipment {
+  id: string;
+  userId: string;
+  carrierName: string;
+  shipmentStatus: string;
+  paymentStatus: string;
+  actualPrice: number;
+  currency: string;
+  labelUrl: string | null;
+  trackingNumber: string | null;
+  customTrackingNumber: string | null;
+  carrierTrackingNumber: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Optional display fields often returned by refined API
+  description?: string;
+  origin?: string;
+  destination?: string;
+  recipientName?: string;
+  pickupAddress?: Address;
+  dropoffAddress?: Address;
+  // Nested objects if needed for details
+  recipient?: any;
+
+  originData?: any; // Renamed to avoid conflict with 'origin' string if needed
+  destinationData?: any; // Renamed to avoid conflict with 'destination' string if needed
+}
+
+export interface ShipmentStats {
+  totalSpent: number;
+  totalShipments: number;
+  currency: string;
 }
