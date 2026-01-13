@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 // import { useParams } from "next/navigation"; // params prop in Next 13+ app dir
-import apiClient from "@/api";
+import { trackShipment } from "@/api/shipments";
 import { FiBox, FiTruck, FiMapPin } from "react-icons/fi";
 import { useParams } from "next/navigation";
 
@@ -17,12 +17,9 @@ export default function ShipmentDetailsPage() {
   useEffect(() => {
     if (id) {
       setLoading(true);
-      // We use the tracking endpoint to show details, since we don't have a GET /shipments/{id} details endpoint
-      // (OpenAPI only shows /shipments/{trackingNumber}/track)
-      // Assuming ID is Tracking Number for now.
-      apiClient
-        .get(`/shipments/${id}/track`)
-        .then((res) => setTracking(res.data))
+      // We use the tracking endpoint to show details
+      trackShipment(id)
+        .then((data) => setTracking(data))
         .catch((err) => setError("Could not load tracking info."))
         .finally(() => setLoading(false));
     }

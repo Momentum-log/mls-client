@@ -24,8 +24,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       if (!user) {
         try {
           // Manually check auth if user is not in store but token exists
-          const { default: api } = await import("@/api");
-          const response = await api.get("/auth/me");
+          const { getCurrentUser } = await import("@/api/auth");
+          const response = await getCurrentUser();
           updateUser(response.data.user);
         } catch (error) {
           console.error("Auth check failed", error);

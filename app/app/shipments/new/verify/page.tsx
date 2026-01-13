@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import apiClient from "@/api";
+import { verifyPayment } from "@/api/payments";
 import { VerifyPaymentResponse } from "@/types/shipping";
 import Button from "@/components/ui/button";
 import { FiCheckCircle, FiXCircle, FiTruck, FiDownload } from "react-icons/fi";
@@ -31,10 +31,8 @@ export default function VerifyPage() {
 
     const verify = async () => {
       try {
-        const response = await apiClient.get<VerifyPaymentResponse>(
-          `/payments/verify?session_id=${sessionId}`
-        );
-        setResult(response.data);
+        const data = await verifyPayment(sessionId);
+        setResult(data);
       } catch (err: any) {
         console.error("Verification failed:", err);
         setResult({

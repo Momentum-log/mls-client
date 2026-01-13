@@ -1,48 +1,61 @@
-"use client"; // Should be client component or wrap client component
+"use client";
 
 import React from "react";
-import ProfileForm from "@/components/auth/profile-form";
+import ProfileForm from "@/components/account/ProfileForm";
+import ProfileCard from "@/components/account/ProfileCard";
+import AccountStack, { AccountCard } from "@/components/account/AccountStack";
+import VerificationBanner from "@/components/account/VerificationBanner";
+import LogoutAction from "@/components/account/LogoutAction";
+import ChangePasswordForm from "@/components/account/ChangePasswordForm";
 import { useAuthStore } from "@/store/auth-store";
-import Button from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
+/**
+ * Main Account Management page.
+ * Implements a "stack" based UI for grouped account actions.
+ */
 export default function AccountPage() {
-  const { logout, user } = useAuthStore();
-  const router = useRouter();
+  const { user } = useAuthStore();
 
-  const handleLogout = async () => {
-    await logout();
-    router.push("/login");
-  };
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue" />
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-4xl">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Account Management</h1>
-        <Button variant="outline" onClick={handleLogout}>
-          Sign Out
-        </Button>
+    <div className="container mx-auto py-8 px-4 max-w-2xl">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+          Account
+        </h1>
+        <p className="text-gray-500 mt-1">
+          Manage your profile and security settings.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
-          <div className="bg-brand-blue/5 rounded-xl p-6">
-            <h3 className="font-semibold text-brand-blue mb-2">
-              Welcome, {user?.name?.split(" ")[0]}!
-            </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Manage your profile and settings here.
-            </p>
-            <div className="bg-brand-yellow/20 inline-block px-3 py-1 rounded-full text-xs font-medium text-brand-blue">
-              {user?.is_verified ? "Verified Account" : "Unverified"}
-            </div>
-          </div>
-        </div>
+      <AccountStack>
+        {!user.is_verified && <VerificationBanner />}
 
-        <div className="md:col-span-2">
+        <ProfileCard user={user} />
+
+        <AccountCard
+          title="Personal Information"
+          description="Update your name, phone, and delivery address."
+        >
           <ProfileForm />
-        </div>
-      </div>
+        </AccountCard>
+
+        <AccountCard
+          title="Security"
+          description="Manage your password and security settings."
+        >
+          <ChangePasswordForm />
+        </AccountCard>
+
+        <LogoutAction />
+      </AccountStack>
     </div>
   );
 }

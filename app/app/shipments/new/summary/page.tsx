@@ -13,7 +13,7 @@ import {
   FiTruck,
   FiCreditCard,
 } from "react-icons/fi";
-import apiClient from "@/api";
+import { createShipment } from "@/api/shipments";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/auth-store";
 import { getPayload } from "@/app/(marketing)/shipping-estimate/utils";
@@ -95,8 +95,8 @@ export default function SummaryPage() {
         JSON.stringify(payload, null, 2)
       );
 
-      const response = await apiClient.post("/shipments", payload);
-      const { checkoutUrl, sessionId } = response.data; // Ensure backend returns sessionId if needed manually
+      const data = await createShipment(payload);
+      const { checkoutUrl, sessionId } = data; // Ensure backend returns sessionId if needed manually
 
       toast({
         title: "Shipment Created!",

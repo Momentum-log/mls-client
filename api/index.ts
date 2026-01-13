@@ -1,9 +1,12 @@
 import axios from "axios";
 
-const BASE_URL = "https://mls-server-omoq.onrender.com/api";
+const stagingURL = "https://mls-server-omoq.onrender.com/api";
+const localURL = "http://localhost:8000/api";
+
+const baseURL = process.env.NODE_ENV === "development" ? localURL : stagingURL;
 
 const apiClient = axios.create({
-  baseURL: BASE_URL,
+  baseURL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -68,7 +71,7 @@ apiClient.interceptors.response.use(
 
     // Skip refresh logic for login endpoint or if retry already attempted
     // This prevents infinite loops if login itself returns 401
-    if (originalRequest.url?.includes("/auth/login")) {
+    if (originalRequest.url?.includes("/auth/login-user")) {
       return Promise.reject(error);
     }
 
@@ -103,7 +106,7 @@ apiClient.interceptors.response.use(
 
       try {
         const response = await axios.post<RefreshResponse>(
-          `${BASE_URL}/auth/refresh`,
+          `${baseURL}/auth/refresh`,
           { refreshToken }
         );
 
