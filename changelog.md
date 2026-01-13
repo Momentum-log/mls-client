@@ -5,6 +5,30 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.0] - 2026-01-13 - Comprehensive User Authentication & Profile Flow
+
+- Added: Unified "Profile Stack" UI
+  - Implemented a card-based layout in `app/app/account/page.tsx` for grouped account actions.
+  - **ProfileCard**: Social-media style user overview with verification status.
+  - **AccountStack/AccountCard**: Scalable containers for categorizing settings.
+- Added: Enhanced Email Management
+  - **VerificationBanner**: Persistent call-to-action for unverified accounts.
+  - **VerifyEmailModal**: Pop-up code entry flow for account verification.
+  - **EmailChangeModal**: Two-step modal flow (Request -> Confirm) for secure email updates.
+- Added: Password Security Features
+  - **ChangePasswordForm**: Secure in-app password updates for authenticated users.
+  - **ForgotPasswordPage**: Unified public flow for password recovery via 6-digit codes.
+- Changed: API Client Modernization
+  - Updated `api/auth/index.ts` to fully map all endpoints from `openapi.json`.
+  - Implemented refresh token revocation in `logout` handler.
+  - Integrated project-standard `useToast` for real-time feedback on all operations.
+- **Details**:
+  - Refactored `ProfileForm` to include detailed address management.
+  - Optimized modal architecture using React Portals for consistent UI layering.
+  - Enforced strict client-side validation for all sensitive inputs.
+  - **Refinement**: Integrated `PasswordInput` with visibility toggles for all password fields.
+  - **Refinement**: Automated verification code generation upon clicking "Verify Now" in the banner.
+
 ### [1.13.0] - 2026-01-13 - API Refactoring and Dashboard Data Integration
 
 - Added: Real-time Dashboard Statistics

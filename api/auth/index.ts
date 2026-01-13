@@ -1,7 +1,6 @@
 import { LoginData, RegisterData } from "@/types/auth";
 import apiClient from "..";
 
-// register function
 /**
  * Registers a new user.
  */
@@ -17,10 +16,10 @@ export const login = (data: LoginData) => {
 };
 
 /**
- * Logouts the current user.
+ * Logouts the current user and revokes refresh token.
  */
-export const logout = () => {
-  return apiClient.post("/auth/logout-user");
+export const logout = (refreshToken: string) => {
+  return apiClient.post("/auth/logout-user", { refreshToken });
 };
 
 /**
@@ -33,6 +32,68 @@ export const getCurrentUser = () => {
 /**
  * Updates the current user's profile information.
  */
-export const updateProfile = (data: any) => {
-  return apiClient.put("/auth/update-user-profile", data);
+export const updateProfile = (data: {
+  name?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+  };
+}) => {
+  return apiClient.patch("/auth/update-user-profile", data);
+};
+
+/**
+ * Initiates an email change by sending a code to the new email.
+ */
+export const initiateEmailChange = (newEmail: string) => {
+  return apiClient.post("/auth/initiate-email-change", { newEmail });
+};
+
+/**
+ * Confirms an email change using the verification code.
+ */
+export const confirmEmailChange = (code: string) => {
+  return apiClient.post("/auth/confirm-email-change", { code });
+};
+
+/**
+ * Sends a verification code to the current email.
+ */
+export const sendVerificationCode = () => {
+  return apiClient.post("/auth/send-verification-code");
+};
+
+/**
+ * Verifies the email using the verification code.
+ */
+export const verifyEmail = (code: string) => {
+  return apiClient.post("/auth/verify-email", { code });
+};
+
+/**
+ * Changes the password for a logged-in user.
+ */
+export const changePassword = (data: {
+  oldPassword: string;
+  newPassword: string;
+}) => {
+  return apiClient.post("/auth/change-password", data);
+};
+
+/**
+ * Initiates the forgot password flow.
+ */
+export const forgotPassword = (email: string) => {
+  return apiClient.post("/auth/forgot-password", { email });
+};
+
+/**
+ * Resets the password using the reset code.
+ */
+export const resetPassword = (data: { code: string; newPassword: string }) => {
+  return apiClient.post("/auth/reset-password", data);
 };
