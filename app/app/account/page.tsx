@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import ProfileForm from "@/components/account/ProfileForm";
 import ProfileCard from "@/components/account/ProfileCard";
 import AccountStack, { AccountCard } from "@/components/account/AccountStack";
