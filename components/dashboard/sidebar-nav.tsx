@@ -21,7 +21,7 @@ import {
 const navItems = [
   { name: "Dashboard", href: "/app/dashboard", icon: FiHome },
   { name: "New Shipment", href: "/app/shipments/new", icon: FiPlusCircle },
-  { name: "Track Shipment", href: "/track", icon: FiSearch }, // Track is likely public, keeps /track
+  { name: "Track Shipment", href: "/app/track", icon: FiSearch },
   { name: "My Shipments", href: "/app/shipments", icon: FiPackage },
   { name: "Account", href: "/app/account", icon: FiSettings },
 ];

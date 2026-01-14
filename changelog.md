@@ -5,6 +5,50 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.4] - 2026-01-14 - Implementation of Track Shipment Page
+
+- Added: Dedicated Track Shipment Page (`/app/track`)
+  - Minimalist search interface for MLS tracking IDs.
+  - Enhanced empty state showing the user's latest 5 shipments from history.
+  - Interactive "Recent Shipments" buttons for quick re-tracking.
+  - Detailed shipment timeline with status cards, location markers, and event timestamps.
+  - Tailwind pulse skeleton loaders for a smooth data-fetching experience.
+- Changed: Updated Sidebar Navigation
+  - Corrected the "Track Shipment" link to point to the new internal route.
+  - Ensured active state highlighting works correctly in the sidebar.
+- **Details**:
+  - Integrated with the backend `trackShipment` and `getShipmentHistory` endpoints.
+  - Enforced authentication protection via the `app/app` directory layout.
+  - Standardized design using brand colors and icons from `react-icons/fi`.
+
+### [1.14.3] - 2026-01-14 - Copy-to-Clipboard Feature & Layout Refinement
+
+- Added: Subtle Copy-to-Clipboard Feature
+  - Created reusable `<CopyButton />` with tooltip and visual success feedback.
+  - **Enhanced Feedback**: Tooltip automatically changes to "Copied!" during the success state.
+  - Integrated copy buttons into Account page (Email, User ID) and Shipments page (Tracking Numbers).
+- Changed: Shipment History Layout Optimization
+  - Refactored the shipment list rows to use fixed-width Flexbox columns.
+  - Ensured consistent vertical alignment of status badges and action icons regardless of recipient name or tracking code length.
+- **Details**:
+  - Implemented logic to prevent parent link triggers when clicking copy buttons.
+  - Standardized the visual hierarchy on the Shipments page using `shrink-0` and `basis` utilities.
+
+### [1.14.2] - 2026-01-14 - Fix Authentication Refresh Endpoint
+
+- Fixed: Updated incorrect refresh token endpoint from `/auth/refresh` to `/auth/refresh-token` in `api/index.ts`.
+- Fixed: Resolved documentation inconsistencies in `openapi.json` regarding the refresh endpoint.
+- **Details**:
+  - This fix ensures that users who select "Remember me" during login stay authenticated as their access tokens can now be correctly refreshed.
+  - Verified that the persistence preference is correctly handled in `LoginForm.tsx` and `setTokens`.
+
+### [1.14.1] - 2026-01-14 - Fix Metadata Base Warning
+
+- Fixed: Resolved Next.js metadata warning by adding `metadataBase` to root metadata in `app/layout.tsx`.
+- **Details**:
+  - Configured `metadataBase` to use `NEXT_PUBLIC_APP_URL` environment variable with a fallback to `http://localhost:3000`.
+  - Verified fix via TypeScript compiler and local development logs.
+
 ### [1.14.0] - 2026-01-13 - Comprehensive User Authentication & Profile Flow
 
 - Added: Unified "Profile Stack" UI
