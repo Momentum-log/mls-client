@@ -5,6 +5,22 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.4] - 2026-01-14 - Implementation of Track Shipment Page
+
+- Added: Dedicated Track Shipment Page (`/app/track`)
+  - Minimalist search interface for MLS tracking IDs.
+  - Enhanced empty state showing the user's latest 5 shipments from history.
+  - Interactive "Recent Shipments" buttons for quick re-tracking.
+  - Detailed shipment timeline with status cards, location markers, and event timestamps.
+  - Tailwind pulse skeleton loaders for a smooth data-fetching experience.
+- Changed: Updated Sidebar Navigation
+  - Corrected the "Track Shipment" link to point to the new internal route.
+  - Ensured active state highlighting works correctly in the sidebar.
+- **Details**:
+  - Integrated with the backend `trackShipment` and `getShipmentHistory` endpoints.
+  - Enforced authentication protection via the `app/app` directory layout.
+  - Standardized design using brand colors and icons from `react-icons/fi`.
+
 ### [1.14.3] - 2026-01-14 - Copy-to-Clipboard Feature & Layout Refinement
 
 - Added: Subtle Copy-to-Clipboard Feature
