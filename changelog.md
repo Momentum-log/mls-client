@@ -5,6 +5,19 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.3] - 2026-01-14 - Copy-to-Clipboard Feature & Layout Refinement
+
+- Added: Subtle Copy-to-Clipboard Feature
+  - Created reusable `<CopyButton />` with tooltip and visual success feedback.
+  - **Enhanced Feedback**: Tooltip automatically changes to "Copied!" during the success state.
+  - Integrated copy buttons into Account page (Email, User ID) and Shipments page (Tracking Numbers).
+- Changed: Shipment History Layout Optimization
+  - Refactored the shipment list rows to use fixed-width Flexbox columns.
+  - Ensured consistent vertical alignment of status badges and action icons regardless of recipient name or tracking code length.
+- **Details**:
+  - Implemented logic to prevent parent link triggers when clicking copy buttons.
+  - Standardized the visual hierarchy on the Shipments page using `shrink-0` and `basis` utilities.
+
 ### [1.14.2] - 2026-01-14 - Fix Authentication Refresh Endpoint
 
 - Fixed: Updated incorrect refresh token endpoint from `/auth/refresh` to `/auth/refresh-token` in `api/index.ts`.

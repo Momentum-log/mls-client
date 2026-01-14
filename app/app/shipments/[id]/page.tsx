@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { trackShipment } from "@/api/shipments";
 import { FiBox, FiTruck, FiMapPin } from "react-icons/fi";
 import { useParams } from "next/navigation";
+import CopyButton from "@/components/ui/copy-button";
 
 export default function ShipmentDetailsPage() {
   const params = useParams();
@@ -41,7 +42,10 @@ export default function ShipmentDetailsPage() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Shipment {id}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-gray-900">Shipment {id}</h1>
+          <CopyButton text={id} tooltipText="Copy shipment ID" />
+        </div>
         <p className="text-gray-500">Real-time status updates</p>
       </div>
 
@@ -85,9 +89,12 @@ export default function ShipmentDetailsPage() {
               <FiBox /> Package Details
             </h3>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-500">Tracking Code</span>
-                <span className="font-mono">{id}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-medium">{id}</span>
+                  <CopyButton text={id} tooltipText="Copy code" />
+                </div>
               </div>
               {/* Mocked extra details since tracking API might not return dims/weight */}
               <div className="flex justify-between">

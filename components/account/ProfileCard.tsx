@@ -2,6 +2,7 @@
 
 import React from "react";
 import { User } from "@/types/auth";
+import CopyButton from "@/components/ui/copy-button";
 
 interface ProfileCardProps {
   user: User;
@@ -22,7 +23,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-1">{user.name}</h2>
-        <p className="text-sm text-gray-500 mb-6">{user.email}</p>
+        <div className="flex items-center gap-2 mb-6">
+          <p className="text-sm text-gray-500">{user.email}</p>
+          <CopyButton text={user.email} tooltipText="Copy email" />
+        </div>
 
         <div className="flex gap-4 w-full">
           <div className="flex-1 bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
@@ -41,9 +45,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {
             <span className="block text-[10px] text-gray-500 uppercase font-black tracking-wider mb-1">
               User ID
             </span>
-            <span className="text-sm font-bold text-gray-900">
-              {user.userCode}
-            </span>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="text-sm font-bold text-gray-900">
+                {user.userCode}
+              </span>
+              <CopyButton text={user.userCode} tooltipText="Copy User ID" />
+            </div>
           </div>
         </div>
       </div>

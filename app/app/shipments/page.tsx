@@ -6,6 +6,7 @@ import { FiPackage, FiChevronRight } from "react-icons/fi";
 import Button from "@/components/ui/button";
 import { useGetShipmentHistory } from "@/hooks/shipments/use-shipments";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
+import CopyButton from "@/components/ui/copy-button";
 
 export default function ShipmentHistoryPage() {
   const { data: shipments, isLoading, error } = useGetShipmentHistory();
@@ -47,16 +48,17 @@ export default function ShipmentHistoryPage() {
                 href={`/app/shipments/${shipment.id}`}
                 className="block hover:bg-gray-50 transition-colors"
               >
-                <div className="p-6 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-brand-blue/10 rounded-lg text-brand-blue">
+                <div className="p-6 flex items-center gap-6">
+                  {/* Column 1: Package Info (Main Content) */}
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="p-3 bg-brand-blue/10 rounded-lg text-brand-blue shrink-0">
                       <FiPackage className="w-6 h-6" />
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900">
+                    <div className="min-w-0">
+                      <p className="font-bold text-gray-900 truncate">
                         {getShipmentDisplayName(shipment)}
                       </p>
-                      <p className="text-xs text-gray-500 font-medium capitalize">
+                      <p className="text-xs text-gray-500 font-medium capitalize truncate">
                         {new Date(shipment.createdAt).toLocaleDateString(
                           "en-GB",
                           {
@@ -71,26 +73,36 @@ export default function ShipmentHistoryPage() {
                     </div>
                   </div>
 
-                  <div className="hidden md:block">
-                    <p className="text-sm font-medium text-gray-900">
+                  {/* Column 2: Tracking (Fixed Width) */}
+                  <div className="hidden lg:block w-64 shrink-0 border-l border-gray-50 pl-6">
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider mb-1">
                       {shipment.carrierName} Shipment
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Tracking: {shipment.customTrackingNumber || "N/A"}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-gray-900 truncate">
+                        {shipment.customTrackingNumber || "N/A"}
+                      </p>
+                      {shipment.customTrackingNumber && (
+                        <CopyButton
+                          text={shipment.customTrackingNumber}
+                          tooltipText="Copy Tracking #"
+                        />
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  {/* Column 3: Status & Action (Fixed Width) */}
+                  <div className="flex items-center gap-4 w-40 shrink-0 justify-end">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${
                         shipment.shipmentStatus === "DELIVERED"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
+                          ? "bg-green-100 text-green-700 font-bold"
+                          : "bg-blue-100 text-blue-700 font-bold"
                       }`}
                     >
                       {formatStatus(shipment.shipmentStatus)}
                     </span>
-                    <FiChevronRight className="text-gray-400" />
+                    <FiChevronRight className="text-gray-400 shrink-0" />
                   </div>
                 </div>
               </Link>
