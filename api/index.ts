@@ -106,7 +106,7 @@ apiClient.interceptors.response.use(
 
       try {
         const response = await axios.post<RefreshResponse>(
-          `${baseURL}/auth/refresh`,
+          `${baseURL}/auth/refresh-token`,
           { refreshToken }
         );
 
