@@ -5,6 +5,13 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.1] - 2026-01-14 - Fix Metadata Base Warning
+
+- Fixed: Resolved Next.js metadata warning by adding `metadataBase` to root metadata in `app/layout.tsx`.
+- **Details**:
+  - Configured `metadataBase` to use `NEXT_PUBLIC_APP_URL` environment variable with a fallback to `http://localhost:3000`.
+  - Verified fix via TypeScript compiler and local development logs.
+
 ### [1.14.0] - 2026-01-13 - Comprehensive User Authentication & Profile Flow
 
 - Added: Unified "Profile Stack" UI

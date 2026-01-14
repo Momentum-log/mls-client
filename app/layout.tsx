@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+  ),
   title: "Momentum Logistics - Fast & Reliable Logistics Services",
   description:
     "Momentum Logistics provides fast and reliable logistics services. Ship packages, track deliveries, and manage your logistics needs with ease. From local to international shipping, we&apos;ve got you covered",
