@@ -5,6 +5,26 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.5] - 2026-01-15 - Tracking Page Enhancement & Code Refactor
+
+- Added: Modular Tracking Components
+  - `TrackingSearch`: Unified search input and logic.
+  - `TrackingOverview`: High-level status and tracking number display.
+  - `TrackingDetails`: Consolidates drop-off and package content info.
+  - `TrackingTimelineView`: Efficient timeline rendering with Top 2 + Gap + Bottom 1 logic.
+  - `RecentShipments`: Cleaned up history buttons for the empty state.
+- Changed: Enhanced Date & Time Formatting
+  - Strictly following user requirement: `"15 may, 2026, 09:29pm"`.
+  - Integrated year into all tracking dates.
+  - Standardized 12-hour time format with lowercase am/pm.
+- Changed: Refactored Tracking Page Architecture
+  - Cleaned up `/app/track/page.tsx` to be more readable and efficient.
+  - Strictly using `TrackingResponse` interface as the data source.
+  - Added comprehensive comments and JSDoc documentation.
+- **Details**:
+  - Optimized timeline sorting and filtering logic.
+  - Improved error handling and loading states with consistent UI feedback.
+
 ### [1.14.4] - 2026-01-14 - Implementation of Track Shipment Page
 
 - Added: Dedicated Track Shipment Page (`/app/track`)

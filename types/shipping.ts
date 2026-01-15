@@ -13,35 +13,44 @@ export interface ShippingRate {
 export interface ShippingEstimate {
   estimateId: string;
   rates: ShippingRate[];
-  errors: any[]; // Define more specifically if needed
+  errors: unknown[]; // Define more specifically if needed
   guestId?: string;
   createdAt?: string;
 }
 
-export interface Address {
-  streetLines: string[];
-  city: string;
-  stateOrProvinceCode: string;
-  postalCode: string;
-  countryCode: string;
-  residential?: boolean;
-  contact?: {
-    personName: string;
-    phoneNumber: string;
-    companyName?: string;
-  };
+// 1. Helper Interfaces for nested structures
+export interface Contact {
+  personName: string;
+  companyName: string;
+  phoneNumber: string;
 }
 
-interface Weight {
-  units: string;
+export interface Address {
+  city: string;
+  contact: Contact;
+  postalCode: string;
+  countryCode: string;
+  residential: boolean;
+  streetLines: string[];
+  stateOrProvinceCode: string;
+}
+
+export interface Weight {
+  units: string; // e.g., "KG", "LB"
   value: number;
 }
 
-interface Dimensions {
-  length: number;
+export interface Dimensions {
+  units: string; // e.g., "CM", "IN"
   width: number;
   height: number;
-  units: string;
+  length: number;
+}
+
+export interface Customs {
+  currency: string;
+  declaredValue: number;
+  contentsDescription: string;
 }
 
 interface PackageDetails {
@@ -184,14 +193,6 @@ export interface ShippingEstimateResponse {
   guestId: string;
 }
 
-// --- Strict Shipment Types ---
-
-export interface CustomsInfo {
-  declaredValue: number;
-  contentsDescription: string;
-  currency: string; // e.g., "USD"
-}
-
 /**
  * Use this for Local Shipments (e.g. PL to PL).
  * 'customs' is strictly optional (and usually not needed).
@@ -215,7 +216,7 @@ export interface InternationalShipmentPayload {
   dropoffAddress: Address;
   package: PackageDetails;
   rate: Rate;
-  customs: CustomsInfo; // <--- Mandatory
+  customs: Customs; // <--- Mandatory
 }
 
 // Union type helper if you need to handle both generically
@@ -234,36 +235,87 @@ export interface VerifyPaymentResponse {
   message?: string;
 }
 
-export interface Shipment {
+export interface TrackingTimeline {
+  timestamp: string;
+  date?: string; // Fallback
+  status: string;
+  statusDescription?: string;
+  description?: string; // Fallback
+  location?: string;
+}
+
+export interface TrackingResponse {
+  trackingNumber: string;
+  carrier: string;
+  status: string;
+  timeline: TrackingTimeline[];
+  shipment: Shipment;
+}
+
+export interface CarrierInfo {
   id: string;
-  userId: string;
-  carrierName: string;
-  shipmentStatus: string;
-  paymentStatus: string;
-  actualPrice: number;
-  currency: string;
-  labelUrl: string | null;
-  trackingNumber: string | null;
-  customTrackingNumber: string | null;
-  carrierTrackingNumber: string | null;
+  name: string;
+  commissionPercentage: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  // Optional display fields often returned by refined API
-  description?: string;
-  origin?: string;
-  destination?: string;
-  recipientName?: string;
-  pickupAddress?: Address;
-  dropoffAddress?: Address;
-  // Nested objects if needed for details
-  recipient?: any;
+  apiKey?: string | null;
+  apiSecret?: string | null;
+  baseUrl?: string | null;
+}
 
-  originData?: any; // Renamed to avoid conflict with 'origin' string if needed
-  destinationData?: any; // Renamed to avoid conflict with 'destination' string if needed
+// Dependent interfaces (Address, Contact, etc.) remain the same...
+
+export interface Shipment {
+  // --- Core Identifiers ---
+  id: string;
+  userId: string;
+  carrierId: string;
+
+  // --- Tracking ---
+  customTrackingNumber: string | null;
+  carrierTrackingNumber: string | null;
+
+  // --- Status & Service ---
+  shipmentStatus: "IN_TRANSIT" | "DELIVERED" | "PENDING" | "EXCEPTION" | string;
+  paymentStatus: "PAID" | "UNPAID" | "REFUNDED" | string;
+  serviceType: string;
+  serviceName: string;
+  labelUrl: string | null;
+
+  // --- Financials ---
+  currency: string;
+  carrierPrice: number;
+  actualPrice: number;
+
+  // --- Physical Specs ---
+  weight: Weight;
+  dimensions: Dimensions;
+  customs?: Customs;
+
+  // --- Logistics ---
+  pickupAddress: Address;
+  dropoffAddress: Address;
+  carrier: CarrierInfo;
+
+  // --- Timestamps ---
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ShipmentStats {
   totalSpent: number;
   totalShipments: number;
   currency: string;
+}
+
+export interface ShipmentDataResponse extends Shipment {
+  tracking: {
+    trackingNumber: string;
+    lastUpdated: string;
+    estimatedDeliveryDate: string;
+    carrier: string;
+    status: string;
+    timeline: TrackingTimeline[];
+  };
 }

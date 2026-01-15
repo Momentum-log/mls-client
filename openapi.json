@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "/api"
+      "url": "http://localhost:8000/api"
     }
   ],
   "components": {
@@ -216,7 +216,7 @@
     "/auth/login-user": {
       "post": {
         "tags": ["Auth"],
-        "description": "\n### User Login\n**Frontend Usage Guide:**\nAuthenticates a user and issues JWT tokens.\n\n**Token Management (CRITICAL):**\n1. **Access Token** (`accessToken`): Short-lived (e.g., 15 mins). Use this in the `Authorization: Bearer <token>` header for all requests.\n2. **Refresh Token** (`refreshToken`): Long-lived (e.g., 7 days). Store this securely (e.g., HTTPOnly cookie or secure storage). \n\n**Auto-Refresh Logic:**\n- Frontend should intercept 401 errors.\n- If 401 received, call `/auth/refresh-token` with the `refreshToken`.\n- If refresh success, retry the original failed request with the new `accessToken`.\n- If refresh fails, log the user out.\n",
+        "description": "\n### User Login\n**Frontend Usage Guide:**\nAuthenticates a user and issues JWT tokens.\n\n**Token Management (CRITICAL):**\n1. **Access Token** (`accessToken`): Short-lived (e.g., 15 mins). Use this in the `Authorization: Bearer <token>` header for all requests.\n2. **Refresh Token** (`refreshToken`): Long-lived (e.g., 7 days). Store this securely (e.g., HTTPOnly cookie or secure storage). \n\n**Auto-Refresh Logic:**\n- Frontend should intercept 401 errors.\n- If 401 received, call `/auth/refresh` with the `refreshToken`.\n- If refresh success, retry the original failed request with the new `accessToken`.\n- If refresh fails, log the user out.\n",
         "summary": "Login User",
         "requestBody": {
           "content": {
@@ -2283,6 +2283,53 @@
         }
       }
     },
+    "/get-shipment/{id}": {
+      "get": {
+        "description": "\n### Get Single Shipment\n**Frontend Usage Guide:**\nRetrieves full details of a shipment combined with its live tracking status.\n\n**Identifiers:**\n- Can accept **Database ID** (UUID).\n- Can accept **Custom Tracking Number** (starts with `MLS-TRK-`).\n",
+        "summary": "Get Shipment Details",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Shipment UUID or MLS Custom Tracking Number",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shipment details with tracking",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "customTrackingNumber": {
+                      "type": "string"
+                    },
+                    "shipmentStatus": {
+                      "type": "string"
+                    },
+                    "tracking": {
+                      "nullable": true
+                    }
+                  },
+                  "required": ["id", "customTrackingNumber", "shipmentStatus"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    },
     "/get-shipment-history": {
       "get": {
         "description": "Retrieve all shipments for the authenticated user (history).",
@@ -2414,21 +2461,6 @@
                       },
                       "residential": {
                         "type": "boolean"
-                      },
-                      "contact": {
-                        "type": "object",
-                        "properties": {
-                          "personName": {
-                            "type": "string"
-                          },
-                          "phoneNumber": {
-                            "type": "string"
-                          },
-                          "companyName": {
-                            "type": "string"
-                          }
-                        },
-                        "required": ["personName", "phoneNumber"]
                       }
                     },
                     "required": [
@@ -2436,8 +2468,7 @@
                       "city",
                       "postalCode",
                       "countryCode",
-                      "residential",
-                      "contact"
+                      "residential"
                     ]
                   },
                   "dropoff": {
@@ -2465,21 +2496,6 @@
                       },
                       "residential": {
                         "type": "boolean"
-                      },
-                      "contact": {
-                        "type": "object",
-                        "properties": {
-                          "personName": {
-                            "type": "string"
-                          },
-                          "phoneNumber": {
-                            "type": "string"
-                          },
-                          "companyName": {
-                            "type": "string"
-                          }
-                        },
-                        "required": ["personName", "phoneNumber"]
                       }
                     },
                     "required": [
@@ -2487,8 +2503,7 @@
                       "city",
                       "postalCode",
                       "countryCode",
-                      "residential",
-                      "contact"
+                      "residential"
                     ]
                   },
                   "package": {
