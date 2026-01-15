@@ -13,7 +13,35 @@ interface TrackingDetailsProps {
  */
 const TrackingDetails: React.FC<TrackingDetailsProps> = ({ shipment }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-2">
+      {/* Pickup Info */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-gray-900 font-bold">
+          <FiMapPin className="text-brand-blue/60" />
+          <h3>Pickup Information</h3>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          {shipment.pickupAddress ? (
+            <>
+              <p className="font-bold text-gray-900 mb-1">
+                {shipment.pickupAddress.contact?.personName || "Sender"}
+              </p>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                {shipment.pickupAddress.streetLines?.[0]}
+                <br />
+                {shipment.pickupAddress.city},{" "}
+                {shipment.pickupAddress.stateOrProvinceCode}{" "}
+                {shipment.pickupAddress.postalCode}
+                <br />
+                {shipment.pickupAddress.countryCode}
+              </p>
+            </>
+          ) : (
+            <p className="text-gray-400 italic">Pickup details unavailable</p>
+          )}
+        </div>
+      </div>
+
       {/* Drop-off Info */}
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-gray-900 font-bold">

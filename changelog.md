@@ -5,6 +5,23 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.14.6] - 2026-01-16 - Shipment Detail Page Fix & Type Safety Improvements
+
+- Changed: Shipment Details Page Architecture
+  - Migrated `app/app/shipments/[id]/page.tsx` to use the `useGetShipment` hook for unified data fetching.
+  - Integrated modular tracking components: `TrackingOverview`, `TrackingDetails`, and `TrackingTimelineView`.
+  - **Enhanced**: Now displays the **full tracking timeline** rather than a truncated view on the details page.
+  - **Enhanced**: Added **Pickup Information** (Origin) to the tracking details view for a 360-degree journey overview.
+  - Applied `deepTransformData` for consistent "MLS" branding across all shipment details.
+- Fixed: Application-Wide Type Checking
+  - Resolved multiple property errors in `utils/shipment-helper.ts` relating to the `Shipment` interface.
+  - Fixed incorrect property usage in `app/app/dashboard/page.tsx` (`trackingNumber` -> `carrierTrackingNumber`).
+  - Added mandatory `contact` property to all `Address` objects in `ServicePage` and `ShippingEstimatePage`.
+- **Details**:
+  - Improved the visual hierarchy of the shipment detail page with a clean sidebar for physical specifications.
+  - Ensured all addresses in the shipping flow now include required contact metadata.
+  - Verified full type safety of the client application with `bunx tsc --noEmit`.
+
 ### [1.14.5] - 2026-01-15 - Tracking Page Enhancement & Code Refactor
 
 - Added: Modular Tracking Components

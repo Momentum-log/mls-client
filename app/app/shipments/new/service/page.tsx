@@ -65,16 +65,26 @@ export default function ServicePage() {
         countryCode: sender.country,
         streetLines: [sender.street],
         city: sender.city,
-        residential: false, // Default or add to form
-        stateOrProvinceCode: "", // Add if collected
+        residential: false,
+        stateOrProvinceCode: sender.stateOrProvinceCode || "",
+        contact: {
+          personName: sender.name,
+          companyName: sender.company || "",
+          phoneNumber: sender.phone,
+        },
       },
       dropoff: {
         postalCode: recipient.postalCode,
         countryCode: recipient.country,
         streetLines: [recipient.street],
         city: recipient.city,
-        residential: true, // Default or add to form
-        stateOrProvinceCode: "", // Add if collected
+        residential: true,
+        stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+        contact: {
+          personName: recipient.name,
+          companyName: recipient.company || "",
+          phoneNumber: recipient.phone,
+        },
       },
       package: {
         weight: {

@@ -10,14 +10,16 @@ import {
 
 interface TrackingTimelineProps {
   trackingResponse: TrackingResponse;
+  showFull?: boolean;
 }
 
 /**
  * TrackingTimelineView Component
- * Renders a truncated timeline with efficient sorting and display logic.
+ * Renders a timeline with optional truncation and sorting logic.
  */
 const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
   trackingResponse,
+  showFull = false,
 }) => {
   const router = useRouter();
   const { timeline, shipment } = trackingResponse;
@@ -39,7 +41,7 @@ const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
   );
 
   const totalEvents = sortedEvents.length;
-  const showGap = totalEvents > 3;
+  const showGap = !showFull && totalEvents > 3;
 
   // Prepare display events: [Latest, Second Latest, ...Gap..., Earliest]
   const displayEvents: (TrackingTimeline | { isGap: true })[] = [];

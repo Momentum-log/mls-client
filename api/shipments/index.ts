@@ -1,6 +1,10 @@
 import { AxiosResponse } from "axios";
 import apiClient from "..";
-import { ShippingEstimatePayload, TrackingResponse } from "@/types/shipping";
+import {
+  GetShipmentResponse,
+  ShippingEstimatePayload,
+  TrackingResponse,
+} from "@/types/shipping";
 
 /**
  * Calculates shipping rates for a given package and route.
@@ -20,7 +24,9 @@ export const getShippingEstimate = async (payload: ShippingEstimatePayload) => {
  * @param id - Shipment ID.
  */
 export const getShipment = async (id: string) => {
-  const response = await apiClient.get(`/shipments/get-shipment/${id}`);
+  const response = await apiClient.get<GetShipmentResponse>(
+    `/shipments/get-shipment/${id}`
+  );
   return response.data;
 };
 

@@ -307,7 +307,7 @@ export interface ShipmentStats {
   currency: string;
 }
 
-export interface ShipmentDataResponse extends Shipment {
+export interface GetShipmentResponse extends Shipment {
   tracking: {
     trackingNumber: string;
     lastUpdate: string;

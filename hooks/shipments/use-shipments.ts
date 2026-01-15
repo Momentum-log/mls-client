@@ -12,6 +12,7 @@ import {
   ShippingEstimateResponse,
   Shipment,
   ShipmentStats,
+  GetShipmentResponse,
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
@@ -60,7 +61,7 @@ export const useGetShipmentHistory = () => {
  * Hook to fetch a specific shipment.
  */
 export const useGetShipment = (trackingNumber: string) => {
-  return useQuery({
+  return useQuery<GetShipmentResponse, Error>({
     queryKey: ["shipment", trackingNumber],
     queryFn: () => getShipment(trackingNumber),
     enabled: !!trackingNumber.trim(),

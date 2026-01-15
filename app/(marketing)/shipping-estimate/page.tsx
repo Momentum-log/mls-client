@@ -118,6 +118,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street || "Main St"],
                 stateOrProvinceCode: details.state || "XX", // Use defined state or XX fallback
                 residential: false,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         } else {
@@ -132,6 +137,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street],
                 stateOrProvinceCode: details.state,
                 residential: values.isStackable,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         }
@@ -149,6 +159,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street || "Main St"],
                 stateOrProvinceCode: details.state || "XX",
                 residential: false,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         } else {
@@ -163,6 +178,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street],
                 stateOrProvinceCode: details.state,
                 residential: false,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         }
