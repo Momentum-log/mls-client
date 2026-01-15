@@ -236,12 +236,10 @@ export interface VerifyPaymentResponse {
 }
 
 export interface TrackingTimeline {
-  timestamp: string;
-  date?: string; // Fallback
+  date: string;
   status: string;
-  statusDescription?: string;
-  description?: string; // Fallback
-  location?: string;
+  description: string;
+  location: string;
 }
 
 export interface TrackingResponse {
@@ -312,9 +310,8 @@ export interface ShipmentStats {
 export interface ShipmentDataResponse extends Shipment {
   tracking: {
     trackingNumber: string;
-    lastUpdated: string;
-    estimatedDeliveryDate: string;
-    carrier: string;
+    lastUpdate: string;
+    estimatedDelivery: string;
     status: string;
     timeline: TrackingTimeline[];
   };

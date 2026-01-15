@@ -35,9 +35,7 @@ const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
 
   // Sort events by date descending (Newest first)
   const sortedEvents = [...timeline].sort(
-    (a, b) =>
-      new Date(b.timestamp || b.date || 0).getTime() -
-      new Date(a.timestamp || a.date || 0).getTime()
+    (a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
   );
 
   const totalEvents = sortedEvents.length;
@@ -101,7 +99,7 @@ const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
                     {event.status}
                   </p>
                   <p className="text-gray-400 text-sm mt-0.5 font-medium leading-relaxed">
-                    {event.statusDescription || event.description}
+                    {event.description}
                   </p>
                   <p className="text-gray-400 text-xs flex items-center gap-1.5 mt-2">
                     <FiMapPin className="w-3 h-3 shrink-0" />
@@ -112,10 +110,10 @@ const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
                 </div>
                 <div className="shrink-0 text-left md:text-right pt-1 md:pt-0">
                   <p className="text-sm font-bold text-gray-900 capitalize">
-                    {formatTrackingDate(event.timestamp || event.date)}
+                    {formatTrackingDate(event.date)}
                   </p>
                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
-                    {formatTrackingTime(event.timestamp || event.date)}
+                    {formatTrackingTime(event.date)}
                   </p>
                 </div>
               </div>
