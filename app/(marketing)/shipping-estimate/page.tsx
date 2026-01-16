@@ -234,6 +234,11 @@ export default function ShippingEstimatePage() {
               units: "CM",
             },
           },
+          customs: {
+            currency: "USD",
+            declaredValue: 50,
+            contentsDescription: "General Merchandise",
+          },
           guestId: getOrSetGuestId(),
         };
 

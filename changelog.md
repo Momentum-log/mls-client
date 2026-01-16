@@ -5,6 +5,33 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.15.0] - 2026-01-16 - Quick Shipment Page Redesign
+
+- Added: Single-Page Stacked Layout
+  - Replaced multi-page navigation with a vertically stacked section design.
+  - Interactive **Vertical Timeline** for progress tracking and section navigation.
+  - **Summary Drawer**: Side/bottom drawer for final review before shipment creation.
+  - Sequential section loading: steps reveal only as previous data is validated.
+- Added: Package Details Enhancements
+  - **Declared Value**: New field for insurance and customs purposes.
+  - Refined **Content Description**: Full-width input with proper labeling.
+  - **Label Separation**: Weight and Declared Value now have dedicated labels and columns.
+- Fixed: Rate Calculation & Compatibility
+  - Corrected `ShippingEstimatePayload` structure to include required `customs` field.
+  - Standardized system currency to **USD** for custom shipping flows.
+  - Resolved build error in `NewShipmentPage` related to payload syntax.
+  - Restored missing `ServiceSelection` and `SummaryDrawer` components.
+- Changed: Terminology & Styling
+  - Updated "Origin/Destination" to "Pick-up Details" and "Drop-off Details".
+  - Integrated "Get a Quote" design patterns (double-fitting selectors, high-contrast inputs).
+- Added: Navigation & Persistence Safety
+  - **Unsaved Changes Notice**: On-page alert and `beforeunload` dialog to prevent data loss.
+  - Selective persistence: Form state clears automatically upon navigation or completion.
+- **Details**:
+  - Implemented `StackedSection` and `VerticalTimeline` modular components.
+  - Refactored `useShipmentStore` to manage multi-step state within a single page.
+  - Ensured mobile responsiveness with sticky headers and adaptive drawer positioning.
+
 ### [1.14.6] - 2026-01-16 - Shipment Detail Page Fix & Type Safety Improvements
 
 - Changed: Shipment Details Page Architecture

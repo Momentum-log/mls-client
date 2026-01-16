@@ -98,6 +98,11 @@ export default function ServicePage() {
           units: "CM",
         },
       },
+      customs: {
+        currency: packages[0].currency || "USD",
+        declaredValue: packages[0].value || 0,
+        contentsDescription: packages[0].description || "",
+      },
       guestId: getOrSetGuestId(), // Provide a valid ID or fetch guest ID
     };
 

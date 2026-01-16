@@ -38,6 +38,7 @@ export default function DestinationPage() {
       </div>
 
       <AddressForm
+        type="dropoff"
         initialValues={recipient}
         onSubmit={handleSubmit}
         onBack={handleBack}

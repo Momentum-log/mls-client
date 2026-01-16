@@ -53,7 +53,7 @@ export interface Customs {
   contentsDescription: string;
 }
 
-interface PackageDetails {
+export interface PackageDetails {
   weight: Weight;
   dimensions: Dimensions;
 }
@@ -62,11 +62,7 @@ export interface ShippingEstimatePayload {
   pickup: Address;
   dropoff: Address;
   package: PackageDetails;
-  packagingType?:
-    | "YOUR_PACKAGING"
-    | "FEDEX_ENVELOPE"
-    | "FEDEX_BOX"
-    | "FEDEX_TUBE";
+  customs: Customs;
   guestId: string;
 }
 

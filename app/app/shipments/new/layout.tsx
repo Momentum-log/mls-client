@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Stepper from "@/components/shipment/stepper";
 
 export default function NewShipmentLayout({
   children,
@@ -9,23 +8,18 @@ export default function NewShipmentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4">
-      <div className="mb-8 text-center space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900 font-serif">
-          Create New Shipment
+    <div className="max-w-6xl mx-auto py-8 px-4 md:py-12">
+      <div className="mb-12 text-center space-y-3">
+        <h1 className="text-3xl md:text-4xl font-black text-gray-900 font-work-sans">
+          Create New <span className="text-brand-blue">Shipment</span>
         </h1>
-        <p className="text-gray-500 max-w-lg mx-auto">
-          Follow the steps below to book your shipment.
+        <p className="text-gray-500 max-w-xl mx-auto text-lg">
+          Complete the details below to book your shipment. Your progress is
+          tracked in real-time.
         </p>
       </div>
 
-      <div className="mb-12">
-        <Stepper />
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 min-h-[400px]">
-        {children}
-      </div>
+      <div>{children}</div>
     </div>
   );
 }
