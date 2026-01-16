@@ -15,6 +15,7 @@ interface SummaryDrawerProps {
   pkg: Package | null;
   rate: Rate | null;
   onFinalize: () => void;
+  isLoading?: boolean;
 }
 
 /**
@@ -29,6 +30,7 @@ export default function SummaryDrawer({
   pkg,
   rate,
   onFinalize,
+  isLoading,
 }: SummaryDrawerProps) {
   return (
     <AnimatePresence>
@@ -189,6 +191,8 @@ export default function SummaryDrawer({
                 size="lg"
                 className="w-full h-14 rounded-2xl text-lg font-black shadow-xl shadow-brand-blue/20"
                 onClick={onFinalize}
+                isLoading={isLoading}
+                disabled={isLoading}
               >
                 Create Shipment <FiCheck className="ml-2" />
               </Button>

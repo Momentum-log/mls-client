@@ -13,19 +13,6 @@ export default function LoginPage() {
       {/* Left: Form Section */}
       <div className="flex flex-col justify-center px-4 sm:px-6 lg:px-20 xl:px-24 bg-white py-12 lg:py-0">
         <div className="w-full max-w-sm mx-auto lg:w-96 space-y-8">
-          <div className="lg:hidden mb-8">
-            <Link href="/">
-              <div className="relative w-32 h-10">
-                <Image
-                  src={logoLandscape}
-                  alt="Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-          </div>
-
           <div className="text-center lg:text-left">
             <h1 className="text-3xl font-black font-work-sans tracking-tight text-gray-900">
               Welcome Back

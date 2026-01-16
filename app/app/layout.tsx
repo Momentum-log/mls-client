@@ -3,27 +3,29 @@
 import React, { useState, useEffect } from "react";
 
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
+import { MobileHeader } from "@/components/layout/mobile-header";
 import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/utils/auth-helper";
+import { cn } from "@/utils/cn";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, updateUser } = useAuthStore();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
       const token = getAccessToken();
       if (!token) {
-        router.push("/login"); // This will now go to /login (marketing)
+        router.push("/login");
         setIsLoading(false);
         return;
       }
 
       if (!user) {
         try {
-          // Manually check auth if user is not in store but token exists
           const { getCurrentUser } = await import("@/api/auth");
           const response = await getCurrentUser();
           updateUser(response.data.user);
@@ -38,6 +40,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     initAuth();
   }, [user, router, updateUser]);
 
+  // Handle body scroll lock
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isMobileMenuOpen]);
+
   if (isLoading && !user) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -47,12 +61,37 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="w-64 hidden md:block h-full fixed inset-y-0 z-50">
-        <SidebarNav />
-      </div>
-      <main className="md:pl-64 flex-1 h-full overflow-y-auto">
-        <div className="p-8">{children}</div>
+    <div className="flex flex-col md:flex-row h-screen bg-white">
+      {/* Mobile Header */}
+      <MobileHeader
+        isOpen={isMobileMenuOpen}
+        onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      />
+
+      {/* Desktop Sidebar & Mobile Sidebar Overlay */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out bg-white md:translate-x-0 md:static md:inset-0",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <SidebarNav
+          onClose={() => setIsMobileMenuOpen(false)}
+          className="h-full"
+        />
+      </aside>
+
+      {/* Backdrop for mobile */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Main Content Area */}
+      <main className="flex-1 h-full overflow-y-auto bg-gray-50 transition-all duration-300 shadow-inner">
+        <div className="px-2 py-8 md:p-8">{children}</div>
       </main>
     </div>
   );

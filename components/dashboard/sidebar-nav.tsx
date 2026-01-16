@@ -16,6 +16,7 @@ import {
   FiLogOut,
   FiPlusCircle,
   FiSearch,
+  FiX,
 } from "react-icons/fi";
 
 const navItems = [
@@ -26,14 +27,24 @@ const navItems = [
   { name: "Account", href: "/app/account", icon: FiSettings },
 ];
 
-export function SidebarNav() {
+interface SidebarNavProps {
+  onClose?: () => void;
+  className?: string;
+}
+
+export function SidebarNav({ onClose, className }: SidebarNavProps) {
   const pathname = usePathname();
   const { logout } = useAuthStore();
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
-      <div className="p-6 border-b border-gray-100 flex items-center justify-center">
-        <Link href="/app/dashboard">
+    <div
+      className={cn(
+        "flex flex-col h-full bg-white border-r border-gray-200 shadow-xl md:shadow-none",
+        className
+      )}
+    >
+      <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <Link href="/app/dashboard" onClick={onClose}>
           <div className="relative w-32 h-8">
             <Image
               src={logoLandscape}
@@ -43,6 +54,14 @@ export function SidebarNav() {
             />
           </div>
         </Link>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <FiX className="w-6 h-6" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
@@ -66,6 +85,7 @@ export function SidebarNav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                 isActive
