@@ -74,6 +74,11 @@ interface ShipmentState {
   removePackage: (id: string) => void;
 
   /**
+   * Updates a package by ID without triggering completion logic in observers.
+   */
+  updatePackage: (pkg: Package) => void;
+
+  /**
    * Sets the selected shipping rate/service.
    */
   setSelectedRate: (rate: any) => void;
@@ -123,11 +128,29 @@ export const useShipmentStore = create<ShipmentState>()(
       setRecipient: (recipient) => set({ recipient }),
       setPackages: (packages) => set({ packages }),
       addPackage: (pkg) =>
-        set((state) => ({ packages: [...state.packages, pkg] })),
+        set((state) => {
+          const index = state.packages.findIndex((p) => p.id === pkg.id);
+          if (index !== -1) {
+            const newPackages = [...state.packages];
+            newPackages[index] = pkg;
+            return { packages: newPackages };
+          }
+          return { packages: [...state.packages, pkg] };
+        }),
       removePackage: (id) =>
         set((state) => ({
           packages: state.packages.filter((p) => p.id !== id),
         })),
+      updatePackage: (pkg) =>
+        set((state) => {
+          const index = state.packages.findIndex((p) => p.id === pkg.id);
+          if (index !== -1) {
+            const newPackages = [...state.packages];
+            newPackages[index] = pkg;
+            return { packages: newPackages };
+          }
+          return { packages: [...state.packages, pkg] };
+        }),
       setSelectedRate: (rate) => set({ selectedRate: rate }),
       setStep: (step) => set({ currentStep: step }),
       setExpandedSection: (sectionId) => set({ expandedSection: sectionId }),

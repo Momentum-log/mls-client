@@ -15,6 +15,7 @@ import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
 import { ShippingEstimatePayload, Rate } from "@/types/shipping";
 import { v4 as uuidv4 } from "uuid";
 import { getOrSetGuestId } from "@/utils/auth-helper";
+import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 
 export default function ServicePage() {
   const router = useRouter();
@@ -59,34 +60,24 @@ export default function ServicePage() {
     if (!sender || !recipient || packages.length === 0) return;
 
     // Construct valid payload matching ShippingEstimatePayload interface
-    const payload: ShippingEstimatePayload = {
-      pickup: {
+    const payload = getEstimatePayload(
+      {
         postalCode: sender.postalCode,
         countryCode: sender.country,
         streetLines: [sender.street],
         city: sender.city,
         residential: false,
         stateOrProvinceCode: sender.stateOrProvinceCode || "",
-        contact: {
-          personName: sender.name,
-          companyName: sender.company || "",
-          phoneNumber: sender.phone,
-        },
       },
-      dropoff: {
+      {
         postalCode: recipient.postalCode,
         countryCode: recipient.country,
         streetLines: [recipient.street],
         city: recipient.city,
         residential: true,
         stateOrProvinceCode: recipient.stateOrProvinceCode || "",
-        contact: {
-          personName: recipient.name,
-          companyName: recipient.company || "",
-          phoneNumber: recipient.phone,
-        },
       },
-      package: {
+      {
         weight: {
           units: "KG",
           value: Number(packages[0].weight),
@@ -98,13 +89,8 @@ export default function ServicePage() {
           units: "CM",
         },
       },
-      customs: {
-        currency: packages[0].currency || "USD",
-        declaredValue: packages[0].value || 0,
-        contentsDescription: packages[0].description || "",
-      },
-      guestId: getOrSetGuestId(), // Provide a valid ID or fetch guest ID
-    };
+      getOrSetGuestId()
+    );
 
     console.log("Fetching rates payload:", JSON.stringify(payload, null, 2));
 

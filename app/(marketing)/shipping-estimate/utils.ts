@@ -93,30 +93,82 @@ import {
   CreateShipmentPayload,
   LocalShipmentPayload,
   InternationalShipmentPayload,
+  ShippingEstimatePayload,
 } from "@/types/shipping";
 
+/**
+ * Checks if a shipment is international based on country codes.
+ */
+export const checkIfInternational = (
+  pickupCountry: string | undefined,
+  dropoffCountry: string | undefined
+): boolean => {
+  if (!pickupCountry || !dropoffCountry) return false;
+  return pickupCountry.toUpperCase() !== dropoffCountry.toUpperCase();
+};
+
+/**
+ * Constructs the payload for creating a shipment.
+ * Enforces 'customs' only for international routes.
+ */
 export const getPayload = (
   isInternational: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any
 ): CreateShipmentPayload => {
   if (isInternational) {
-    // TypeScript enforces 'customs' here
     const payload: InternationalShipmentPayload = {
       ...data,
       customs: {
-        declaredValue: data.customs?.declaredValue || 10,
-        contentsDescription: data.customs?.contentsDescription || "Merchandise",
+        declaredValue: data.customs?.declaredValue || 0,
+        contentsDescription: data.customs?.contentsDescription || "",
         currency: data.customs?.currency || "USD",
       },
     };
     return payload;
   } else {
-    // TypeScript ensures 'customs' is undefined here
+    // For local shipments, customs MUST be absent
+    const { customs, ...rest } = data;
     const payload: LocalShipmentPayload = {
-      ...data,
-      customs: undefined,
+      ...rest,
     };
     return payload;
   }
+};
+
+/**
+ * Constructs the payload for getting shipping estimates.
+ * Follows the standard structure: pickup, dropoff, package, guestId.
+ * Strips contact and customs information.
+ */
+export const getEstimatePayload = (
+  pickup: any,
+  dropoff: any,
+  pkg: any,
+  guestId: string
+): ShippingEstimatePayload => {
+  const payload: ShippingEstimatePayload = {
+    pickup: {
+      city: pickup.city,
+      postalCode: pickup.postalCode,
+      countryCode: pickup.countryCode,
+      residential: !!pickup.residential,
+      streetLines: pickup.streetLines || [],
+      stateOrProvinceCode: pickup.stateOrProvinceCode || "",
+    },
+    dropoff: {
+      city: dropoff.city,
+      postalCode: dropoff.postalCode,
+      countryCode: dropoff.countryCode,
+      residential: !!dropoff.residential,
+      streetLines: dropoff.streetLines || [],
+      stateOrProvinceCode: dropoff.stateOrProvinceCode || "",
+    },
+    package: {
+      weight: pkg.weight,
+      dimensions: pkg.dimensions,
+    },
+    guestId,
+  };
+
+  return payload;
 };

@@ -5,6 +5,30 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.15.1] - 2026-01-16 - Shipping Estimate Payload & Customs Refinement
+
+- Fixed: Package Preview & Persistence Bugs
+  - Resolved auto-submission regression where the package section would close immediately upon opening. Separated real-time store synchronization from section completion logic.
+  - Updated `addPackage` in `shipment-store.ts` to perform an upsert (update if ID exists) instead of a simple append.
+  - Added `updatePackage` action for explicit non-transitional store updates.
+  - Implemented real-time store updates in `PackageForm` via `onSync` to ensure previews stay in sync without jumping sections.
+  - Improved preset detection in `PackageForm` to correctly identify active presets when editing.
+  - Fixed decimal dot stripping by restoring native change handling with numeric coercion.
+- Changed: Standardized Shipping Estimate Payload
+  - Simplified the `ShippingEstimatePayload` structure to strictly match API requirements (removed `customs` and `contact` data).
+- Fixed: Customs Handling for Local vs International
+  - Implemented conditional logic to remove the `customs` object from payloads for local shipments (same country) during creation.
+- Added: Centralized Payload Helpers
+  - Created `getEstimatePayload` and `checkIfInternational` utilities in `shipping-estimate/utils.ts` for consistent payload construction across the app.
+  - Updated `NewShipmentPage`, `ServicePage`, and `ShippingEstimatePage` to use the standardized helpers.
+- Changed: Type Safety Improvements
+  - Updated `ShippingEstimatePayload` interface in `@/types/shipping.ts` to reflect the optional nature of customs for estimates.
+  - Refined `getPayload` in `utils.ts` to strictly enforce the absence of customs for local shipment creation.
+- **Details**:
+  - Verified that local shipments no longer send unnecessary customs data to the API.
+  - Confirmed that international shipments correctly include mandatory customs declarations for accurate rate calculation and shipment creation.
+  - Passed all TypeScript compiler checks using `bunx tsc --noEmit`.
+
 ### [1.15.0] - 2026-01-16 - Quick Shipment Page Redesign
 
 - Added: Single-Page Stacked Layout

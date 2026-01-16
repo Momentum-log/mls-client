@@ -18,6 +18,7 @@ import Button from "@/components/ui/button";
 import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, ShippingEstimatePayload } from "@/types/shipping";
+import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 
 /**
  * NewShipmentPage provides a single-page, vertically-stacked flow for shipment creation.
@@ -37,6 +38,7 @@ export default function NewShipmentPage() {
     setRecipient,
     packages,
     addPackage,
+    updatePackage,
     selectedRate,
     setSelectedRate,
   } = useShipmentStore();
@@ -162,34 +164,24 @@ export default function NewShipmentPage() {
 
     // Trigger Rate Calculation
     if (sender && recipient) {
-      const payload: ShippingEstimatePayload = {
-        pickup: {
+      const payload = getEstimatePayload(
+        {
           city: sender.city,
-          contact: {
-            personName: sender.name,
-            companyName: sender.company || "N/A",
-            phoneNumber: sender.phone,
-          },
           postalCode: sender.postalCode,
           countryCode: sender.country,
           residential: false,
           streetLines: [sender.street],
           stateOrProvinceCode: sender.stateOrProvinceCode || "",
         },
-        dropoff: {
+        {
           city: recipient.city,
-          contact: {
-            personName: recipient.name,
-            companyName: recipient.company || "N/A",
-            phoneNumber: recipient.phone,
-          },
           postalCode: recipient.postalCode,
           countryCode: recipient.country,
           residential: false,
           streetLines: [recipient.street],
           stateOrProvinceCode: recipient.stateOrProvinceCode || "",
         },
-        package: {
+        {
           weight: { units: "KG", value: pkg.weight },
           dimensions: {
             units: "CM",
@@ -198,13 +190,8 @@ export default function NewShipmentPage() {
             length: pkg.length,
           },
         },
-        customs: {
-          currency: pkg.currency || "USD",
-          declaredValue: pkg.value || 0,
-          contentsDescription: pkg.description || "",
-        },
-        guestId: getOrSetGuestId(),
-      };
+        getOrSetGuestId()
+      );
 
       getRates(payload, {
         onSuccess: (data) => {
@@ -408,6 +395,7 @@ export default function NewShipmentPage() {
             <PackageForm
               initialValue={packages[0] || null}
               onSubmit={handlePackageSubmit}
+              onSync={updatePackage}
               onBack={() => setExpandedSection("dropoff")}
             />
           </StackedSection>

@@ -24,7 +24,7 @@ import {
 } from "./constants";
 import { Select } from "@/components/ui/select";
 // Make sure to import types correctly
-import { transformShippingData } from "./utils";
+import { transformShippingData, getEstimatePayload } from "./utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import {
   ShippingEstimatePayload,
@@ -212,19 +212,18 @@ export default function ShippingEstimatePage() {
         // const isEnvelope = values.selectedPreset === "envelope";
         // const packagingType = isEnvelope ? "FEDEX_ENVELOPE" : "YOUR_PACKAGING";
 
-        const payload: ShippingEstimatePayload = {
-          pickup: { ...pickupAddr, residential: values.isStackable },
-          dropoff: dropoffAddr,
-          // packagingType,
-          package: {
+        const payload = getEstimatePayload(
+          { ...pickupAddr, residential: values.isStackable },
+          dropoffAddr,
+          {
             weight: {
-              value: parseFloat(Number(values.package.weight).toFixed(2)), // Return to Number type, 2 decimal precision
+              value: parseFloat(Number(values.package.weight).toFixed(2)),
               units: "KG",
             },
             dimensions: {
               length: parseFloat(
                 Number(values.package.dimensions.length).toFixed(1)
-              ), // Return to Number type, 1 decimal precision
+              ),
               width: parseFloat(
                 Number(values.package.dimensions.width).toFixed(1)
               ),
@@ -234,13 +233,8 @@ export default function ShippingEstimatePage() {
               units: "CM",
             },
           },
-          customs: {
-            currency: "USD",
-            declaredValue: 50,
-            contentsDescription: "General Merchandise",
-          },
-          guestId: getOrSetGuestId(),
-        };
+          getOrSetGuestId()
+        );
 
         console.log(
           "Submitting Shipping Payload:",

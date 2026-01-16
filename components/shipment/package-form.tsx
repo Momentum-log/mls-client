@@ -48,31 +48,48 @@ const PACKAGE_PRESETS = [
 ];
 
 const packageSchema = z.object({
-  length: z.number().positive("Must be > 0"),
-  width: z.number().positive("Must be > 0"),
-  height: z.number().positive("Must be > 0"),
-  weight: z.number().positive("Must be > 0"),
-  value: z.number().min(0, "Value cannot be negative"),
+  length: z.coerce.number().positive("Must be > 0"),
+  width: z.coerce.number().positive("Must be > 0"),
+  height: z.coerce.number().positive("Must be > 0"),
+  weight: z.coerce.number().positive("Must be > 0"),
+  value: z.coerce.number().min(0, "Value cannot be negative"),
   description: z.string().min(1, "Description is required"),
 });
 
 interface PackageFormProps {
   initialValue: Package | null;
   onSubmit: (pkg: Package) => void;
+  onSync?: (pkg: Package) => void; // For real-time store updates
   onBack: () => void;
 }
 
-/**
- * PackageForm handles dimensions, weight, and description using a preset-based UI.
- */
 export default function PackageForm({
   initialValue,
   onSubmit,
+  onSync,
   onBack,
 }: PackageFormProps) {
+  // Detect matching preset or default to first preset/custom
+  const findPresetId = (val: Package | null) => {
+    if (!val) return PACKAGE_PRESETS[0].id;
+    const match = PACKAGE_PRESETS.find(
+      (p) =>
+        p.id !== "custom" &&
+        p.dims.length === val.length &&
+        p.dims.width === val.width &&
+        p.dims.height === val.height &&
+        p.weight === val.weight
+    );
+    return match ? match.id : "custom";
+  };
+
   const [selectedPreset, setSelectedPreset] = useState<string>(
-    initialValue ? "custom" : PACKAGE_PRESETS[0].id
+    findPresetId(initialValue)
   );
+
+  // Sync with store in real-time (Requirement: "I want that to be updating every time I update")
+  // Using a ref to avoid infinite loops if parents re-render
+  const lastEmailedValues = React.useRef<string>("");
 
   const formik = useFormik({
     initialValues: initialValue || {
@@ -83,9 +100,9 @@ export default function PackageForm({
       weight: PACKAGE_PRESETS[0].weight,
       description: "",
       value: 0,
-      currency: "PLN",
+      currency: "USD",
     },
-    enableReinitialize: true,
+    enableReinitialize: false,
     validate: (values) => {
       try {
         packageSchema.parse(values);
@@ -108,9 +125,23 @@ export default function PackageForm({
       }
     },
     onSubmit: (values) => {
-      onSubmit(values as Package);
+      const parsedValues = packageSchema.parse(values);
+      onSubmit({ ...values, ...parsedValues } as Package);
     },
   });
+
+  // Real-time synchronization Effect
+  useEffect(() => {
+    const currentValuesStr = JSON.stringify(formik.values);
+    if (currentValuesStr !== lastEmailedValues.current) {
+      lastEmailedValues.current = currentValuesStr;
+      // We don't parse here to avoid showing validation errors while typing,
+      // but we do ensure the store has the latest visual data.
+      if (onSync) {
+        onSync(formik.values as Package);
+      }
+    }
+  }, [formik.values, onSubmit]);
 
   const handlePresetChange = (id: string) => {
     setSelectedPreset(id);
@@ -173,7 +204,10 @@ export default function PackageForm({
               <div key={dim.id} className="space-y-1">
                 <input
                   type="number"
-                  {...formik.getFieldProps(dim.id)}
+                  name={dim.id}
+                  value={formik.values[dim.id as keyof typeof formik.values]}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-4 py-3 rounded-xl border text-center font-bold bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all ${
                     selectedPreset !== "custom"
                       ? "opacity-50 pointer-events-none bg-gray-50"
@@ -199,7 +233,10 @@ export default function PackageForm({
               <div className="relative">
                 <input
                   type="number"
-                  {...formik.getFieldProps("weight")}
+                  name="weight"
+                  value={formik.values.weight}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className={`w-full px-5 py-3.5 rounded-2xl border font-bold bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all ${
                     selectedPreset !== "custom"
                       ? "opacity-50 pointer-events-none bg-gray-50"
@@ -225,7 +262,10 @@ export default function PackageForm({
               <div className="relative">
                 <input
                   type="number"
-                  {...formik.getFieldProps("value")}
+                  name="value"
+                  value={formik.values.value}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   className="w-full px-5 py-3.5 rounded-2xl border border-gray-200 font-bold bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all"
                   placeholder="0.00"
                 />

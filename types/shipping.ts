@@ -58,11 +58,37 @@ export interface PackageDetails {
   dimensions: Dimensions;
 }
 
+/**
+ * Simplified Address for shipping estimates.
+ * Removes contact information as it's not required for quoting.
+ */
+export interface EstimateAddress {
+  city: string;
+  postalCode: string;
+  countryCode: string;
+  residential: boolean;
+  streetLines: string[];
+  stateOrProvinceCode: string;
+}
+
+/**
+ * Simplified Package for shipping estimates.
+ * Removes customs information.
+ */
+export interface EstimatePackageDetails {
+  weight: Weight;
+  dimensions: Dimensions;
+}
+
+/**
+ * Payload for getting shipping rates/estimates.
+ * 'customs' is NOT required for estimates regardless of the route.
+ * Addresses do NOT require contact details for estimates.
+ */
 export interface ShippingEstimatePayload {
-  pickup: Address;
-  dropoff: Address;
-  package: PackageDetails;
-  customs: Customs;
+  pickup: EstimateAddress;
+  dropoff: EstimateAddress;
+  package: EstimatePackageDetails;
   guestId: string;
 }
 

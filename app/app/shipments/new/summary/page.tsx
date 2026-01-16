@@ -16,7 +16,10 @@ import {
 import { createShipment } from "@/api/shipments";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/auth-store";
-import { getPayload } from "@/app/(marketing)/shipping-estimate/utils";
+import {
+  getPayload,
+  checkIfInternational,
+} from "@/app/(marketing)/shipping-estimate/utils";
 
 export default function SummaryPage() {
   const router = useRouter();
@@ -38,7 +41,10 @@ export default function SummaryPage() {
     setLoading(true);
     try {
       // Determine if shipment is international
-      const isInternational = sender?.country !== recipient?.country;
+      const isInternational = checkIfInternational(
+        sender?.country,
+        recipient?.country
+      );
 
       // Construct proper payload matching API requirements
       // Use strict helper to build payload
