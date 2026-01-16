@@ -7,9 +7,12 @@ import Button from "@/components/ui/button";
 import { useGetShipmentHistory } from "@/hooks/shipments/use-shipments";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
 import CopyButton from "@/components/ui/copy-button";
+import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
+import { FiCopy } from "react-icons/fi";
 
 export default function ShipmentHistoryPage() {
   const { data: shipments, isLoading, error } = useGetShipmentHistory();
+  const { duplicateShipment } = useDuplicateShipment();
 
   if (isLoading) {
     return (
@@ -80,14 +83,19 @@ export default function ShipmentHistoryPage() {
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-gray-900 truncate">
-                        {shipment.customTrackingNumber || "N/A"}
+                        {shipment.shipmentStatus === "FAILED" ||
+                        shipment.shipmentStatus === "CANCELLED"
+                          ? "Tracking Unavailable"
+                          : shipment.customTrackingNumber || "N/A"}
                       </p>
-                      {shipment.customTrackingNumber && (
-                        <CopyButton
-                          text={shipment.customTrackingNumber}
-                          tooltipText="Copy Tracking #"
-                        />
-                      )}
+                      {shipment.customTrackingNumber &&
+                        shipment.shipmentStatus !== "FAILED" &&
+                        shipment.shipmentStatus !== "CANCELLED" && (
+                          <CopyButton
+                            text={shipment.customTrackingNumber}
+                            tooltipText="Copy Tracking #"
+                          />
+                        )}
                     </div>
                   </div>
 
@@ -97,12 +105,31 @@ export default function ShipmentHistoryPage() {
                       className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${
                         shipment.shipmentStatus === "DELIVERED"
                           ? "bg-green-100 text-green-700 font-bold"
+                          : shipment.shipmentStatus === "FAILED" ||
+                            shipment.shipmentStatus === "CANCELLED"
+                          ? "bg-red-100 text-red-700 font-bold"
                           : "bg-blue-100 text-blue-700 font-bold"
                       }`}
                     >
                       {formatStatus(shipment.shipmentStatus)}
                     </span>
                     <FiChevronRight className="text-gray-400 shrink-0" />
+                  </div>
+
+                  {/* Duplicate Action (Absolute for kebab or specific button, 
+                      but since row is Link, we need to stopProp on a button) */}
+                  <div className="absolute right-4 bottom-4 md:static md:w-auto">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        duplicateShipment(shipment);
+                      }}
+                      className="p-2 text-gray-400 hover:text-brand-blue hover:bg-brand-blue/10 rounded-full transition-colors"
+                      title="Duplicate Shipment"
+                    >
+                      <FiCopy className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               </Link>

@@ -102,10 +102,10 @@ export default function Footer() {
                 <li>
                   <span className="block font-semibold text-white">Email:</span>
                   <a
-                    href="mailto:info@momentumlogisticservice.com"
+                    href="mailto:info@momentumlogservice.com"
                     className="hover:text-brand-yellow transition-colors"
                   >
-                    info@momentumlogisticservice.com
+                    info@momentumlogservice.com
                   </a>
                 </li>
                 <li>

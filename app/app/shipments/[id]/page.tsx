@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { FiBox, FiInfo } from "react-icons/fi";
 import { useParams } from "next/navigation";
 import { useGetShipment } from "@/hooks/shipments/use-shipments";
+import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
 import { deepTransformData } from "@/utils/data-transform";
 import TrackingOverview from "@/components/tracking/TrackingOverview";
 import TrackingDetails from "@/components/tracking/TrackingDetails";
 import TrackingTimelineView from "@/components/tracking/TrackingTimelineView";
 import { TrackingResponse } from "@/types/shipping";
+import Button from "@/components/ui/button";
+import { FiBox, FiInfo, FiCopy } from "react-icons/fi";
 
 /**
  * ShipmentDetailsPage Component
@@ -21,6 +23,7 @@ export default function ShipmentDetailsPage() {
 
   // Fetch shipment and tracking data
   const { data: rawData, isLoading, error } = useGetShipment(id);
+  const { duplicateShipment } = useDuplicateShipment();
 
   // Transform and map data
   const { shipment, trackingResponse } = useMemo(() => {
@@ -28,6 +31,18 @@ export default function ShipmentDetailsPage() {
 
     // Apply branding transformation (FedEx -> MLS)
     const cleanedData = deepTransformData(rawData);
+
+    // If shipment failed or cancelled, do not show tracking data
+    if (
+      cleanedData.shipmentStatus === "FAILED" ||
+      cleanedData.shipmentStatus === "CANCELLED" ||
+      cleanedData.shipmentStatus === "CREATED"
+    ) {
+      return {
+        shipment: cleanedData,
+        trackingResponse: null,
+      };
+    }
 
     // Reconstruct TrackingResponse for the sub-components
     const tr: TrackingResponse = {
@@ -83,13 +98,22 @@ export default function ShipmentDetailsPage() {
 
   return (
     <div className="container mx-auto py-12 max-w-6xl px-4">
-      <div className="mb-10">
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
-          Shipment Journey
-        </h1>
-        <p className="text-gray-500 font-medium text-lg">
-          Complete delivery path and package specifications.
-        </p>
+      <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
+            Shipment Journey
+          </h1>
+          <p className="text-gray-500 font-medium text-lg">
+            Complete delivery path and package specifications.
+          </p>
+        </div>
+
+        <Button
+          onClick={() => shipment && duplicateShipment(shipment)}
+          className="shrink-0"
+        >
+          <FiCopy className="mr-2" /> Ship Again
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -97,12 +121,67 @@ export default function ShipmentDetailsPage() {
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
             <div className="flex flex-col gap-8">
-              {trackingResponse && (
-                <>
-                  <TrackingOverview trackingResponse={trackingResponse} />
-                  <TrackingDetails shipment={shipment} />
-                </>
+              {/* Status Banner for Failed/Cancelled */}
+              {/* Status Banner for Failed/Cancelled/Created */}
+              {(shipment.shipmentStatus === "FAILED" ||
+                shipment.shipmentStatus === "CANCELLED" ||
+                shipment.shipmentStatus === "CREATED") && (
+                <div
+                  className={`border p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-4 ${
+                    shipment.shipmentStatus === "CREATED"
+                      ? "bg-blue-50 border-blue-100"
+                      : "bg-red-50 border-red-100"
+                  }`}
+                >
+                  <div
+                    className={`p-3 rounded-xl shrink-0 ${
+                      shipment.shipmentStatus === "CREATED"
+                        ? "bg-blue-100 text-brand-blue"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    <FiInfo className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3
+                      className={`font-bold text-lg mb-1 ${
+                        shipment.shipmentStatus === "CREATED"
+                          ? "text-brand-blue"
+                          : "text-red-900"
+                      }`}
+                    >
+                      {shipment.shipmentStatus === "CREATED"
+                        ? "Payment Pending"
+                        : `Shipment Status: ${shipment.shipmentStatus}`}
+                    </h3>
+                    <p
+                      className={`text-sm font-medium ${
+                        shipment.shipmentStatus === "CREATED"
+                          ? "text-blue-700"
+                          : "text-red-700"
+                      }`}
+                    >
+                      {shipment.shipmentStatus === "CREATED"
+                        ? "This shipment has been created, but the payment has not been completed yet."
+                        : "Tracking information is unavailable for this shipment. Please contact support if you believe this is an error."}
+                    </p>
+                  </div>
+                  {shipment.shipmentStatus === "CREATED" && (
+                    <Button
+                      onClick={() => duplicateShipment(shipment)}
+                      className="shrink-0 w-full md:w-auto"
+                    >
+                      Complete Payment
+                    </Button>
+                  )}
+                </div>
               )}
+
+              {trackingResponse && (
+                <TrackingOverview trackingResponse={trackingResponse} />
+              )}
+
+              <TrackingDetails shipment={shipment} />
             </div>
           </div>
 

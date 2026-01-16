@@ -5,6 +5,27 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.17.0] - 2026-01-16 - Enhanced Shipment Status Handling & Form Refinements
+
+- Added: "Complete Payment" workflow for Created Shipments
+  - Implemented logic to handle `CREATED` (unpaid) shipments in the details view.
+  - Added a prominent status banner for unpaid shipments with a "Complete Payment" action.
+  - Reused the duplication logic to facilitate seamless payment completion for these shipments.
+- Added: Enhanced Status Feedback
+  - Added specific status banners for `FAILED` and `CANCELLED` shipments in the details page.
+  - Implemented specific error messaging for `FAILED` shipments in the Tracking page (`/track`) to guide users to support.
+- Changed: Refined Form & State Management
+  - **Removed Email**: Eliminated email fields from `AddressForm` and logic as per user feedback.
+  - **Duplication Logic**: switched to URL-based (`?source=duplicate`) state preservation to correctly handle resets vs. persistence on page load.
+  - **Strict State Clearing**: Shipment form data now clears immediately upon reload or navigation to ensure a clean slate for new users.
+- Changed: Shipment Visibility Rules
+  - Hiding tracking history timeline for `CREATED`, `FAILED`, or `CANCELLED` shipments to prevent misleading empty states.
+  - Hiding tracking number display and copy actions for `FAILED` and `CANCELLED` shipments in the history list.
+- **Details**:
+  - Validated that `source=duplicate` param is automatically cleaned from URL after mounting.
+  - ensured `AddressForm` Zod schemas and Formik initial values no longer require email.
+  - Verified correct status banners appear for all non-standard shipment states.
+
 ### [1.16.0] - 2026-01-16 - Mobile Experience & Shipment Flow Enhancements
 
 - Added: Mobile-First Navigation System
@@ -322,7 +343,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Instagram and LinkedIn
   - Added WhatsApp link
 - Changed: Updated contact information
-  - Email: `info@momentumlogisticservice.com`
+  - Email: `info@momentumlogservice.com`
   - Phone: `+48 795 069 276`
 - Changed: Updated FAQ support link to direct to WhatsApp
 - **Details**:

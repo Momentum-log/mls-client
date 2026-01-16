@@ -13,7 +13,6 @@ export interface Address {
   postalCode: string;
   country: string;
   phone: string;
-  email: string;
   stateOrProvinceCode?: string;
 }
 
@@ -119,56 +118,48 @@ const initialState = {
   selectedRate: null,
 };
 
-export const useShipmentStore = create<ShipmentState>()(
-  persist(
-    (set) => ({
-      ...initialState,
+export const useShipmentStore = create<ShipmentState>()((set) => ({
+  ...initialState,
 
-      setSender: (sender) => set({ sender }),
-      setRecipient: (recipient) => set({ recipient }),
-      setPackages: (packages) => set({ packages }),
-      addPackage: (pkg) =>
-        set((state) => {
-          const index = state.packages.findIndex((p) => p.id === pkg.id);
-          if (index !== -1) {
-            const newPackages = [...state.packages];
-            newPackages[index] = pkg;
-            return { packages: newPackages };
-          }
-          return { packages: [...state.packages, pkg] };
-        }),
-      removePackage: (id) =>
-        set((state) => ({
-          packages: state.packages.filter((p) => p.id !== id),
-        })),
-      updatePackage: (pkg) =>
-        set((state) => {
-          const index = state.packages.findIndex((p) => p.id === pkg.id);
-          if (index !== -1) {
-            const newPackages = [...state.packages];
-            newPackages[index] = pkg;
-            return { packages: newPackages };
-          }
-          return { packages: [...state.packages, pkg] };
-        }),
-      setSelectedRate: (rate) => set({ selectedRate: rate }),
-      setStep: (step) => set({ currentStep: step }),
-      setExpandedSection: (sectionId) => set({ expandedSection: sectionId }),
-      markSectionCompleted: (sectionId) =>
-        set((state) => ({
-          completedSteps: state.completedSteps.includes(sectionId)
-            ? state.completedSteps
-            : [...state.completedSteps, sectionId],
-        })),
-      markSectionIncomplete: (sectionId) =>
-        set((state) => ({
-          completedSteps: state.completedSteps.filter((id) => id !== sectionId),
-        })),
-      reset: () => set(initialState),
+  setSender: (sender) => set({ sender }),
+  setRecipient: (recipient) => set({ recipient }),
+  setPackages: (packages) => set({ packages }),
+  addPackage: (pkg) =>
+    set((state) => {
+      const index = state.packages.findIndex((p) => p.id === pkg.id);
+      if (index !== -1) {
+        const newPackages = [...state.packages];
+        newPackages[index] = pkg;
+        return { packages: newPackages };
+      }
+      return { packages: [...state.packages, pkg] };
     }),
-    {
-      name: "shipment-form-storage",
-      storage: createJSONStorage(() => secureStorage),
-    }
-  )
-);
+  removePackage: (id) =>
+    set((state) => ({
+      packages: state.packages.filter((p) => p.id !== id),
+    })),
+  updatePackage: (pkg) =>
+    set((state) => {
+      const index = state.packages.findIndex((p) => p.id === pkg.id);
+      if (index !== -1) {
+        const newPackages = [...state.packages];
+        newPackages[index] = pkg;
+        return { packages: newPackages };
+      }
+      return { packages: [...state.packages, pkg] };
+    }),
+  setSelectedRate: (rate) => set({ selectedRate: rate }),
+  setStep: (step) => set({ currentStep: step }),
+  setExpandedSection: (sectionId) => set({ expandedSection: sectionId }),
+  markSectionCompleted: (sectionId) =>
+    set((state) => ({
+      completedSteps: state.completedSteps.includes(sectionId)
+        ? state.completedSteps
+        : [...state.completedSteps, sectionId],
+    })),
+  markSectionIncomplete: (sectionId) =>
+    set((state) => ({
+      completedSteps: state.completedSteps.filter((id) => id !== sectionId),
+    })),
+  reset: () => set(initialState),
+}));

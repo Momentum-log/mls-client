@@ -38,7 +38,10 @@ const createAddressSchema = (isStateRequired: boolean) =>
   z.object({
     name: z.string().min(1, "Name is required"),
     company: z.string().optional(),
-    street: z.string().min(1, "Street address is required"),
+    street: z
+      .string()
+      .min(1, "Street address is required")
+      .max(35, "Street address cannot exceed 35 characters"),
     city: z.string().min(1, "City is required"),
     postalCode: z.string().min(1, "Postal code is required"),
     country: z.string().min(1, "Country is required"),
@@ -46,7 +49,6 @@ const createAddressSchema = (isStateRequired: boolean) =>
       ? z.string().min(1, "State/Province is required")
       : z.string().optional(),
     phone: z.string().min(1, "Phone number is required"),
-    email: z.string().email("Invalid email").min(1, "Email is required"),
   });
 
 interface AddressFormProps {
@@ -81,7 +83,6 @@ export default function AddressForm({
       postalCode: "",
       country: "PL",
       phone: "",
-      email: "",
     },
     enableReinitialize: true,
     validate: (values) => {
@@ -196,27 +197,6 @@ export default function AddressForm({
             className="w-full px-5 py-4 rounded-2xl border border-gray-200 bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all font-medium"
             placeholder="Company Name"
           />
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
-            Email Address
-          </label>
-          <input
-            type="email"
-            {...formik.getFieldProps("email")}
-            className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-medium ${
-              formik.touched.email && formik.errors.email
-                ? "border-red-500 ring-2 ring-red-500/10"
-                : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
-            }`}
-            placeholder="email@example.com"
-          />
-          {formik.touched.email && formik.errors.email && (
-            <p className="text-[11px] text-red-500 font-bold ml-1">
-              {formik.errors.email}
-            </p>
-          )}
         </div>
 
         <div className="space-y-2">

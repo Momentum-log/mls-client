@@ -23,6 +23,7 @@ export interface Contact {
   personName: string;
   companyName: string;
   phoneNumber: string;
+  email?: string;
 }
 
 export interface Address {
