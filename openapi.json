@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8000/api"
+      "url": "/api"
     }
   ],
   "components": {
@@ -2022,7 +2022,7 @@
         }
       }
     },
-    "/create-shipment": {
+    "/shipments/create-shipments": {
       "post": {
         "description": "\n### Create Shipment & Initiate Payment\n**Frontend Usage Guide:**\nThis endpoint initializes a shipment in the database and creates a localized Stripe Checkout session.\n\n**Rules & Validation:**\n- **Addresses**: Must be valid postal addresses. For international shipments, ensure `countryCode` is standard (e.g. \"PL\", \"US\"). \n- **Packages**: Dimensions (CM/IN) and Weight (KG/LB) must match limits of the selected service.\n- **Rates**: You must pass the rate structure obtained from `GET /shipping/estimate`. The backend verifies the price integrity.\n\n**Response Flow:**\n1. Success (201) returns a `checkoutUrl`.\n2. Frontend **must redirect the user** to this URL for payment.\n3. After payment, the user is returned to the success URL where you call `GET /payments/verify`.\n",
         "summary": "Create Shipment",
@@ -2258,7 +2258,7 @@
         }
       }
     },
-    "/track-shipment/{trackingNumber}": {
+    "/shipments/track-shipment/{trackingNumber}": {
       "get": {
         "description": "\n### Track Shipment\n**Frontend Usage Guide:**\nRetrieves the real-time status of a shipment using the **MLS Custom Tracking Number**.\n\n**⚠️ SANDBOX vs PRODUCTION:**\n- **In Sandbox**: Real-time tracking of *newly created* sandbox shipments is **NOT supported** by FedEx. \n  - The API will automatically substitute your tracking number with a **FedEx Test Tracking Number** (e.g., delivered, in-transit) to simulate a response.\n  - You will see \"In Transit\" or \"Delivered\" data even if your physical package doesn't exist.\n- **In Production**: This connects to the live carrier API and returns actual status.\n\n**Polling Strategy:**\n- You can poll this every 15-30 minutes for long-running shipments.\n- For immediate status after payment, rely on `GET /payments/verify`.\n",
         "summary": "Track Shipment",
@@ -2283,7 +2283,7 @@
         }
       }
     },
-    "/get-shipment/{id}": {
+    "/shipments/get-shipment/{id}": {
       "get": {
         "description": "\n### Get Single Shipment\n**Frontend Usage Guide:**\nRetrieves full details of a shipment combined with its live tracking status.\n\n**Identifiers:**\n- Can accept **Database ID** (UUID).\n- Can accept **Custom Tracking Number** (starts with `MLS-TRK-`).\n",
         "summary": "Get Shipment Details",
@@ -2330,7 +2330,7 @@
         }
       }
     },
-    "/get-shipment-history": {
+    "/shipments/get-shipment-history": {
       "get": {
         "description": "Retrieve all shipments for the authenticated user (history).",
         "summary": "Get Shipment History",
@@ -2388,7 +2388,7 @@
         }
       }
     },
-    "/get-shipment-stats": {
+    "/shipments/get-shipment-stats": {
       "get": {
         "description": "Retrieve total spent and shipment count statistics.",
         "summary": "Get Shipment Stats",
@@ -2426,7 +2426,7 @@
         }
       }
     },
-    "/get-shipping-estimate": {
+    "/shipments/get-shipping-estimate": {
       "post": {
         "description": "\n### Get Shipping Rates\n**Frontend Usage Guide:**\nCalculates shipping rates for a given package and route.\n\n**How to use:**\n1. Call this endpoint with the `pickupAddress`, `dropoffAddress`, and `package` details.\n2. The response includes a list of available services (e.g. FedEx Ground, Priority Overnight).\n3. **Important:** The `actualPrice` includes the platform commission. Display this price to the user.\n4. Pass the *entire selected rate object* to `POST /create-shipment` when creating the shipment.\n\n**Validation:**\n- `weight`: Ensure units (KG/LB) match the value.\n- `dimensions`: Optional but recommended for accurate pricing.\n",
         "summary": "Get Shipping Estimate",

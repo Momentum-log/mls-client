@@ -5,6 +5,27 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.16.0] - 2026-01-16 - Mobile Experience & Shipment Flow Enhancements
+
+- Added: Mobile-First Navigation System
+  - Implemented `MobileHeader` with brand logo and hamburger menu toggle.
+  - Updated `SidebarNav` to support a "push" effect overlay on mobile devices.
+  - Added backdrop and scroll locking for improved mobile drawer UX.
+- Changed: Optimized Shipment Creation & Payment Flow
+  - Integrated `createShipment` API in `NewShipmentPage` to initialize real shipments.
+  - Implemented automatic redirection to Stripe secure checkout upon shipment creation.
+  - Added high-fidelity loading states to the "Create Shipment" finalize button.
+- Changed: Layout & Branding Refinement
+  - Optimized mobile layout with ultra-minimal horizontal padding (8px / `px-2`).
+  - Removed redundant company logos from Login and Register marketing pages for a cleaner aesthetic.
+- Fixed: Design System Consistency
+  - Enhanced `Button` component with built-in `isLoading` support and spin animations.
+  - Standardized shipment creation payload to align with Stripe and backend requirements.
+- **Details**:
+  - Validated push-to-side behavior for mobile sidebar.
+  - Confirmed immediate redirect flow to Stripe using the provided `checkoutUrl`.
+  - Passed all TypeScript compiler checks using `bunx tsc --noEmit`.
+
 ### [1.15.1] - 2026-01-16 - Shipping Estimate Payload & Customs Refinement
 
 - Fixed: Package Preview & Persistence Bugs

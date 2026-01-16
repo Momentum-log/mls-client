@@ -15,7 +15,10 @@ import SummaryDrawer from "@/components/shipment/summary-drawer";
 import { FiMapPin, FiPackage, FiTruck, FiCheckCircle } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
 import Button from "@/components/ui/button";
-import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
+import {
+  useGetShippingEstimate,
+  useCreateShipment,
+} from "@/hooks/shipments/use-shipments";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, ShippingEstimatePayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
@@ -50,6 +53,10 @@ export default function NewShipmentPage() {
   // Rate calculation mutation
   const { mutate: getRates, isPending: isCalculatingRates } =
     useGetShippingEstimate();
+
+  // Create shipment mutation
+  const { mutate: performCreateShipment, isPending: isCreatingShipment } =
+    useCreateShipment();
 
   // Cleanup on unmount (Requirement 3A)
   useEffect(() => {
@@ -230,14 +237,95 @@ export default function NewShipmentPage() {
   };
 
   const handleFinalize = () => {
-    addToast({
-      title: "Shipment Created",
-      message: "Your shipment has been successfully queued for processing.",
-      type: "success",
+    if (!sender || !recipient || !packages[0] || !selectedRate) {
+      addToast({
+        title: "Missing Information",
+        message: "Please ensure all steps are completed before finalizing.",
+        type: "error",
+      });
+      return;
+    }
+
+    const payload = {
+      carrierName: "FedEx", // Default for now
+      pickupAddress: {
+        streetLines: [sender.street],
+        city: sender.city,
+        stateOrProvinceCode: sender.stateOrProvinceCode || "",
+        postalCode: sender.postalCode,
+        countryCode: sender.country,
+        residential: false,
+        contact: {
+          personName: sender.name,
+          phoneNumber: sender.phone,
+          companyName: sender.company,
+        },
+      },
+      dropoffAddress: {
+        streetLines: [recipient.street],
+        city: recipient.city,
+        stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+        postalCode: recipient.postalCode,
+        countryCode: recipient.country,
+        residential: false,
+        contact: {
+          personName: recipient.name,
+          phoneNumber: recipient.phone,
+          companyName: recipient.company,
+        },
+      },
+      package: {
+        weight: {
+          value: packages[0].weight,
+          units: "KG",
+        },
+        dimensions: {
+          length: packages[0].length,
+          width: packages[0].width,
+          height: packages[0].height,
+          units: "CM",
+        },
+      },
+      rate: {
+        serviceType: selectedRate.serviceType,
+        serviceName: selectedRate.serviceName,
+        carrierPrice: selectedRate.carrierPrice,
+        actualPrice: selectedRate.actualPrice,
+        currency: selectedRate.currency,
+      },
+    };
+
+    performCreateShipment(payload, {
+      onSuccess: (data) => {
+        addToast({
+          title: "Shipment Initialized",
+          message: "Redirecting to secure payment page...",
+          type: "success",
+        });
+
+        // Small delay to let the user see the toast
+        setTimeout(() => {
+          if (data.checkoutUrl) {
+            window.location.href = data.checkoutUrl;
+          } else {
+            addToast({
+              title: "Error",
+              message: "Checkout URL not found. Please try again.",
+              type: "error",
+            });
+          }
+        }, 1000);
+      },
+      onError: (error: any) => {
+        addToast({
+          title: "Creation Failed",
+          message:
+            error.response?.data?.error ||
+            "Unable to create shipment. Please try again.",
+          type: "error",
+        });
+      },
     });
-    setIsSummaryOpen(false);
-    reset(); // Clear store as per requirement 3A
-    router.push("/app/shipments");
   };
 
   return (
@@ -461,6 +549,7 @@ export default function NewShipmentPage() {
         pkg={packages[0] || null}
         rate={selectedRate}
         onFinalize={handleFinalize}
+        isLoading={isCreatingShipment}
       />
     </div>
   );
