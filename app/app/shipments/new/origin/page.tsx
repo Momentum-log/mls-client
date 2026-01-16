@@ -18,7 +18,6 @@ export default function OriginPage() {
     if (!sender && user) {
       setSender({
         name: user.name || "",
-        email: user.email || "",
         phone: user.phone || "",
         street: user.address || "",
         city: "",
