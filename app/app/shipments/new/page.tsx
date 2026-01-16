@@ -1,19 +1,467 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useShipmentStore, Address, Package } from "@/store/shipment-store";
+import {
+  VerticalTimeline,
+  TimelineStep,
+} from "@/components/shipment/vertical-timeline";
+import { StackedSection } from "@/components/shipment/stacked-section";
+import AddressForm from "@/components/shipment/address-form";
+import PackageForm from "@/components/shipment/package-form";
+import ServiceSelection from "@/components/shipment/service-selection";
+import SummaryDrawer from "@/components/shipment/summary-drawer";
+import { FiMapPin, FiPackage, FiTruck, FiCheckCircle } from "react-icons/fi";
+import { useToast } from "@/hooks/use-toast";
+import Button from "@/components/ui/button";
+import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
+import { getOrSetGuestId } from "@/utils/auth-helper";
+import { Rate, ShippingEstimatePayload } from "@/types/shipping";
+import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 
+/**
+ * NewShipmentPage provides a single-page, vertically-stacked flow for shipment creation.
+ * It integrates the VerticalTimeline and StackedSection components for a streamlined UX.
+ */
 export default function NewShipmentPage() {
   const router = useRouter();
+  const {
+    completedSteps,
+    expandedSection,
+    setExpandedSection,
+    markSectionCompleted,
+    reset,
+    sender,
+    setSender,
+    recipient,
+    setRecipient,
+    packages,
+    addPackage,
+    updatePackage,
+    selectedRate,
+    setSelectedRate,
+  } = useShipmentStore();
 
+  const [rates, setRates] = useState<Rate[]>([]);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const { addToast } = useToast();
+
+  // Rate calculation mutation
+  const { mutate: getRates, isPending: isCalculatingRates } =
+    useGetShippingEstimate();
+
+  // Cleanup on unmount (Requirement 3A)
   useEffect(() => {
-    // Redirect to the first step
-    router.replace("/app/shipments/new/origin");
-  }, [router]);
+    return () => {
+      reset();
+    };
+  }, [reset]);
+
+  // Navigation warning for unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (
+        completedSteps.length > 0 ||
+        sender ||
+        recipient ||
+        packages.length > 0
+      ) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [completedSteps, sender, recipient, packages]);
+
+  const steps: TimelineStep[] = useMemo(
+    () => [
+      {
+        id: "pickup",
+        label: "Pick-up Details",
+        status:
+          expandedSection === "pickup"
+            ? "current"
+            : completedSteps.includes("pickup")
+            ? "completed"
+            : "pending",
+      },
+      {
+        id: "dropoff",
+        label: "Drop-off Details",
+        status:
+          expandedSection === "dropoff"
+            ? "current"
+            : completedSteps.includes("dropoff")
+            ? "completed"
+            : "pending",
+      },
+      {
+        id: "package",
+        label: "Package Details",
+        status:
+          expandedSection === "package"
+            ? "current"
+            : completedSteps.includes("package")
+            ? "completed"
+            : "pending",
+      },
+      {
+        id: "service",
+        label: "Service Selection",
+        status:
+          expandedSection === "service"
+            ? "current"
+            : completedSteps.includes("service")
+            ? "completed"
+            : "pending",
+      },
+    ],
+    [expandedSection, completedSteps]
+  );
+
+  const isSectionVisible = (id: string) => {
+    if (id === "pickup") return true;
+    if (id === "dropoff") return completedSteps.includes("pickup");
+    if (id === "package") return completedSteps.includes("dropoff");
+    if (id === "service") return completedSteps.includes("package");
+    return false;
+  };
+
+  const handlePickupSubmit = (values: Address) => {
+    setSender(values);
+    markSectionCompleted("pickup");
+    setExpandedSection("dropoff");
+    addToast({
+      title: "Success",
+      message: "Pick-up details saved successfully.",
+      type: "success",
+    });
+    document
+      .getElementById("dropoff")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleDropoffSubmit = (values: Address) => {
+    setRecipient(values);
+    markSectionCompleted("dropoff");
+    setExpandedSection("package");
+    addToast({
+      title: "Success",
+      message: "Drop-off details saved successfully.",
+      type: "success",
+    });
+    document
+      .getElementById("package")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handlePackageSubmit = (pkg: Package) => {
+    addPackage(pkg);
+    markSectionCompleted("package");
+    setExpandedSection("service");
+
+    // Trigger Rate Calculation
+    if (sender && recipient) {
+      const payload = getEstimatePayload(
+        {
+          city: sender.city,
+          postalCode: sender.postalCode,
+          countryCode: sender.country,
+          residential: false,
+          streetLines: [sender.street],
+          stateOrProvinceCode: sender.stateOrProvinceCode || "",
+        },
+        {
+          city: recipient.city,
+          postalCode: recipient.postalCode,
+          countryCode: recipient.country,
+          residential: false,
+          streetLines: [recipient.street],
+          stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+        },
+        {
+          weight: { units: "KG", value: pkg.weight },
+          dimensions: {
+            units: "CM",
+            width: pkg.width,
+            height: pkg.height,
+            length: pkg.length,
+          },
+        },
+        getOrSetGuestId()
+      );
+
+      getRates(payload, {
+        onSuccess: (data) => {
+          setRates(data.rates);
+        },
+        onError: (error) => {
+          addToast({
+            title: "Calculation Failed",
+            message:
+              "Unable to calculate shipping rates. Please check address details.",
+            type: "error",
+          });
+        },
+      });
+    }
+
+    addToast({
+      title: "Success",
+      message: "Package details confirmed.",
+      type: "success",
+    });
+    document
+      .getElementById("service")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleServiceSelect = (rate: Rate) => {
+    setSelectedRate(rate);
+    markSectionCompleted("service");
+    setIsSummaryOpen(true);
+    addToast({
+      title: "Service Selected",
+      message: `${rate.serviceName} chosen. Review your shipment to continue.`,
+      type: "success",
+    });
+  };
+
+  const handleFinalize = () => {
+    addToast({
+      title: "Shipment Created",
+      message: "Your shipment has been successfully queued for processing.",
+      type: "success",
+    });
+    setIsSummaryOpen(false);
+    reset(); // Clear store as per requirement 3A
+    router.push("/app/shipments");
+  };
 
   return (
-    <div className="flex items-center justify-center h-full min-h-[400px]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue"></div>
+    <div className="flex flex-col lg:flex-row gap-8 items-start">
+      {/* Left Sidebar: Timeline */}
+      <div className="hidden lg:block w-64 sticky top-24">
+        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+          <h4 className="text-[10px] uppercase tracking-widest text-gray-400 font-black mb-6">
+            Shipment Journey
+          </h4>
+          <VerticalTimeline steps={steps} />
+        </div>
+      </div>
+
+      {/* Main Content: Stacked Sections */}
+      <div className="flex-1 w-full space-y-4">
+        {/* Navigation Warning Notice */}
+        {(completedSteps.length > 0 || sender) && (
+          <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded-2xl p-4 mb-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse" />
+            <p className="text-xs text-gray-700 font-bold uppercase tracking-tight">
+              Unsaved Progress: Navigating away will reset this form.
+            </p>
+          </div>
+        )}
+
+        {/* 1. Pick-up Details */}
+        <StackedSection
+          id="pickup"
+          title="Pick-up Details"
+          icon={<FiMapPin className="w-5 h-5" />}
+          isExpanded={expandedSection === "pickup"}
+          isCompleted={completedSteps.includes("pickup")}
+          onEdit={() => setExpandedSection("pickup")}
+          summary={
+            sender && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                    Contact
+                  </p>
+                  <p className="font-bold text-gray-900 leading-tight">
+                    {sender.name}
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium">
+                    {sender.phone}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                    Location
+                  </p>
+                  <p className="font-bold text-gray-900 leading-tight">
+                    {sender.city}
+                  </p>
+                  <p className="text-xs text-gray-500 font-medium line-clamp-1">
+                    {sender.street}
+                  </p>
+                </div>
+              </div>
+            )
+          }
+        >
+          <AddressForm
+            type="pickup"
+            initialValues={sender}
+            onSubmit={handlePickupSubmit}
+          />
+        </StackedSection>
+
+        {/* 2. Drop-off Details */}
+        {isSectionVisible("dropoff") && (
+          <StackedSection
+            id="dropoff"
+            title="Drop-off Details"
+            icon={<FiMapPin className="w-5 h-5" />}
+            isExpanded={expandedSection === "dropoff"}
+            isCompleted={completedSteps.includes("dropoff")}
+            onEdit={() => setExpandedSection("dropoff")}
+            summary={
+              recipient && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                      Contact
+                    </p>
+                    <p className="font-bold text-gray-900 leading-tight">
+                      {recipient.name}
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {recipient.phone}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                      Location
+                    </p>
+                    <p className="font-bold text-gray-900 leading-tight">
+                      {recipient.city}
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium line-clamp-1">
+                      {recipient.street}
+                    </p>
+                  </div>
+                </div>
+              )
+            }
+          >
+            <AddressForm
+              type="dropoff"
+              initialValues={recipient}
+              onSubmit={handleDropoffSubmit}
+              onBack={() => setExpandedSection("pickup")}
+            />
+          </StackedSection>
+        )}
+
+        {/* 3. Package Details */}
+        {isSectionVisible("package") && (
+          <StackedSection
+            id="package"
+            title="Package Details"
+            icon={<FiPackage className="w-5 h-5" />}
+            isExpanded={expandedSection === "package"}
+            isCompleted={completedSteps.includes("package")}
+            onEdit={() => setExpandedSection("package")}
+            summary={
+              packages.length > 0 && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                      Dimensions
+                    </p>
+                    <p className="font-bold text-gray-900 leading-tight">
+                      {packages[0].length}x{packages[0].width}x
+                      {packages[0].height} cm
+                    </p>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {packages[0].weight} kg | {packages[0].value}{" "}
+                      {packages[0].currency}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                      Description
+                    </p>
+                    <p className="font-bold text-gray-900 leading-tight line-clamp-1">
+                      {packages[0].description}
+                    </p>
+                  </div>
+                </div>
+              )
+            }
+          >
+            <PackageForm
+              initialValue={packages[0] || null}
+              onSubmit={handlePackageSubmit}
+              onSync={updatePackage}
+              onBack={() => setExpandedSection("dropoff")}
+            />
+          </StackedSection>
+        )}
+
+        {/* 4. Service Selection */}
+        {isSectionVisible("service") && (
+          <StackedSection
+            id="service"
+            title="Service Selection"
+            icon={<FiTruck className="w-5 h-5" />}
+            isExpanded={expandedSection === "service"}
+            isCompleted={completedSteps.includes("service")}
+            onEdit={() => setExpandedSection("service")}
+            summary={
+              selectedRate && (
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+                    <FiCheckCircle className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900 leading-tight">
+                      {selectedRate.serviceName}
+                    </p>
+                    <p className="text-xs text-brand-blue font-bold tracking-tight">
+                      {selectedRate.price || selectedRate.actualPrice}{" "}
+                      {selectedRate.currency}
+                    </p>
+                  </div>
+                </div>
+              )
+            }
+          >
+            <ServiceSelection
+              rates={rates}
+              selectedRateId={selectedRate?.serviceType || null}
+              onSelect={handleServiceSelect}
+              isLoading={isCalculatingRates}
+              onBack={() => setExpandedSection("package")}
+            />
+          </StackedSection>
+        )}
+
+        {/* Action Button for Summary (if not already open) */}
+        {completedSteps.includes("service") && !isSummaryOpen && (
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full h-16 rounded-3xl text-lg font-black shadow-2xl shadow-brand-blue/30 mt-8 animate-in fade-in zoom-in-95 duration-500"
+            onClick={() => setIsSummaryOpen(true)}
+          >
+            Review & Create Shipment <FiCheckCircle className="ml-2" />
+          </Button>
+        )}
+      </div>
+
+      {/* Summary Drawer */}
+      <SummaryDrawer
+        isOpen={isSummaryOpen}
+        onClose={() => setIsSummaryOpen(false)}
+        sender={sender}
+        recipient={recipient}
+        pkg={packages[0] || null}
+        rate={selectedRate}
+        onFinalize={handleFinalize}
+      />
     </div>
   );
 }

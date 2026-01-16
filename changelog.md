@@ -5,6 +5,94 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.15.1] - 2026-01-16 - Shipping Estimate Payload & Customs Refinement
+
+- Fixed: Package Preview & Persistence Bugs
+  - Resolved auto-submission regression where the package section would close immediately upon opening. Separated real-time store synchronization from section completion logic.
+  - Updated `addPackage` in `shipment-store.ts` to perform an upsert (update if ID exists) instead of a simple append.
+  - Added `updatePackage` action for explicit non-transitional store updates.
+  - Implemented real-time store updates in `PackageForm` via `onSync` to ensure previews stay in sync without jumping sections.
+  - Improved preset detection in `PackageForm` to correctly identify active presets when editing.
+  - Fixed decimal dot stripping by restoring native change handling with numeric coercion.
+- Changed: Standardized Shipping Estimate Payload
+  - Simplified the `ShippingEstimatePayload` structure to strictly match API requirements (removed `customs` and `contact` data).
+- Fixed: Customs Handling for Local vs International
+  - Implemented conditional logic to remove the `customs` object from payloads for local shipments (same country) during creation.
+- Added: Centralized Payload Helpers
+  - Created `getEstimatePayload` and `checkIfInternational` utilities in `shipping-estimate/utils.ts` for consistent payload construction across the app.
+  - Updated `NewShipmentPage`, `ServicePage`, and `ShippingEstimatePage` to use the standardized helpers.
+- Changed: Type Safety Improvements
+  - Updated `ShippingEstimatePayload` interface in `@/types/shipping.ts` to reflect the optional nature of customs for estimates.
+  - Refined `getPayload` in `utils.ts` to strictly enforce the absence of customs for local shipment creation.
+- **Details**:
+  - Verified that local shipments no longer send unnecessary customs data to the API.
+  - Confirmed that international shipments correctly include mandatory customs declarations for accurate rate calculation and shipment creation.
+  - Passed all TypeScript compiler checks using `bunx tsc --noEmit`.
+
+### [1.15.0] - 2026-01-16 - Quick Shipment Page Redesign
+
+- Added: Single-Page Stacked Layout
+  - Replaced multi-page navigation with a vertically stacked section design.
+  - Interactive **Vertical Timeline** for progress tracking and section navigation.
+  - **Summary Drawer**: Side/bottom drawer for final review before shipment creation.
+  - Sequential section loading: steps reveal only as previous data is validated.
+- Added: Package Details Enhancements
+  - **Declared Value**: New field for insurance and customs purposes.
+  - Refined **Content Description**: Full-width input with proper labeling.
+  - **Label Separation**: Weight and Declared Value now have dedicated labels and columns.
+- Fixed: Rate Calculation & Compatibility
+  - Corrected `ShippingEstimatePayload` structure to include required `customs` field.
+  - Standardized system currency to **USD** for custom shipping flows.
+  - Resolved build error in `NewShipmentPage` related to payload syntax.
+  - Restored missing `ServiceSelection` and `SummaryDrawer` components.
+- Changed: Terminology & Styling
+  - Updated "Origin/Destination" to "Pick-up Details" and "Drop-off Details".
+  - Integrated "Get a Quote" design patterns (double-fitting selectors, high-contrast inputs).
+- Added: Navigation & Persistence Safety
+  - **Unsaved Changes Notice**: On-page alert and `beforeunload` dialog to prevent data loss.
+  - Selective persistence: Form state clears automatically upon navigation or completion.
+- **Details**:
+  - Implemented `StackedSection` and `VerticalTimeline` modular components.
+  - Refactored `useShipmentStore` to manage multi-step state within a single page.
+  - Ensured mobile responsiveness with sticky headers and adaptive drawer positioning.
+
+### [1.14.6] - 2026-01-16 - Shipment Detail Page Fix & Type Safety Improvements
+
+- Changed: Shipment Details Page Architecture
+  - Migrated `app/app/shipments/[id]/page.tsx` to use the `useGetShipment` hook for unified data fetching.
+  - Integrated modular tracking components: `TrackingOverview`, `TrackingDetails`, and `TrackingTimelineView`.
+  - **Enhanced**: Now displays the **full tracking timeline** rather than a truncated view on the details page.
+  - **Enhanced**: Added **Pickup Information** (Origin) to the tracking details view for a 360-degree journey overview.
+  - Applied `deepTransformData` for consistent "MLS" branding across all shipment details.
+- Fixed: Application-Wide Type Checking
+  - Resolved multiple property errors in `utils/shipment-helper.ts` relating to the `Shipment` interface.
+  - Fixed incorrect property usage in `app/app/dashboard/page.tsx` (`trackingNumber` -> `carrierTrackingNumber`).
+  - Added mandatory `contact` property to all `Address` objects in `ServicePage` and `ShippingEstimatePage`.
+- **Details**:
+  - Improved the visual hierarchy of the shipment detail page with a clean sidebar for physical specifications.
+  - Ensured all addresses in the shipping flow now include required contact metadata.
+  - Verified full type safety of the client application with `bunx tsc --noEmit`.
+
+### [1.14.5] - 2026-01-15 - Tracking Page Enhancement & Code Refactor
+
+- Added: Modular Tracking Components
+  - `TrackingSearch`: Unified search input and logic.
+  - `TrackingOverview`: High-level status and tracking number display.
+  - `TrackingDetails`: Consolidates drop-off and package content info.
+  - `TrackingTimelineView`: Efficient timeline rendering with Top 2 + Gap + Bottom 1 logic.
+  - `RecentShipments`: Cleaned up history buttons for the empty state.
+- Changed: Enhanced Date & Time Formatting
+  - Strictly following user requirement: `"15 may, 2026, 09:29pm"`.
+  - Integrated year into all tracking dates.
+  - Standardized 12-hour time format with lowercase am/pm.
+- Changed: Refactored Tracking Page Architecture
+  - Cleaned up `/app/track/page.tsx` to be more readable and efficient.
+  - Strictly using `TrackingResponse` interface as the data source.
+  - Added comprehensive comments and JSDoc documentation.
+- **Details**:
+  - Optimized timeline sorting and filtering logic.
+  - Improved error handling and loading states with consistent UI feedback.
+
 ### [1.14.4] - 2026-01-14 - Implementation of Track Shipment Page
 
 - Added: Dedicated Track Shipment Page (`/app/track`)

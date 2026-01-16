@@ -45,7 +45,7 @@ export default function ShipmentHistoryPage() {
             {shipments.map((shipment) => (
               <Link
                 key={shipment.id}
-                href={`/app/shipments/${shipment.id}`}
+                href={`/app/shipments/${shipment.customTrackingNumber}`}
                 className="block hover:bg-gray-50 transition-colors"
               >
                 <div className="p-6 flex items-center gap-6">
@@ -76,7 +76,7 @@ export default function ShipmentHistoryPage() {
                   {/* Column 2: Tracking (Fixed Width) */}
                   <div className="hidden lg:block w-64 shrink-0 border-l border-gray-50 pl-6">
                     <p className="text-[10px] text-gray-400 font-black uppercase tracking-wider mb-1">
-                      {shipment.carrierName} Shipment
+                      {shipment.carrier.name} Shipment
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-gray-900 truncate">

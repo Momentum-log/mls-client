@@ -17,7 +17,7 @@ export const formatStatus = (status: string) => {
  * Generates a meaningful display name for a shipment.
  */
 export const getShipmentDisplayName = (shipment: Shipment) => {
-  // User requested: personName + city from dropoffAddress data
+  // Primary: personName + city from dropoffAddress data
   const dropoffPerson = shipment.dropoffAddress?.contact?.personName;
   const dropoffCity = shipment.dropoffAddress?.city;
 
@@ -25,30 +25,21 @@ export const getShipmentDisplayName = (shipment: Shipment) => {
     return `${dropoffPerson} • ${dropoffCity}`;
   }
 
-  // Fallback to older logic if new fields aren't available
-  if (shipment.description && shipment.description.trim() !== "") {
-    return shipment.description;
-  }
-
-  // Try to use origin/destination Data if available
-  const origin = shipment.origin || shipment.originData?.city;
-  const destination = shipment.destination || shipment.destinationData?.city;
+  // Fallback to origin/destination if available (using city/country)
+  const origin = shipment.pickupAddress?.city;
+  const destination = shipment.dropoffAddress?.city;
 
   if (origin && destination) {
     return `${origin} → ${destination}`;
   }
 
-  if (shipment.recipientName) {
-    return `To ${shipment.recipientName}`;
-  }
-
-  if (shipment.recipient?.contact?.personName) {
-    return `To ${shipment.recipient.contact.personName}`;
+  if (shipment.dropoffAddress?.contact?.personName) {
+    return `To ${shipment.dropoffAddress.contact.personName}`;
   }
 
   return (
     shipment.customTrackingNumber ||
-    shipment.trackingNumber ||
+    shipment.carrierTrackingNumber ||
     `Shipment ${shipment.id.slice(0, 8)}`
   );
 };
