@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import Button from "@/components/ui/button";
 import apiClient from "@/api";
+import { deepTransformData } from "@/utils/data-transform";
 import { FiPackage, FiTruck, FiCheckCircle, FiSearch } from "react-icons/fi";
 
 export default function TrackPage() {
@@ -22,7 +23,9 @@ export default function TrackPage() {
 
     try {
       const response = await apiClient.get(`/shipments/${trackingId}/track`);
-      setTrackingData(response.data);
+      // Transform the entire response for branding
+      const cleanedData = deepTransformData(response.data);
+      setTrackingData(cleanedData);
     } catch (err: any) {
       setError(err.response?.data?.error || "Tracking information not found.");
     } finally {

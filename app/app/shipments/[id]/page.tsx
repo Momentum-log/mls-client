@@ -1,107 +1,199 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-// import { useParams } from "next/navigation"; // params prop in Next 13+ app dir
-import { trackShipment } from "@/api/shipments";
-import { FiBox, FiTruck, FiMapPin } from "react-icons/fi";
+import React, { useMemo } from "react";
+import { FiBox, FiInfo } from "react-icons/fi";
 import { useParams } from "next/navigation";
-import CopyButton from "@/components/ui/copy-button";
+import { useGetShipment } from "@/hooks/shipments/use-shipments";
+import { deepTransformData } from "@/utils/data-transform";
+import TrackingOverview from "@/components/tracking/TrackingOverview";
+import TrackingDetails from "@/components/tracking/TrackingDetails";
+import TrackingTimelineView from "@/components/tracking/TrackingTimelineView";
+import { TrackingResponse } from "@/types/shipping";
 
+/**
+ * ShipmentDetailsPage Component
+ * Displays comprehensive shipment data and tracking history for a specific ID.
+ * Integrates live tracking data and physical shipment details.
+ */
 export default function ShipmentDetailsPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const [tracking, setTracking] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch shipment and tracking data
+  const { data: rawData, isLoading, error } = useGetShipment(id);
 
-  useEffect(() => {
-    if (id) {
-      setLoading(true);
-      // We use the tracking endpoint to show details
-      trackShipment(id)
-        .then((data) => setTracking(data))
-        .catch((err) => setError("Could not load tracking info."))
-        .finally(() => setLoading(false));
-    }
-  }, [id]);
+  // Transform and map data
+  const { shipment, trackingResponse } = useMemo(() => {
+    if (!rawData) return { shipment: null, trackingResponse: null };
 
-  if (loading)
+    // Apply branding transformation (FedEx -> MLS)
+    const cleanedData = deepTransformData(rawData);
+
+    // Reconstruct TrackingResponse for the sub-components
+    const tr: TrackingResponse = {
+      trackingNumber: cleanedData.tracking.trackingNumber,
+      carrier: cleanedData.carrier?.name || "MLS",
+      status: cleanedData.tracking.status,
+      timeline: cleanedData.tracking.timeline,
+      shipment: cleanedData,
+    };
+
+    return {
+      shipment: cleanedData,
+      trackingResponse: tr,
+    };
+  }, [rawData]);
+
+  if (isLoading) {
     return (
-      <div className="p-8 text-center bg-gray-50 min-h-screen pt-20">
-        Loading...
+      <div className="container mx-auto py-12 max-w-5xl px-4">
+        <div className="space-y-6 animate-pulse">
+          <div className="h-4 w-32 bg-gray-100 rounded mb-4"></div>
+          <div className="h-32 w-full bg-gray-100 rounded-2xl"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="h-64 bg-gray-100 rounded-2xl"></div>
+            </div>
+            <div className="h-64 bg-gray-100 rounded-2xl"></div>
+          </div>
+        </div>
       </div>
     );
-  if (error)
+  }
+
+  if (error || !shipment) {
     return (
-      <div className="p-8 text-center text-red-500 bg-gray-50 min-h-screen pt-20">
-        {error}
+      <div className="container mx-auto py-20 max-w-lg px-4 text-center">
+        <div className="bg-red-50 border border-red-100 p-10 rounded-3xl">
+          <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiInfo className="w-10 h-10" />
+          </div>
+          <h3 className="text-2xl font-black text-red-900 mb-2">
+            Shipment Not Found
+          </h3>
+          <p className="text-red-700 font-medium">
+            {error instanceof Error
+              ? error.message
+              : "We couldn't retrieve the details for this shipment ID. Please verify the ID and try again."}
+          </p>
+        </div>
       </div>
     );
+  }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-bold text-gray-900">Shipment {id}</h1>
-          <CopyButton text={id} tooltipText="Copy shipment ID" />
-        </div>
-        <p className="text-gray-500">Real-time status updates</p>
+    <div className="container mx-auto py-12 max-w-6xl px-4">
+      <div className="mb-10">
+        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-2">
+          Shipment Journey
+        </h1>
+        <p className="text-gray-500 font-medium text-lg">
+          Complete delivery path and package specifications.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Status Card */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-4 bg-brand-blue rounded-full text-white">
-                <FiTruck className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Current Status</p>
-                <h2 className="text-2xl font-bold text-brand-blue">
-                  {tracking?.status || "Unknown"}
-                </h2>
-              </div>
-            </div>
-
-            {/* Timeline Mockup if no detailed events in API */}
-            <div className="border-l-2 border-gray-200 ml-7 pl-8 space-y-8 py-2">
-              <div className="relative">
-                <div className="absolute -left-[37px] bg-green-500 w-4 h-4 rounded-full border-2 border-white"></div>
-                <p className="font-semibold text-gray-900">Shipment Created</p>
-                <p className="text-xs text-gray-500">Details received</p>
-              </div>
-              {tracking?.status === "Delivered" && (
-                <div className="relative">
-                  <div className="absolute -left-[37px] bg-brand-blue w-4 h-4 rounded-full border-2 border-white"></div>
-                  <p className="font-semibold text-gray-900">Delivered</p>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        {/* Main Content: Tracking & Timeline */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
+            <div className="flex flex-col gap-8">
+              {trackingResponse && (
+                <>
+                  <TrackingOverview trackingResponse={trackingResponse} />
+                  <TrackingDetails shipment={shipment} />
+                </>
               )}
             </div>
           </div>
+
+          {trackingResponse && (
+            <TrackingTimelineView
+              trackingResponse={trackingResponse}
+              showFull
+            />
+          )}
         </div>
 
-        {/* Details Sidebar */}
+        {/* Sidebar: Package Details & Help */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <FiBox /> Package Details
+          <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+            <h3 className="font-bold text-gray-900 mb-8 flex items-center gap-3 text-xl">
+              <FiBox className="text-brand-blue" /> Physical Details
             </h3>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Tracking Code</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-medium">{id}</span>
-                  <CopyButton text={id} tooltipText="Copy code" />
+
+            <div className="space-y-6">
+              {/* Service Info */}
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-0.5">
+                  Service Type
+                </p>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="font-bold text-gray-900">
+                    {shipment.serviceName ||
+                      shipment.serviceType ||
+                      "Standard Logistics"}
+                  </p>
                 </div>
               </div>
-              {/* Mocked extra details since tracking API might not return dims/weight */}
-              <div className="flex justify-between">
-                <span className="text-gray-500">Service</span>
-                <span>Standard Ground</span>
+
+              {/* Weight & Dimensions */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-0.5">
+                    Weight
+                  </p>
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <p className="font-bold text-gray-900">
+                      {shipment.weight?.value} {shipment.weight?.units}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-0.5">
+                    Dimensions
+                  </p>
+                  <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <p className="font-bold text-gray-900">
+                      {shipment.dimensions
+                        ? `${shipment.dimensions.length}x${shipment.dimensions.width}x${shipment.dimensions.height}`
+                        : "-"}
+                      <span className="text-[10px] ml-1 opacity-50">
+                        {shipment.dimensions?.units}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Created Date */}
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 px-0.5">
+                  Shipment Created
+                </p>
+                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <p className="font-bold text-gray-900">
+                    {new Date(shipment.createdAt).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
+          </div>
+
+          <div className="bg-brand-blue/5 p-8 rounded-3xl border border-brand-blue/10">
+            <h4 className="font-black text-brand-blue mb-2 text-lg">
+              Support Center
+            </h4>
+            <p className="text-sm text-gray-600 mb-6 font-medium leading-relaxed">
+              Have questions about this shipment? Our team is available 24/7 to
+              assist you.
+            </p>
+            <button className="w-full py-3 bg-white border-2 border-brand-blue/10 text-brand-blue rounded-2xl font-bold text-sm hover:bg-brand-blue hover:text-white hover:border-brand-blue transition-all">
+              Contact Support
+            </button>
           </div>
         </div>
       </div>

@@ -148,7 +148,7 @@ export default function DashboardPage() {
                       </p>
                       <p className="text-xs text-brand-blue/70 font-mono">
                         {shipment.customTrackingNumber ||
-                          shipment.trackingNumber}
+                          shipment.carrierTrackingNumber}
                       </p>
                       <p className="text-[10px] text-gray-400">
                         {new Date(shipment.createdAt).toLocaleDateString()}

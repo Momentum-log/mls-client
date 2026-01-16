@@ -24,7 +24,7 @@ import {
 } from "./constants";
 import { Select } from "@/components/ui/select";
 // Make sure to import types correctly
-import { transformShippingData } from "./utils";
+import { transformShippingData, getEstimatePayload } from "./utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import {
   ShippingEstimatePayload,
@@ -118,6 +118,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street || "Main St"],
                 stateOrProvinceCode: details.state || "XX", // Use defined state or XX fallback
                 residential: false,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         } else {
@@ -132,6 +137,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street],
                 stateOrProvinceCode: details.state,
                 residential: values.isStackable,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         }
@@ -149,6 +159,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street || "Main St"],
                 stateOrProvinceCode: details.state || "XX",
                 residential: false,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         } else {
@@ -163,6 +178,11 @@ export default function ShippingEstimatePage() {
                 streetLines: [details.street],
                 stateOrProvinceCode: details.state,
                 residential: false,
+                contact: {
+                  personName: "Guest User",
+                  companyName: "",
+                  phoneNumber: "000000000",
+                },
               }
             : null;
         }
@@ -192,19 +212,18 @@ export default function ShippingEstimatePage() {
         // const isEnvelope = values.selectedPreset === "envelope";
         // const packagingType = isEnvelope ? "FEDEX_ENVELOPE" : "YOUR_PACKAGING";
 
-        const payload: ShippingEstimatePayload = {
-          pickup: { ...pickupAddr, residential: values.isStackable },
-          dropoff: dropoffAddr,
-          // packagingType,
-          package: {
+        const payload = getEstimatePayload(
+          { ...pickupAddr, residential: values.isStackable },
+          dropoffAddr,
+          {
             weight: {
-              value: parseFloat(Number(values.package.weight).toFixed(2)), // Return to Number type, 2 decimal precision
+              value: parseFloat(Number(values.package.weight).toFixed(2)),
               units: "KG",
             },
             dimensions: {
               length: parseFloat(
                 Number(values.package.dimensions.length).toFixed(1)
-              ), // Return to Number type, 1 decimal precision
+              ),
               width: parseFloat(
                 Number(values.package.dimensions.width).toFixed(1)
               ),
@@ -214,8 +233,8 @@ export default function ShippingEstimatePage() {
               units: "CM",
             },
           },
-          guestId: getOrSetGuestId(),
-        };
+          getOrSetGuestId()
+        );
 
         console.log(
           "Submitting Shipping Payload:",

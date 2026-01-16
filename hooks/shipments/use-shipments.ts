@@ -5,12 +5,14 @@ import {
   getShipmentStats,
   createShipment,
   trackShipment,
+  getShipment,
 } from "@/api/shipments";
 import {
   ShippingEstimatePayload,
   ShippingEstimateResponse,
   Shipment,
   ShipmentStats,
+  GetShipmentResponse,
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
@@ -41,7 +43,7 @@ export const useTrackShipment = (trackingNumber: string) => {
   return useQuery({
     queryKey: ["shipment-track", trackingNumber],
     queryFn: () => trackShipment(trackingNumber),
-    enabled: !!trackingNumber,
+    enabled: !!trackingNumber.trim(),
   });
 };
 
@@ -52,6 +54,17 @@ export const useGetShipmentHistory = () => {
   return useQuery<Shipment[], Error>({
     queryKey: ["shipment-history"],
     queryFn: getShipmentHistory,
+  });
+};
+
+/**
+ * Hook to fetch a specific shipment.
+ */
+export const useGetShipment = (trackingNumber: string) => {
+  return useQuery<GetShipmentResponse, Error>({
+    queryKey: ["shipment", trackingNumber],
+    queryFn: () => getShipment(trackingNumber),
+    enabled: !!trackingNumber.trim(),
   });
 };
 

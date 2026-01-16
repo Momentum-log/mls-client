@@ -1,21 +1,17 @@
 "use client";
 
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
-import { toFormikValidationSchema } from "zod-formik-adapter";
 import Button from "@/components/ui/button";
 import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
 import { Address } from "@/store/shipment-store";
 import countriesData from "@/lib/countries.iso.json";
-// Import full countries data
-import citiesDataRaw from "@/lib/countries.json";
 import { State, City } from "country-state-city";
 
-// Type assertion for the JSON data structure
-const citiesData = citiesDataRaw as Record<string, string[]>;
-
-// Helper to map ISO country names to our JSON keys
+/**
+ * Normalizes country names for legacy city lookup compatibility.
+ */
 const normalizeCountryName = (isoName: string): string => {
   const mappings: Record<string, string> = {
     "United States of America": "United States",
@@ -35,7 +31,9 @@ const normalizeCountryName = (isoName: string): string => {
   return mappings[isoName] || isoName;
 };
 
-// Base Schema
+/**
+ * Base Validation Schema using Zod.
+ */
 const createAddressSchema = (isStateRequired: boolean) =>
   z.object({
     name: z.string().min(1, "Name is required"),
@@ -44,7 +42,6 @@ const createAddressSchema = (isStateRequired: boolean) =>
     city: z.string().min(1, "City is required"),
     postalCode: z.string().min(1, "Postal code is required"),
     country: z.string().min(1, "Country is required"),
-    // Dynamic validation for state
     stateOrProvinceCode: isStateRequired
       ? z.string().min(1, "State/Province is required")
       : z.string().optional(),
@@ -56,19 +53,19 @@ interface AddressFormProps {
   initialValues: Address | null;
   onSubmit: (values: Address) => void;
   onBack?: () => void;
-  title?: string;
+  type: "pickup" | "dropoff";
 }
 
+/**
+ * Enhanced AddressForm with high-contrast UI and modular design.
+ * Used for both Pick-up (Origin) and Drop-off (Destination) details.
+ */
 export default function AddressForm({
   initialValues,
   onSubmit,
   onBack,
+  type,
 }: AddressFormProps) {
-  // We need to manage validation schema dynamically based on chosen country
-  // But Formik needs a static schema or re-render.
-  // We can validate state manually or stick to Zod schema updates.
-
-  // To check if country has states
   const hasStates = (countryCode: string) => {
     const states = State.getStatesOfCountry(countryCode);
     return states && states.length > 0;
@@ -82,16 +79,11 @@ export default function AddressForm({
       city: "",
       stateOrProvinceCode: "",
       postalCode: "",
-      country: "PL", // Default to Poland
+      country: "PL",
       phone: "",
       email: "",
     },
     enableReinitialize: true,
-    // We update schema dynamically or accept loose schema and refine?
-    // Let's rely on validationSchema being re-evaluated since 'enableReinitialize' is true,
-    // but validationSchema needs to be memoized or passed correctly.
-    // Simpler approach: Create a robust schema that checks context? Zod+Formik adapter makes this tricky.
-    // Instead, we will construct the schema during render.
     validate: (values) => {
       const countryCode = values.country;
       const required = hasStates(countryCode);
@@ -105,7 +97,6 @@ export default function AddressForm({
             string,
             string[] | undefined
           >;
-          // Formik expects string values for errors, but Zod returns string[]
           const formikErrors: Record<string, string> = {};
           Object.keys(fieldErrors).forEach((key) => {
             const messages = fieldErrors[key];
@@ -119,58 +110,24 @@ export default function AddressForm({
       }
     },
     onSubmit: (values) => {
-      // Ensure state code is sent (not name) - Dropdown values should be codes
       onSubmit(values as Address);
     },
   });
 
-  // Get current country name to look up cities (Legacy logic kept for cities)
-  const selectedCountryName = useMemo(() => {
-    const country = countriesData.find(
-      (c) => c["alpha-2"] === formik.values.country
-    );
-    return country ? country.name : "";
-  }, [formik.values.country]);
-
-  // Get states for strict dropdown
   const availableStates = useMemo(() => {
     return State.getStatesOfCountry(formik.values.country);
   }, [formik.values.country]);
 
-  // Get cities for the selected country (Legacy + State aware?)
   const availableCities = useMemo(() => {
-    if (!selectedCountryName) return [];
-
-    // If state is selected, maybe filter cities by state using `City.getCitiesOfState`?
-    // That would be better than the raw JSON file.
     if (formik.values.stateOrProvinceCode) {
-      const citiesStart = City.getCitiesOfState(
+      const cities = City.getCitiesOfState(
         formik.values.country,
         formik.values.stateOrProvinceCode
       );
-      if (citiesStart.length > 0) {
-        return citiesStart.map((c) => c.name).sort();
-      }
+      if (cities.length > 0) return cities.map((c) => c.name).sort();
     }
-
-    // Fallback to existing JSON logic if no state selected or no cities found in library
-    const normalizedName = normalizeCountryName(selectedCountryName);
-    const citiesRaw = citiesData[normalizedName] || [];
-    return Array.from(new Set(citiesRaw)).sort();
-  }, [
-    selectedCountryName,
-    formik.values.country,
-    formik.values.stateOrProvinceCode,
-  ]);
-
-  // Reset city and state when country changes
-  useEffect(() => {
-    // Only reset if the user changed it manually (interaction)
-    // But this effect runs on mount too. 'enableReinitialize' handles initialValues.
-    // We should be careful not to wipe initialValues on first render.
-    // For now, let's trust formik handles initialValues, and we only react to changes *after* mount?
-    // Actually, simple check: if values match initialValues, don't wipe.
-  }, [formik.values.country]);
+    return [];
+  }, [formik.values.country, formik.values.stateOrProvinceCode]);
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     formik.setFieldValue("country", e.target.value);
@@ -183,120 +140,138 @@ export default function AddressForm({
     formik.setFieldValue("city", "");
   };
 
+  const title = type === "pickup" ? "Pick-up Details" : "Drop-off Details";
+  const subtitle =
+    type === "pickup"
+      ? "Where should we collect the package?"
+      : "Where is the package going?";
+
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Contact Info */}
+    <form onSubmit={formik.handleSubmit} className="space-y-8">
+      <div>
+        <h2 className="text-xl font-black text-gray-900 mb-1">{title}</h2>
+        <p className="text-sm text-gray-500">{subtitle}</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+        {/* Contact Info Group */}
         <div className="col-span-full">
-          <h3 className="text-sm uppercase tracking-wider text-gray-400 font-semibold mb-3">
-            Contact Details
-          </h3>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-px flex-1 bg-gray-100" />
+            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400">
+              Contact Person
+            </span>
+            <div className="h-px flex-1 bg-gray-100" />
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Full Name</label>
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
+            Full Name
+          </label>
           <input
             type="text"
-            name="name"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.name}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
+            {...formik.getFieldProps("name")}
+            className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-bold ${
+              formik.touched.name && formik.errors.name
+                ? "border-red-500 focus:ring-4 focus:ring-red-500/5 shadow-sm shadow-red-500/10"
+                : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+            }`}
             placeholder="e.g. John Doe"
           />
           {formik.touched.name && formik.errors.name && (
-            <div className="text-red-500 text-xs mt-1">
+            <p className="text-[11px] text-red-500 font-bold ml-1">
               {formik.errors.name}
-            </div>
+            </p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
             Company (Optional)
           </label>
           <input
             type="text"
-            name="company"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.company}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
-            placeholder="e.g. Momentum Inc."
+            {...formik.getFieldProps("company")}
+            className="w-full px-5 py-4 rounded-2xl border border-gray-200 bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all font-medium"
+            placeholder="Company Name"
           />
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Email</label>
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
+            Email Address
+          </label>
           <input
             type="email"
-            name="email"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.email}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
-            placeholder="e.g. john@example.com"
+            {...formik.getFieldProps("email")}
+            className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-medium ${
+              formik.touched.email && formik.errors.email
+                ? "border-red-500 ring-2 ring-red-500/10"
+                : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+            }`}
+            placeholder="email@example.com"
           />
           {formik.touched.email && formik.errors.email && (
-            <div className="text-red-500 text-xs mt-1">
+            <p className="text-[11px] text-red-500 font-bold ml-1">
               {formik.errors.email}
-            </div>
+            </p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Phone</label>
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
+            Phone Number
+          </label>
           <input
             type="tel"
-            name="phone"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.phone}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
-            placeholder="e.g. +48 123 456 789"
+            {...formik.getFieldProps("phone")}
+            className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-medium ${
+              formik.touched.phone && formik.errors.phone
+                ? "border-red-500 ring-2 ring-red-500/10"
+                : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+            }`}
+            placeholder="+1 234 567 890"
           />
           {formik.touched.phone && formik.errors.phone && (
-            <div className="text-red-500 text-xs mt-1">
+            <p className="text-[11px] text-red-500 font-bold ml-1">
               {formik.errors.phone}
-            </div>
+            </p>
           )}
         </div>
 
-        {/* Address Info */}
+        {/* Address Group */}
         <div className="col-span-full mt-4">
-          <h3 className="text-sm uppercase tracking-wider text-gray-400 font-semibold mb-3">
-            Address
-          </h3>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-px flex-1 bg-gray-100" />
+            <span className="text-[10px] uppercase tracking-widest font-black text-gray-400">
+              Physical Address
+            </span>
+            <div className="h-px flex-1 bg-gray-100" />
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">Country</label>
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
+            Country
+          </label>
           <select
             name="country"
             onChange={handleCountryChange}
             onBlur={formik.handleBlur}
             value={formik.values.country}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all bg-white"
+            className="w-full px-5 py-4 rounded-2xl border border-gray-200 bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all font-medium"
           >
-            <option value="" disabled>
-              Select Country
-            </option>
             {countriesData.map((country) => (
               <option key={country["alpha-2"]} value={country["alpha-2"]}>
                 {country.name}
               </option>
             ))}
           </select>
-          {formik.touched.country && formik.errors.country && (
-            <div className="text-red-500 text-xs mt-1">
-              {formik.errors.country}
-            </div>
-          )}
         </div>
 
-        {/* State/Province Field */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
             State / Province
           </label>
           {availableStates.length > 0 ? (
@@ -304,8 +279,13 @@ export default function AddressForm({
               name="stateOrProvinceCode"
               onChange={handleStateChange}
               onBlur={formik.handleBlur}
-              value={formik.values.stateOrProvinceCode || ""}
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all bg-white"
+              value={formik.values.stateOrProvinceCode}
+              className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-medium ${
+                formik.touched.stateOrProvinceCode &&
+                formik.errors.stateOrProvinceCode
+                  ? "border-red-500 ring-2 ring-red-500/10"
+                  : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+              }`}
             >
               <option value="">Select State</option>
               {availableStates.map((state) => (
@@ -317,110 +297,123 @@ export default function AddressForm({
           ) : (
             <input
               type="text"
-              name="stateOrProvinceCode"
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              value={formik.values.stateOrProvinceCode || ""}
-              placeholder="Optional"
-              className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
-              // Disable validation appearance if optional? No, formik handles it.
+              {...formik.getFieldProps("stateOrProvinceCode")}
+              className="w-full px-5 py-4 rounded-2xl border border-gray-200 bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all font-medium"
+              placeholder="State name"
             />
           )}
-
           {formik.touched.stateOrProvinceCode &&
             formik.errors.stateOrProvinceCode && (
-              <div className="text-red-500 text-xs mt-1">
+              <p className="text-[11px] text-red-500 font-bold ml-1">
                 {formik.errors.stateOrProvinceCode}
-              </div>
+              </p>
             )}
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="col-span-full space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
             Street Address
           </label>
           <input
             type="text"
-            name="street"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.street}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
-            placeholder="e.g. ul. Piotrkowska 10"
+            {...formik.getFieldProps("street")}
+            className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-bold ${
+              formik.touched.street && formik.errors.street
+                ? "border-red-500 focus:ring-4 focus:ring-red-500/5"
+                : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+            }`}
+            placeholder="e.g. Marszałkowska 1"
           />
           {formik.touched.street && formik.errors.street && (
-            <div className="text-red-500 text-xs mt-1">
+            <p className="text-[11px] text-red-500 font-bold ml-1">
               {formik.errors.street}
-            </div>
+            </p>
           )}
         </div>
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
+            City
+          </label>
+          {availableCities.length > 0 ? (
+            <select
+              {...formik.getFieldProps("city")}
+              className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-medium ${
+                formik.touched.city && formik.errors.city
+                  ? "border-red-500 ring-2 ring-red-500/10"
+                  : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+              }`}
+            >
+              <option value="">Select City</option>
+              {availableCities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type="text"
+              {...formik.getFieldProps("city")}
+              className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-bold ${
+                formik.touched.city && formik.errors.city
+                  ? "border-red-500 focus:ring-4 focus:ring-red-500/5"
+                  : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+              }`}
+              placeholder="e.g. Warsaw"
+            />
+          )}
+          {formik.touched.city && formik.errors.city && (
+            <p className="text-[11px] text-red-500 font-bold ml-1">
+              {formik.errors.city}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-black uppercase tracking-tight text-gray-700">
             Postal Code
           </label>
           <input
             type="text"
-            name="postalCode"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.postalCode}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all"
-            placeholder="e.g. 90-001"
+            {...formik.getFieldProps("postalCode")}
+            className={`w-full px-5 py-4 rounded-2xl border bg-white outline-none transition-all font-bold ${
+              formik.touched.postalCode && formik.errors.postalCode
+                ? "border-red-500 focus:ring-4 focus:ring-red-500/5"
+                : "border-gray-200 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5"
+            }`}
+            placeholder="00-001"
           />
           {formik.touched.postalCode && formik.errors.postalCode && (
-            <div className="text-red-500 text-xs mt-1">
+            <p className="text-[11px] text-red-500 font-bold ml-1">
               {formik.errors.postalCode}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">City</label>
-          <select
-            name="city"
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            value={formik.values.city}
-            className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20 outline-none transition-all bg-white disabled:bg-gray-100 disabled:text-gray-400"
-            disabled={!availableCities.length}
-          >
-            <option value="" disabled>
-              {availableCities.length ? "Select City" : "City"}
-            </option>
-            {availableCities.map((city: string, index: number) => (
-              <option key={`${city}-${index}`} value={city}>
-                {city}
-              </option>
-            ))}
-          </select>
-          {formik.touched.city && formik.errors.city && (
-            <div className="text-red-500 text-xs mt-1">
-              {formik.errors.city}
-            </div>
+            </p>
           )}
         </div>
       </div>
 
-      <div className="flex justify-between pt-6 mt-8 border-t border-gray-100">
-        {onBack && (
+      <div className="flex justify-between items-center pt-8 border-t border-gray-100">
+        {onBack ? (
           <Button
             type="button"
             variant="ghost"
             size="lg"
             onClick={onBack}
-            className="text-gray-500 hover:text-gray-900"
+            className="text-gray-500 font-bold"
           >
             <FiArrowLeft className="mr-2" /> Back
           </Button>
+        ) : (
+          <div />
         )}
+
         <Button
           type="submit"
           variant="primary"
           size="lg"
-          className="min-w-[150px] ml-auto"
+          className="min-w-[180px] shadow-xl shadow-brand-blue/20"
         >
-          Next Step <FiArrowRight className="ml-2" />
+          Continue <FiArrowRight className="ml-2" />
         </Button>
       </div>
     </form>
