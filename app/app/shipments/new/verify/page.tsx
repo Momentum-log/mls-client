@@ -5,8 +5,18 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { verifyPayment } from "@/api/payments";
 import { VerifyPaymentResponse } from "@/types/shipping";
 import Button from "@/components/ui/button";
-import { FiCheckCircle, FiXCircle, FiTruck, FiDownload } from "react-icons/fi";
+import {
+  FiCheckCircle,
+  FiXCircle,
+  FiTruck,
+  FiDownload,
+  FiAlertCircle,
+  FiArrowRight,
+  FiHome,
+} from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
+import CopyButton from "@/components/ui/copy-button";
+import Link from "next/link";
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
@@ -20,6 +30,29 @@ export default function VerifyPage() {
   // Prevent double invocation in strict mode
   const hasCalled = useRef(false);
 
+  // Re-usable verification handler
+  const handleVerify = async () => {
+    if (!sessionId) return;
+
+    setLoading(true);
+    try {
+      const data = await verifyPayment(sessionId);
+      setResult(data);
+    } catch (err: any) {
+      console.error("Verification failed:", err);
+      setResult({
+        status: "FAILED",
+        paymentStatus: "unknown",
+        shipmentStatus: "FAILED",
+        message: err.response?.data?.message || "Verification request failed.",
+        trackingNumber: undefined,
+        labelUrl: "",
+      } as VerifyPaymentResponse);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!sessionId) {
       setLoading(false);
@@ -29,145 +62,178 @@ export default function VerifyPage() {
     if (hasCalled.current) return;
     hasCalled.current = true;
 
-    const verify = async () => {
-      try {
-        const data = await verifyPayment(sessionId);
-        setResult(data);
-      } catch (err: any) {
-        console.error("Verification failed:", err);
-        setResult({
-          status: "FAILED",
-          paymentStatus: "unknown",
-          shipmentStatus: "FAILED",
-          message:
-            err.response?.data?.message || "Verification request failed.",
-        });
-        toast({
-          title: "Verification Error",
-          message: "Could not verify payment status.",
-          type: "error",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    handleVerify();
+  }, [sessionId]);
 
-    verify();
-  }, [sessionId, toast]);
+  // Defensive Check: Valid success means STATUS is SUCCESS AND Tracking Number exists
+  const isSuccess = result?.status === "SUCCESS" && !!result?.trackingNumber;
 
   if (!sessionId) {
     return (
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl border border-gray-200 text-center">
-        <FiXCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Invalid Session
-        </h2>
-        <p className="text-gray-600 mb-6">
-          No session ID was found in the URL.
-        </p>
-        <Button onClick={() => router.push("/app/dashboard")}>
-          Go to Dashboard
-        </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiAlertCircle className="w-8 h-8 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2 font-work-sans">
+            Invalid Session
+          </h2>
+          <p className="text-gray-600 mb-8 font-medium">
+            We couldn&apos;t identify your payment session. Please return to the
+            dashboard.
+          </p>
+          <Link href="/app/dashboard">
+            <Button variant="primary" size="lg" className="w-full rounded-xl">
+              Go to Dashboard
+            </Button>
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl border border-gray-200 text-center">
-        <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <h2 className="text-xl font-bold text-gray-900">
-          Verifying Payment...
-        </h2>
-        <p className="text-gray-600 mt-2">
-          Please wait while we confirm your shipment.
-        </p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-12 text-center border border-gray-100">
+          <div className="w-16 h-16 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+          <h2 className="text-xl font-black text-gray-900 tracking-tight">
+            Finalizing Shipment...
+          </h2>
+          <p className="text-gray-500 mt-2 font-medium">
+            Securing your label and tracking number.
+          </p>
+        </div>
       </div>
     );
   }
 
-  const isSuccess = result?.status === "SUCCESS";
-
   return (
-    <div className="max-w-xl mx-auto mt-10 p-8 bg-white rounded-xl border border-gray-200 shadow-sm text-center">
-      {isSuccess ? (
-        <>
-          <div className="bg-green-100 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-            <FiCheckCircle className="w-10 h-10 text-green-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Payment Successful!
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Your shipment has been created successfully.
-          </p>
-
-          <div className="bg-gray-50 p-6 rounded-lg text-left space-y-3 mb-8">
-            <div className="flex justify-between">
-              <span className="text-gray-500 font-medium">
-                Tracking Number:
-              </span>
-              <span className="text-gray-900 font-bold">
-                {result?.trackingNumber || "Generating..."}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500 font-medium">Payment Status:</span>
-              <span className="text-brand-blue font-semibold uppercase">
-                {result?.paymentStatus}
-              </span>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+        {isSuccess ? (
+          // SUCCESS STATE
+          <div className="p-8 md:p-12 text-center">
+            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce-slow">
+              <FiCheckCircle className="w-10 h-10 text-green-500" />
             </div>
 
-            {result?.labelUrl && (
-              <div className="pt-4 mt-4 border-t border-gray-200">
+            <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight font-work-sans">
+              Shipment Confirmed!
+            </h1>
+            <p className="text-gray-500 mb-8 font-medium">
+              Your package is ready to move. Download your label below.
+            </p>
+
+            {/* Tracking Info Card */}
+            <div className="bg-gray-50 rounded-2xl p-6 mb-8 text-left border border-gray-100 shadow-inner">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-xs font-black uppercase tracking-widest text-gray-400">
+                  Tracking Number
+                </span>
+                <span className="bg-brand-blue/10 text-brand-blue text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                  MLS Express
+                </span>
+              </div>
+              <div className="flex items-center justify-between group">
+                <span className="text-xl md:text-2xl font-black text-gray-900 font-mono tracking-tight">
+                  {result?.trackingNumber}
+                </span>
+                <CopyButton text={result?.trackingNumber || ""} />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {result?.labelUrl ? (
                 <a
                   href={result.labelUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center justify-center gap-2 w-full p-3 bg-brand-blue text-white rounded-lg hover:bg-brand-blue/90 transition-colors"
+                  className="block w-full"
                 >
-                  <FiDownload /> Download Shipping Label
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full h-14 rounded-xl text-lg shadow-lg shadow-brand-blue/20"
+                  >
+                    <FiDownload className="mr-2" /> Download Label
+                  </Button>
                 </a>
+              ) : (
+                <div className="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-sm font-medium">
+                  Label generation pending. Please check "My Shipments" shortly.
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/app/shipments")}
+                  className="h-12 rounded-xl border-gray-200 hover:border-brand-blue text-gray-600 hover:text-brand-blue"
+                >
+                  <FiTruck className="mr-2" /> Track
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => router.push("/app/dashboard")}
+                  className="h-12 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  <FiHome className="mr-2" /> Dashboard
+                </Button>
               </div>
-            )}
+            </div>
           </div>
+        ) : (
+          // FAILURE STATE
+          <div className="p-8 md:p-12 text-center">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
+              <FiXCircle className="w-10 h-10 text-red-500" />
+            </div>
 
-          <div className="flex gap-4 justify-center">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/app/dashboard")}
-            >
-              Go to Dashboard
-            </Button>
-            <Button onClick={() => router.push("/app/shipments")}>
-              <FiTruck className="mr-2" /> View Shipments
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="bg-red-100 p-4 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
-            <FiXCircle className="w-10 h-10 text-red-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Payment Failed
-          </h1>
-          <p className="text-red-500 mb-6 font-medium">
-            {result?.message || "There was an issue verifying your payment."}
-          </p>
-          <p className="text-gray-600 mb-8 text-sm">
-            If you have been charged, please contact support with Session ID:{" "}
-            <br />
-            <code className="bg-gray-100 px-2 py-1 rounded mt-1 inline-block">
-              {sessionId}
-            </code>
-          </p>
+            <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight font-work-sans">
+              Payment Failed
+            </h1>
+            <p className="text-gray-500 mb-8 font-medium px-4">
+              {result?.message ||
+                "We couldn't process your payment. No charges were made."}
+            </p>
 
-          <Button onClick={() => router.push("/app/shipments/new/summary")}>
-            Try Again
-          </Button>
-        </>
-      )}
+            <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-8 text-left">
+              <div className="flex items-start gap-3">
+                <FiAlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-red-900">Need Help?</h4>
+                  <p className="text-xs text-red-700 mt-1">
+                    Session ID:{" "}
+                    <span className="font-mono bg-white/50 px-1 rounded">
+                      {sessionId?.slice(0, 12)}...
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleVerify}
+                className="w-full h-14 rounded-xl text-lg shadow-lg shadow-brand-blue/20"
+              >
+                Try Again <FiArrowRight className="ml-2" />
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => router.push("/app/dashboard")}
+                className="w-full h-12 rounded-xl text-gray-500 hover:text-gray-900"
+              >
+                Return to Dashboard
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

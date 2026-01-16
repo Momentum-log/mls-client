@@ -43,3 +43,38 @@ export const getShipmentDisplayName = (shipment: Shipment) => {
     `Shipment ${shipment.id.slice(0, 8)}`
   );
 };
+
+/**
+ * Maps a Shipment object to the partial store state required for re-creation.
+ */
+export const mapShipmentToStore = (shipment: Shipment) => {
+  const mapAddress = (addr: any) => ({
+    name: addr.contact?.personName || "",
+    company: addr.contact?.companyName || "",
+    phone: addr.contact?.phoneNumber || "",
+    street: addr.streetLines?.join(" ") || "",
+    city: addr.city,
+    postalCode: addr.postalCode,
+    country: addr.countryCode,
+    stateOrProvinceCode: addr.stateOrProvinceCode,
+  });
+
+  // Map package
+  // Store uses 'Package' interface (id, weight, length, width, height, description, value, currency)
+  const pkg = {
+    id: crypto.randomUUID(),
+    weight: shipment.weight.value,
+    length: shipment.dimensions.length,
+    width: shipment.dimensions.width,
+    height: shipment.dimensions.height,
+    description: shipment.customs?.contentsDescription || "Merchandise",
+    value: shipment.customs?.declaredValue || 1,
+    currency: shipment.customs?.currency || shipment.currency,
+  };
+
+  return {
+    sender: mapAddress(shipment.pickupAddress),
+    recipient: mapAddress(shipment.dropoffAddress),
+    packages: [pkg],
+  };
+};

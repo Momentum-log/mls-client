@@ -233,6 +233,10 @@ body {
   font-family: var(--font-satoshi);
 }
 
+button {
+  cursor: pointer !important;
+}
+
 /* Hide scrollbar while allowing scrolling */
 .scrollbar-hide {
   -ms-overflow-style: none; /* IE and Edge */

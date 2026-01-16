@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useShipmentStore, Address, Package } from "@/store/shipment-store";
 import {
   VerticalTimeline,
@@ -58,29 +58,81 @@ export default function NewShipmentPage() {
   const { mutate: performCreateShipment, isPending: isCreatingShipment } =
     useCreateShipment();
 
-  // Cleanup on unmount (Requirement 3A)
+  // Cleanup / Reset Logic (Fixed for Duplication & Strict Mode)
+  // 1. If we arrive with ?source=duplicate, we KEEP the store data (it was just set).
+  // 2. If we arrive cleanly (reload, nav), we RESET the store.
+  // 3. We remove duplication flag immediately so reload works as expected.
+  // 4. We do NOT use cleanup on unmount because Strict Mode triggers it prematurely.
+  const searchParams = useSearchParams();
+  const source = searchParams.get("source");
+
   useEffect(() => {
-    return () => {
+    if (source === "duplicate") {
+      // Preservation Mode: Don't reset. Just clean the URL.
+      router.replace("/app/shipments/new");
+    } else {
+      // Clean Entry Mode: Reset everything.
       reset();
-    };
-  }, [reset]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run ONCE on mount
 
   // Navigation warning for unsaved changes
+
+  // Auto-fetch rates if we land on Service Selection (e.g. from Duplicate functionality)
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (
-        completedSteps.length > 0 ||
-        sender ||
-        recipient ||
-        packages.length > 0
-      ) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [completedSteps, sender, recipient, packages]);
+    if (
+      expandedSection === "service" &&
+      rates.length === 0 &&
+      !isCalculatingRates &&
+      sender &&
+      recipient &&
+      packages.length > 0
+    ) {
+      const payload = getEstimatePayload(
+        {
+          city: sender.city,
+          postalCode: sender.postalCode,
+          countryCode: sender.country,
+          residential: false,
+          streetLines: [sender.street],
+          stateOrProvinceCode: sender.stateOrProvinceCode || "",
+        },
+        {
+          city: recipient.city,
+          postalCode: recipient.postalCode,
+          countryCode: recipient.country,
+          residential: false,
+          streetLines: [recipient.street],
+          stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+        },
+        {
+          weight: { units: "KG", value: packages[0].weight },
+          dimensions: {
+            units: "CM",
+            width: packages[0].width,
+            height: packages[0].height,
+            length: packages[0].length,
+          },
+        },
+        getOrSetGuestId()
+      );
+
+      getRates(payload, {
+        onSuccess: (data) => {
+          setRates(data.rates);
+        },
+      });
+    }
+  }, [
+    expandedSection,
+    rates.length,
+    isCalculatingRates,
+    sender,
+    recipient,
+    packages,
+    getRates,
+  ]);
 
   const steps: TimelineStep[] = useMemo(
     () => [
@@ -293,6 +345,11 @@ export default function NewShipmentPage() {
         actualPrice: selectedRate.actualPrice,
         currency: selectedRate.currency,
       },
+      customs: {
+        contentsDescription: packages[0].description,
+        declaredValue: packages[0].value,
+        currency: packages[0].currency,
+      },
     };
 
     performCreateShipment(payload, {
@@ -343,14 +400,6 @@ export default function NewShipmentPage() {
       {/* Main Content: Stacked Sections */}
       <div className="flex-1 w-full space-y-4">
         {/* Navigation Warning Notice */}
-        {(completedSteps.length > 0 || sender) && (
-          <div className="bg-brand-yellow/5 border border-brand-yellow/20 rounded-2xl p-4 mb-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-            <div className="w-2 h-2 rounded-full bg-brand-yellow animate-pulse" />
-            <p className="text-xs text-gray-700 font-bold uppercase tracking-tight">
-              Unsaved Progress: Navigating away will reset this form.
-            </p>
-          </div>
-        )}
 
         {/* 1. Pick-up Details */}
         <StackedSection

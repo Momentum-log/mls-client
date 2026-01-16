@@ -73,6 +73,20 @@ export default function TrackShipmentPage() {
       // Transform the entire response to ensure branding (FedEx -> MLS) is applied everywhere
       const cleanedResponse = deepTransformData(data);
 
+      // Check for explicit FAILED status in the response data or shipment status
+      // Note: The backend might return 200 OK but with status="FAILED" in the body
+      if (
+        cleanedResponse.status === "FAILED" ||
+        cleanedResponse.shipment?.shipmentStatus === "FAILED"
+      ) {
+        setError(
+          "Tracking information could not be found because the shipment failed. Please contact support."
+        );
+        setTrackingResponse(null);
+        setIsLoading(false);
+        return;
+      }
+
       setTrackingResponse(cleanedResponse);
 
       if (idToTrack) setTrackingId(idToTrack);
