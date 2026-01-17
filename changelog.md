@@ -5,6 +5,20 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.19.0] - 2026-01-17 - Authentication Redirect Implementation
+
+- Added: Middleware-Based Authentication Redirect
+  - Implemented `proxy.ts` (formerly `middleware.ts`) to intercept requests to auth pages (`/login`, `/register`, `/forgot-password`).
+  - Automatically redirects authenticated users (with valid `mls_access_token`) to the Dashboard (`/app/dashboard`).
+  - Improves user experience by preventing redundant login attempts.
+- Changed: Middleware Architecture to "Proxy"
+  - Migrated `middleware.ts` to `proxy.ts` to align with Next.js 16 conventions and deprecation warnings.
+  - Renamed exported function from `middleware` to `proxy`.
+- **Details**:
+  - Used Edge Runtime for zero-latency redirects.
+  - Configured matcher to strictly exclude API, static files, and Next.js internals for performance.
+  - Verified stability of backend connections during implementation.
+
 ### [1.18.0] - 2026-01-16 - Unauthenticated Tracking Page & Privacy Enhancements
 
 - Added: Public Tracking Page (`/track-shipment`)
