@@ -5,6 +5,24 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.18.0] - 2026-01-16 - Unauthenticated Tracking Page & Privacy Enhancements
+
+- Added: Public Tracking Page (`/track-shipment`)
+  - Implemented a dedicated marketing tracking page accessible to all users.
+  - Designed a high-impact Hero section with a prominent tracking ID search bar.
+  - Integrated `PublicTrackingResult` component for privacy-focused data display.
+- Added: Privacy & Security Logic
+  - **Data Filtering**: strict stripping of sensitive data (exact addresses, contact info, documents) for unauthenticated users.
+  - **Guard Clauses**: Robust handling of missing or malformed tracking data to prevent runtime crashes.
+- Added: Navigation Updates
+  - Added "Track Shipment" link to the Marketing Footer for easy access.
+- Fixed: Runtime Stability
+  - Resolved `TypeError` crash in tracking results by implementing safe data access patterns.
+  - Added formatted date/time display (e.g., "May 19, 2023 at 7:03 PM") for better user readability.
+- **Details**:
+  - Reused existing `trackShipment` API with frontend-side privacy transformation.
+  - Aligned UI with the "Momentum Blue" marketing aesthetic.
+
 ### [1.17.0] - 2026-01-16 - Enhanced Shipment Status Handling & Form Refinements
 
 - Added: "Complete Payment" workflow for Created Shipments
