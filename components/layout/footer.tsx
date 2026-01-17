@@ -76,6 +76,14 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
+                    href="/track-shipment"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Track Shipment
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/about"
                     className="hover:text-brand-yellow transition-colors"
                   >

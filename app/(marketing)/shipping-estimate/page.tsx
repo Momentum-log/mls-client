@@ -730,7 +730,7 @@ export default function ShippingEstimatePage() {
                             <span className="text-white/60 text-sm">Price</span>
                             <div className="flex items-baseline gap-1">
                               <span className="text-2xl font-black text-brand-yellow">
-                                {rate.price?.toFixed(2)}
+                                {rate.actualPrice?.toFixed(2)}
                               </span>
                               <span className="text-xs text-white/60 font-medium">
                                 {rate.currency}
