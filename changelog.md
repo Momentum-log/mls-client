@@ -5,6 +5,67 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.22.0] - 2026-01-18 - URL Tracking & Unpaid Redirect
+
+- Added: URL-based Tracking
+  - Support for direct tracking via URL: `/track-shipment/[tracking_id]`
+  - Auto-tracks the shipment on page load.
+- Added: Authentication & Unpaid Redirection
+  - **Authenticated Users**: Auto-redirected from public tracking to the comprehensive dashboard view (`/app/shipments/[id]`) if logged in.
+  - **Unpaid Shipments**: Improved "CREATED" status handling. Now displays a clear "Payment Required" card with a "Log in to Pay" button instead of a generic tracking error.
+  - **Redirect Logic**: Login form now supports a `redirect` query parameter to return users to their intended destination after login.
+  - **Download Label**: Added a button to download the shipment label on the shipment details page (authenticated view).
+- **Details**:
+  - **Middleware**: Updated `proxy.ts` with regex support to intercept `/track-shipment/[id]` and redirect authenticated users server-side.
+  - **Error Handling**: Patched `trackShipment` pages to catch `status: "CREATED"` in both error responses (4xx) and successful responses (200 OK) to render the "Payment Required" UI.
+  - **Consistency**: Applied authenticated redirection logic to both the direct URL access and the manual search form.
+  - Implemented `TrackShipmentByIdPage` with `useAuthStore` check.
+  - Enhanced `PublicTrackingResult` to handle `CREATED` status.
+  - Updated `LoginForm` to handle `redirect` param.
+
+### [1.21.0] - 2026-01-18 - Continue to Pay Feature & Tracking Enhancements
+
+- Added: "Continue to Pay" Functionality
+  - Implemented logic to allow users to pay for shipments that are in `CREATED` status.
+  - Added "Complete Payment" button to the Tracking Page for untracked (unpaid) shipments.
+  - Integrated `get-shipment` retrieval in the Tracking Page to resolve Shipment IDs for untracked shipments, ensuring payment flow works even with minimal tracking data.
+  - Added proper loading states and user feedback during the payment resolution and redirection process.
+- **Details**:
+  - Leveraged `getShipment` API to robustly handle missing IDs in tracking responses.
+  - Updated `TrackShipmentPage` to fallback to ID resolution when necessary.
+
+### [1.20.0] - 2026-01-18 - Shipment Tracking & List Improvements
+
+- Added: "Payment Required" Prompt for Unpaid Shipments
+  - Implemented specific handling for `CREATED` shipments in the Tracking page.
+  - Replaced misleading "Tracking Unavailable" errors with a clear call-to-action to pay for the shipment.
+  - Hides standard tracking timeline until payment is completed to avoid confusion.
+- Added: Enhanced Shipment List Actions
+  - Replaced the single "Duplicate Shipment" button with a sleek "Three Dots" context menu.
+  - **New Actions**:
+    - **View Shipment**: Quick navigation to details.
+    - **Copy Tracking Number**: One-click clipboard copy.
+    - **Duplicate Shipment**: Existing functionality moved to menu to prevent accidental clicks.
+  - Implemented reusable `ActionMenu` component with smooth framer-motion animations.
+- **Details**:
+  - Improved UX for new users who track shipments immediately after creation.
+  - Reduced UI clutter on the shipment list.
+  - Verified logic ensuring correct status handling across the application.
+
+### [1.19.0] - 2026-01-17 - Authentication Redirect Implementation
+
+- Added: Middleware-Based Authentication Redirect
+  - Implemented `proxy.ts` (formerly `middleware.ts`) to intercept requests to auth pages (`/login`, `/register`, `/forgot-password`).
+  - Automatically redirects authenticated users (with valid `mls_access_token`) to the Dashboard (`/app/dashboard`).
+  - Improves user experience by preventing redundant login attempts.
+- Changed: Middleware Architecture to "Proxy"
+  - Migrated `middleware.ts` to `proxy.ts` to align with Next.js 16 conventions and deprecation warnings.
+  - Renamed exported function from `middleware` to `proxy`.
+- **Details**:
+  - Used Edge Runtime for zero-latency redirects.
+  - Configured matcher to strictly exclude API, static files, and Next.js internals for performance.
+  - Verified stability of backend connections during implementation.
+
 ### [1.18.0] - 2026-01-16 - Unauthenticated Tracking Page & Privacy Enhancements
 
 - Added: Public Tracking Page (`/track-shipment`)

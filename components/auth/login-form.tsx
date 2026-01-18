@@ -49,7 +49,12 @@ const LoginForm = () => {
         });
 
         await login({ email: values.email, password: values.password });
-        router.push("/app/dashboard");
+
+        // Check for redirect param
+        const redirectUrl = new URLSearchParams(window.location.search).get(
+          "redirect"
+        );
+        router.push(redirectUrl || "/app/dashboard");
       } catch (err) {
         const error = err as AxiosError<{ error: string; details?: string }>;
 

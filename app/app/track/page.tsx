@@ -2,9 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { FiPackage, FiInfo } from "react-icons/fi";
-import { trackShipment, getShipmentHistory } from "@/api/shipments";
+import {
+  trackShipment,
+  getShipmentHistory,
+  getShipment,
+} from "@/api/shipments";
 import { deepTransformData } from "@/utils/data-transform";
 import { useToast } from "@/hooks/use-toast";
+import { useContinueToPay } from "@/hooks/shipments/use-continue-payment";
 import { Shipment, TrackingResponse } from "@/types/shipping";
 
 // Sub-components
@@ -19,11 +24,24 @@ import RecentShipments from "@/components/tracking/RecentShipments";
  * Provides a dedicated interface for tracking MLS shipments by ID.
  * Features a search form, recent history in empty state, and a detailed timeline.
  */
+
+import Link from "next/link";
+import Button from "@/components/ui/button";
+
+// ... existing imports
+
+/**
+ * TrackShipmentPage Component
+ * Provides a dedicated interface for tracking MLS shipments by ID.
+ * Features a search form, recent history in empty state, and a detailed timeline.
+ */
 export default function TrackShipmentPage() {
   const { addToast } = useToast();
+  const { continueToPay, isLoading: isPaymentLoading } = useContinueToPay();
 
   // State management
   const [trackingId, setTrackingId] = useState("");
+  const [isResolving, setIsResolving] = useState(false);
   const [trackingResponse, setTrackingResponse] =
     useState<TrackingResponse | null>(null);
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
@@ -104,6 +122,10 @@ export default function TrackShipmentPage() {
     }
   };
 
+  const isCreatedStatus =
+    trackingResponse?.status === "CREATED" ||
+    trackingResponse?.shipment?.shipmentStatus === "CREATED";
+
   return (
     <div className="container mx-auto py-8 max-w-4xl px-4">
       {/* Header & Search Form */}
@@ -132,6 +154,57 @@ export default function TrackShipmentPage() {
               Oops! something went wrong
             </h3>
             <p className="text-red-700 font-medium">{error}</p>
+          </div>
+        ) : isCreatedStatus && trackingResponse ? (
+          /* Created / Payment Pending State */
+          <div className="bg-blue-50 border border-blue-100 p-8 rounded-2xl text-center">
+            <div className="w-16 h-16 bg-blue-100 text-brand-blue rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiInfo className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-brand-blue mb-2">
+              Payment Required
+            </h3>
+            <p className="text-blue-700 font-medium mb-6 max-w-lg mx-auto">
+              This shipment is in your list, but you have not paid for it.
+              Please pay for the shipment to enable tracking. Continue to
+              complete the shipment.
+            </p>
+
+            <Button
+              onClick={async () => {
+                let id =
+                  trackingResponse.shipment?.id ||
+                  trackingResponse.shipment?.customTrackingNumber ||
+                  trackingResponse.trackingNumber;
+
+                // Fallback: If we don't have a valid ID (likely UUID), try to resolve it from the tracking number
+                // for cases where tracking response is minimal (e.g. CREATED status)
+                if (!trackingResponse.shipment?.id && trackingId) {
+                  try {
+                    setIsResolving(true);
+                    const fullShipment = await getShipment(trackingId);
+                    if (fullShipment?.id) {
+                      id = fullShipment.id;
+                    }
+                  } catch (err) {
+                    console.error("Failed to resolve shipment ID:", err);
+                    addToast({
+                      message:
+                        "Could not resolve shipment details for payment. Please contact support.",
+                      type: "error",
+                    });
+                  } finally {
+                    setIsResolving(false);
+                  }
+                }
+
+                if (id) continueToPay(id);
+              }}
+              isLoading={isPaymentLoading || isResolving}
+              disabled={isLoading || isPaymentLoading || isResolving}
+            >
+              Pay for Shipment
+            </Button>
           </div>
         ) : trackingResponse ? (
           /* Results Display: Follows TrackingResponse interface strictly */
