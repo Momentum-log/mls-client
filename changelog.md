@@ -5,6 +5,24 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.20.0] - 2026-01-18 - Shipment Tracking & List Improvements
+
+- Added: "Payment Required" Prompt for Unpaid Shipments
+  - Implemented specific handling for `CREATED` shipments in the Tracking page.
+  - Replaced misleading "Tracking Unavailable" errors with a clear call-to-action to pay for the shipment.
+  - Hides standard tracking timeline until payment is completed to avoid confusion.
+- Added: Enhanced Shipment List Actions
+  - Replaced the single "Duplicate Shipment" button with a sleek "Three Dots" context menu.
+  - **New Actions**:
+    - **View Shipment**: Quick navigation to details.
+    - **Copy Tracking Number**: One-click clipboard copy.
+    - **Duplicate Shipment**: Existing functionality moved to menu to prevent accidental clicks.
+  - Implemented reusable `ActionMenu` component with smooth framer-motion animations.
+- **Details**:
+  - Improved UX for new users who track shipments immediately after creation.
+  - Reduced UI clutter on the shipment list.
+  - Verified logic ensuring correct status handling across the application.
+
 ### [1.19.0] - 2026-01-17 - Authentication Redirect Implementation
 
 - Added: Middleware-Based Authentication Redirect

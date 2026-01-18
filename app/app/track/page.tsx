@@ -19,6 +19,17 @@ import RecentShipments from "@/components/tracking/RecentShipments";
  * Provides a dedicated interface for tracking MLS shipments by ID.
  * Features a search form, recent history in empty state, and a detailed timeline.
  */
+
+import Link from "next/link";
+import Button from "@/components/ui/button";
+
+// ... existing imports
+
+/**
+ * TrackShipmentPage Component
+ * Provides a dedicated interface for tracking MLS shipments by ID.
+ * Features a search form, recent history in empty state, and a detailed timeline.
+ */
 export default function TrackShipmentPage() {
   const { addToast } = useToast();
 
@@ -104,6 +115,10 @@ export default function TrackShipmentPage() {
     }
   };
 
+  const isCreatedStatus =
+    trackingResponse?.status === "CREATED" ||
+    trackingResponse?.shipment?.shipmentStatus === "CREATED";
+
   return (
     <div className="container mx-auto py-8 max-w-4xl px-4">
       {/* Header & Search Form */}
@@ -132,6 +147,29 @@ export default function TrackShipmentPage() {
               Oops! something went wrong
             </h3>
             <p className="text-red-700 font-medium">{error}</p>
+          </div>
+        ) : isCreatedStatus && trackingResponse ? (
+          /* Created / Payment Pending State */
+          <div className="bg-blue-50 border border-blue-100 p-8 rounded-2xl text-center">
+            <div className="w-16 h-16 bg-blue-100 text-brand-blue rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiInfo className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-brand-blue mb-2">
+              Payment Required
+            </h3>
+            <p className="text-blue-700 font-medium mb-6 max-w-lg mx-auto">
+              This shipment is in your list, but you have not paid for it.
+              Please pay for the shipment to enable tracking. Continue to
+              complete the shipment.
+            </p>
+            <Link
+              href={`/app/shipments/${
+                trackingResponse.shipment?.customTrackingNumber ||
+                trackingResponse.trackingNumber
+              }`}
+            >
+              <Button>Pay for Shipment</Button>
+            </Link>
           </div>
         ) : trackingResponse ? (
           /* Results Display: Follows TrackingResponse interface strictly */
