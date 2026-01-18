@@ -11,7 +11,7 @@ import TrackingDetails from "@/components/tracking/TrackingDetails";
 import TrackingTimelineView from "@/components/tracking/TrackingTimelineView";
 import { TrackingResponse } from "@/types/shipping";
 import Button from "@/components/ui/button";
-import { FiBox, FiInfo, FiCopy } from "react-icons/fi";
+import { FiBox, FiInfo, FiCopy, FiDownload } from "react-icons/fi";
 
 /**
  * ShipmentDetailsPage Component
@@ -33,6 +33,14 @@ export default function ShipmentDetailsPage() {
 
     // Apply branding transformation (FedEx -> MLS)
     const cleanedData = deepTransformData(rawData);
+
+    // FIX: Ensure label URL points to FedEx (replace mls.com with fedex.com if present)
+    if (cleanedData.labelUrl) {
+      cleanedData.labelUrl = cleanedData.labelUrl.replace(
+        "mls.com",
+        "fedex.com"
+      );
+    }
 
     // If shipment failed or cancelled, do not show tracking data
     if (
@@ -110,12 +118,25 @@ export default function ShipmentDetailsPage() {
           </p>
         </div>
 
-        <Button
-          onClick={() => shipment && duplicateShipment(shipment)}
-          className="shrink-0"
-        >
-          <FiCopy className="mr-2" /> Ship Again
-        </Button>
+        <div className="flex gap-3">
+          {shipment.labelUrl && (
+            <a
+              href={shipment.labelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="shrink-0 bg-white">
+                <FiDownload className="mr-2" /> Download Label
+              </Button>
+            </a>
+          )}
+          <Button
+            onClick={() => shipment && duplicateShipment(shipment)}
+            className="shrink-0"
+          >
+            <FiCopy className="mr-2" /> Ship Again
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

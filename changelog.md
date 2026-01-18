@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Authenticated Users**: Auto-redirected from public tracking to the comprehensive dashboard view (`/app/shipments/[id]`) if logged in.
   - **Unpaid Shipments**: Improved "CREATED" status handling. Now displays a clear "Payment Required" card with a "Log in to Pay" button instead of a generic tracking error.
   - **Redirect Logic**: Login form now supports a `redirect` query parameter to return users to their intended destination after login.
+  - **Download Label**: Added a button to download the shipment label on the shipment details page (authenticated view).
 - **Details**:
   - **Middleware**: Updated `proxy.ts` with regex support to intercept `/track-shipment/[id]` and redirect authenticated users server-side.
   - **Error Handling**: Patched `trackShipment` pages to catch `status: "CREATED"` in both error responses (4xx) and successful responses (200 OK) to render the "Payment Required" UI.
