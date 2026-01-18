@@ -1,12 +1,20 @@
 import React from "react";
 import { TrackingResponse } from "@/types/shipping";
 import { format } from "date-fns";
-import { FaBoxOpen, FaTruck, FaMapMarkerAlt, FaClock } from "react-icons/fa";
+import {
+  FaBoxOpen,
+  FaTruck,
+  FaMapMarkerAlt,
+  FaClock,
+  FaCreditCard,
+  FaLock,
+} from "react-icons/fa";
+import Link from "next/link";
+import Button from "@/components/ui/button";
 
 interface PublicTrackingResultProps {
   data: TrackingResponse;
 }
-
 export default function PublicTrackingResult({
   data,
 }: PublicTrackingResultProps) {
@@ -17,6 +25,44 @@ export default function PublicTrackingResult({
       <div className="p-6 bg-red-50 text-red-600 rounded-2xl text-center border border-red-100">
         <p className="font-semibold">Shipment details not found in response.</p>
         <p className="text-sm mt-1">Please try again or contact support.</p>
+      </div>
+    );
+  }
+
+  // Handle CREATED (Unpaid) Status specifically
+  if (shipment.shipmentStatus === "CREATED") {
+    return (
+      <div className="bg-white rounded-3xl shadow-sm border border-brand-yellow/30 overflow-hidden text-center p-8 md:p-12 animate-in fade-in zoom-in duration-500">
+        <div className="w-20 h-20 bg-brand-yellow/10 text-brand-yellow rounded-full flex items-center justify-center mx-auto mb-6">
+          <FaCreditCard className="text-4xl" />
+        </div>
+        <h2 className="text-2xl font-black text-gray-900 mb-2">
+          Payment Required
+        </h2>
+        <p className="text-gray-500 max-w-md mx-auto mb-8">
+          This shipment has been created but not yet paid for. Carrier tracking
+          details will be available once the payment is completed.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link
+            href={`/login?redirect=/app/shipments/${
+              shipment.id ||
+              shipment.customTrackingNumber ||
+              shipment.carrierTrackingNumber
+            }`}
+          >
+            <Button className="px-8 text-lg font-bold rounded-full group">
+              <FaLock className="mr-2 group-hover:text-brand-yellow transition-colors" />{" "}
+              Log in to Pay
+            </Button>
+          </Link>
+        </div>
+
+        <p className="mt-6 text-xs text-gray-400">
+          Tracking ID:{" "}
+          {shipment.customTrackingNumber || shipment.carrierTrackingNumber}
+        </p>
       </div>
     );
   }

@@ -5,6 +5,23 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.22.0] - 2026-01-18 - URL Tracking & Unpaid Redirect
+
+- Added: URL-based Tracking
+  - Support for direct tracking via URL: `/track-shipment/[tracking_id]`
+  - Auto-tracks the shipment on page load.
+- Added: Authentication & Unpaid Redirection
+  - **Authenticated Users**: Auto-redirected from public tracking to the comprehensive dashboard view (`/app/shipments/[id]`) if logged in.
+  - **Unpaid Shipments**: Improved "CREATED" status handling. Now displays a clear "Payment Required" card with a "Log in to Pay" button instead of a generic tracking error.
+  - **Redirect Logic**: Login form now supports a `redirect` query parameter to return users to their intended destination after login.
+- **Details**:
+  - **Middleware**: Updated `proxy.ts` with regex support to intercept `/track-shipment/[id]` and redirect authenticated users server-side.
+  - **Error Handling**: Patched `trackShipment` pages to catch `status: "CREATED"` in both error responses (4xx) and successful responses (200 OK) to render the "Payment Required" UI.
+  - **Consistency**: Applied authenticated redirection logic to both the direct URL access and the manual search form.
+  - Implemented `TrackShipmentByIdPage` with `useAuthStore` check.
+  - Enhanced `PublicTrackingResult` to handle `CREATED` status.
+  - Updated `LoginForm` to handle `redirect` param.
+
 ### [1.21.0] - 2026-01-18 - Continue to Pay Feature & Tracking Enhancements
 
 - Added: "Continue to Pay" Functionality

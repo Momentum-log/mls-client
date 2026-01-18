@@ -17,6 +17,18 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/app/dashboard", request.url));
   }
 
+  // If user is authenticated and visits a tracking URL with an ID, redirect to internal shipment details
+  // Matches /track-shipment/ANYTHING but not just /track-shipment
+  const trackShipmentMatch = request.nextUrl.pathname.match(
+    /^\/track-shipment\/(.+)$/
+  );
+  if (token && trackShipmentMatch) {
+    const trackingId = trackShipmentMatch[1];
+    return NextResponse.redirect(
+      new URL(`/app/shipments/${trackingId}`, request.url)
+    );
+  }
+
   return NextResponse.next();
 }
 

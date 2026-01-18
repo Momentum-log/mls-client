@@ -11,6 +11,9 @@ import { TrackingResponse } from "@/types/shipping";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/auth-store";
+
 export default function TrackShipmentPage() {
   const [trackingId, setTrackingId] = useState("");
   const [trackingData, setTrackingData] = useState<TrackingResponse | null>(
@@ -18,10 +21,18 @@ export default function TrackShipmentPage() {
   );
   const [loading, setLoading] = useState(false);
   const { addToast } = useToast();
+  const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
 
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackingId.trim()) return;
+
+    // Redirect authenticated users immediately
+    if (isAuthenticated) {
+      router.push(`/app/shipments/${trackingId.trim().toUpperCase()}`);
+      return;
+    }
 
     setLoading(true);
     setTrackingData(null);
@@ -31,10 +42,52 @@ export default function TrackShipmentPage() {
       // Transform the entire response for branding
       const cleanedData = deepTransformData(response);
       console.log("Tracking Data Response:", cleanedData);
+
+      // Check for success-200 "CREATED" response (Unpaid)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const responseData = cleanedData as any;
+      if (
+        responseData.status === "CREATED" ||
+        responseData.message?.includes("Carrier tracking not yet available")
+      ) {
+        const mockData: TrackingResponse = {
+          // @ts-expect-error - Limited data for unpaid state
+          shipment: {
+            shipmentStatus: "CREATED",
+            carrierTrackingNumber: trackingId.trim().toUpperCase(),
+          },
+          timeline: [],
+        };
+        setTrackingData(mockData);
+        return;
+      }
+
       setTrackingData(cleanedData);
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = err as AxiosError<{ message: string; status?: string }>;
       console.error(error);
+
+      // Handle Unpaid (CREATED) shipment error response
+      if (
+        error.response?.data?.status === "CREATED" ||
+        error.response?.data?.message?.includes(
+          "Carrier tracking not yet available"
+        )
+      ) {
+        // Construct a minimal tracking response to trigger the "Pay" UI
+        const mockData: TrackingResponse = {
+          // @ts-expect-error - Limited data for unpaid state
+          shipment: {
+            shipmentStatus: "CREATED",
+            carrierTrackingNumber: trackingId.trim().toUpperCase(),
+          },
+          timeline: [],
+        };
+        setTrackingData(mockData);
+        return;
+      }
+
       addToast({
         type: "error",
         title: "Tracking Failed",
