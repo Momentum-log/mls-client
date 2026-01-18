@@ -2,9 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { FiPackage, FiInfo } from "react-icons/fi";
-import { trackShipment, getShipmentHistory } from "@/api/shipments";
+import {
+  trackShipment,
+  getShipmentHistory,
+  getShipment,
+} from "@/api/shipments";
 import { deepTransformData } from "@/utils/data-transform";
 import { useToast } from "@/hooks/use-toast";
+import { useContinueToPay } from "@/hooks/shipments/use-continue-payment";
 import { Shipment, TrackingResponse } from "@/types/shipping";
 
 // Sub-components
@@ -32,9 +37,11 @@ import Button from "@/components/ui/button";
  */
 export default function TrackShipmentPage() {
   const { addToast } = useToast();
+  const { continueToPay, isLoading: isPaymentLoading } = useContinueToPay();
 
   // State management
   const [trackingId, setTrackingId] = useState("");
+  const [isResolving, setIsResolving] = useState(false);
   const [trackingResponse, setTrackingResponse] =
     useState<TrackingResponse | null>(null);
   const [recentShipments, setRecentShipments] = useState<Shipment[]>([]);
@@ -162,14 +169,42 @@ export default function TrackShipmentPage() {
               Please pay for the shipment to enable tracking. Continue to
               complete the shipment.
             </p>
-            <Link
-              href={`/app/shipments/${
-                trackingResponse.shipment?.customTrackingNumber ||
-                trackingResponse.trackingNumber
-              }`}
+
+            <Button
+              onClick={async () => {
+                let id =
+                  trackingResponse.shipment?.id ||
+                  trackingResponse.shipment?.customTrackingNumber ||
+                  trackingResponse.trackingNumber;
+
+                // Fallback: If we don't have a valid ID (likely UUID), try to resolve it from the tracking number
+                // for cases where tracking response is minimal (e.g. CREATED status)
+                if (!trackingResponse.shipment?.id && trackingId) {
+                  try {
+                    setIsResolving(true);
+                    const fullShipment = await getShipment(trackingId);
+                    if (fullShipment?.id) {
+                      id = fullShipment.id;
+                    }
+                  } catch (err) {
+                    console.error("Failed to resolve shipment ID:", err);
+                    addToast({
+                      message:
+                        "Could not resolve shipment details for payment. Please contact support.",
+                      type: "error",
+                    });
+                  } finally {
+                    setIsResolving(false);
+                  }
+                }
+
+                if (id) continueToPay(id);
+              }}
+              isLoading={isPaymentLoading || isResolving}
+              disabled={isLoading || isPaymentLoading || isResolving}
             >
-              <Button>Pay for Shipment</Button>
-            </Link>
+              Pay for Shipment
+            </Button>
           </div>
         ) : trackingResponse ? (
           /* Results Display: Follows TrackingResponse interface strictly */

@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { useParams } from "next/navigation";
 import { useGetShipment } from "@/hooks/shipments/use-shipments";
 import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
+import { useContinueToPay } from "@/hooks/shipments/use-continue-payment";
 import { deepTransformData } from "@/utils/data-transform";
 import TrackingOverview from "@/components/tracking/TrackingOverview";
 import TrackingDetails from "@/components/tracking/TrackingDetails";
@@ -24,6 +25,7 @@ export default function ShipmentDetailsPage() {
   // Fetch shipment and tracking data
   const { data: rawData, isLoading, error } = useGetShipment(id);
   const { duplicateShipment } = useDuplicateShipment();
+  const { continueToPay, isLoading: isPaymentLoading } = useContinueToPay();
 
   // Transform and map data
   const { shipment, trackingResponse } = useMemo(() => {
@@ -168,7 +170,9 @@ export default function ShipmentDetailsPage() {
                   </div>
                   {shipment.shipmentStatus === "CREATED" && (
                     <Button
-                      onClick={() => duplicateShipment(shipment)}
+                      onClick={() => continueToPay(shipment.id)}
+                      isLoading={isPaymentLoading}
+                      disabled={isPaymentLoading}
                       className="shrink-0 w-full md:w-auto"
                     >
                       Complete Payment

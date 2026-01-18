@@ -24,7 +24,9 @@
   "paths": {
     "/auth/register-user": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "\n### Register New User\n**Frontend Usage Guide:**\nCreates a new user account. Upon success, the user is automatically logged in (or you might need to redirect them to login, depending on implementation - check response).\n\n**Data handling:**\n- **Email**: Must be unique.\n- **Password**: Enforce strong password complexity on the frontend (min 8 chars, mixed case, numbers).\n- **Format**: Returns the user profile. Does **NOT** return tokens (user must login separately) OR returns tokens (check response schema). *Correction: This implementation currently returns only the user object, so User must call Login after Register.*\n",
         "summary": "Register User",
         "requestBody": {
@@ -49,7 +51,11 @@
                     "type": "string"
                   }
                 },
-                "required": ["email", "password", "name"],
+                "required": [
+                  "email",
+                  "password",
+                  "name"
+                ],
                 "description": "Registration details"
               }
             }
@@ -109,7 +115,9 @@
                       ]
                     }
                   },
-                  "required": ["user"]
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
@@ -141,7 +149,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -173,7 +184,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -205,7 +219,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -215,7 +232,9 @@
     },
     "/auth/login-user": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "\n### User Login\n**Frontend Usage Guide:**\nAuthenticates a user and issues JWT tokens.\n\n**Token Management (CRITICAL):**\n1. **Access Token** (`accessToken`): Short-lived (e.g., 15 mins). Use this in the `Authorization: Bearer <token>` header for all requests.\n2. **Refresh Token** (`refreshToken`): Long-lived (e.g., 7 days). Store this securely (e.g., HTTPOnly cookie or secure storage). \n\n**Auto-Refresh Logic:**\n- Frontend should intercept 401 errors.\n- If 401 received, call `/auth/refresh` with the `refreshToken`.\n- If refresh success, retry the original failed request with the new `accessToken`.\n- If refresh fails, log the user out.\n",
         "summary": "Login User",
         "requestBody": {
@@ -232,7 +251,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["email", "password"]
+                "required": [
+                  "email",
+                  "password"
+                ]
               }
             }
           }
@@ -299,7 +321,11 @@
                       ]
                     }
                   },
-                  "required": ["accessToken", "refreshToken", "user"]
+                  "required": [
+                    "accessToken",
+                    "refreshToken",
+                    "user"
+                  ]
                 }
               }
             }
@@ -331,7 +357,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -363,7 +392,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -395,7 +427,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -405,7 +440,9 @@
     },
     "/auth/refresh-token": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "\n### Refresh Access Token\n**Frontend Usage Guide:**\nCall this endpoint to get a new `accessToken` when the current one expires.\n\n**Rotation Policy:**\n- This endpoint implements **Refresh Token Rotation**.\n- A **NEW** `refreshToken` is returned. You **MUST** replace the old one with this new one.\n- The old refresh token becomes invalid immediately.\n",
         "summary": "Refresh Token",
         "requestBody": {
@@ -418,7 +455,9 @@
                     "type": "string"
                   }
                 },
-                "required": ["refreshToken"],
+                "required": [
+                  "refreshToken"
+                ],
                 "description": "Valid Refresh Token"
               }
             }
@@ -440,7 +479,10 @@
                       "description": "New Rotated Refresh Token"
                     }
                   },
-                  "required": ["accessToken", "refreshToken"]
+                  "required": [
+                    "accessToken",
+                    "refreshToken"
+                  ]
                 }
               }
             }
@@ -472,7 +514,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -504,7 +549,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -536,7 +584,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -546,7 +597,9 @@
     },
     "/auth/logout-user": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "description": "Logout user by revoking the specific refresh token.",
         "summary": "Logout",
         "requestBody": {
@@ -560,7 +613,9 @@
                     "description": "Refresh Token to revoke"
                   }
                 },
-                "required": ["refreshToken"]
+                "required": [
+                  "refreshToken"
+                ]
               }
             }
           }
@@ -577,7 +632,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -609,7 +666,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -641,7 +701,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -673,7 +736,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -683,7 +749,9 @@
     },
     "/auth/get-current-user": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "description": "Get current logged-in user profile. Useful for app initialization to check if user is still logged in.",
         "summary": "Get Me",
         "security": [
@@ -745,7 +813,9 @@
                       ]
                     }
                   },
-                  "required": ["user"]
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
@@ -777,7 +847,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -809,7 +882,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -819,7 +895,9 @@
     },
     "/auth/update-user-profile": {
       "patch": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "description": "Update user profile details",
         "summary": "Update Profile",
         "security": [
@@ -920,7 +998,9 @@
                       ]
                     }
                   },
-                  "required": ["user"]
+                  "required": [
+                    "user"
+                  ]
                 }
               }
             }
@@ -952,7 +1032,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -984,7 +1067,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1016,7 +1102,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1026,7 +1115,9 @@
     },
     "/auth/initiate-email-change": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Initiate email change process. Sends a verification code to the new email address.",
         "summary": "Initiate Email Change",
         "security": [
@@ -1045,7 +1136,9 @@
                     "format": "email"
                   }
                 },
-                "required": ["newEmail"],
+                "required": [
+                  "newEmail"
+                ],
                 "description": "New Email Address"
               }
             }
@@ -1063,7 +1156,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1095,7 +1190,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1127,7 +1225,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1159,7 +1260,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1191,7 +1295,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1201,7 +1308,9 @@
     },
     "/auth/confirm-email-change": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Confirm pending email change using the verification code sent to the new email.",
         "summary": "Confirm Email Change",
         "security": [
@@ -1220,7 +1329,9 @@
                     "minLength": 1
                   }
                 },
-                "required": ["code"],
+                "required": [
+                  "code"
+                ],
                 "description": "Verification Code"
               }
             }
@@ -1238,7 +1349,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1270,7 +1383,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1302,7 +1418,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1334,7 +1453,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1344,7 +1466,9 @@
     },
     "/auth/send-verification-code": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Send validation email to the currently logged in user to verify their account.",
         "summary": "Send Verification Code",
         "security": [
@@ -1364,7 +1488,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1396,7 +1522,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1428,7 +1557,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1438,7 +1570,9 @@
     },
     "/auth/verify-email": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Verify the user's email address using the code sent to them.",
         "summary": "Verify Email",
         "security": [
@@ -1458,7 +1592,9 @@
                     "maxLength": 6
                   }
                 },
-                "required": ["code"],
+                "required": [
+                  "code"
+                ],
                 "description": "Verification Code"
               }
             }
@@ -1476,7 +1612,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1508,7 +1646,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1540,7 +1681,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1550,7 +1694,9 @@
     },
     "/auth/verify-email-temporary": {
       "post": {
-        "tags": ["Email"],
+        "tags": [
+          "Email"
+        ],
         "description": "Temporary endpoint to manually verify email without code (Maintenance Mode).",
         "summary": "Manual Verify Email (Temp)",
         "security": [
@@ -1569,7 +1715,9 @@
                     "format": "email"
                   }
                 },
-                "required": ["email"],
+                "required": [
+                  "email"
+                ],
                 "description": "User Email"
               }
             }
@@ -1587,7 +1735,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1619,7 +1769,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1651,7 +1804,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1683,7 +1839,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1693,7 +1852,9 @@
     },
     "/auth/forgot-password": {
       "post": {
-        "tags": ["Password"],
+        "tags": [
+          "Password"
+        ],
         "description": "Initiate password reset process. Sends a reset code to the user's email.",
         "summary": "Forgot Password",
         "requestBody": {
@@ -1707,7 +1868,9 @@
                     "format": "email"
                   }
                 },
-                "required": ["email"],
+                "required": [
+                  "email"
+                ],
                 "description": "User Email"
               }
             }
@@ -1725,7 +1888,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1757,7 +1922,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1789,7 +1957,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1799,7 +1970,9 @@
     },
     "/auth/reset-password": {
       "post": {
-        "tags": ["Password"],
+        "tags": [
+          "Password"
+        ],
         "description": "Reset password using the code received via email.",
         "summary": "Reset Password",
         "requestBody": {
@@ -1818,7 +1991,10 @@
                     "minLength": 6
                   }
                 },
-                "required": ["code", "newPassword"],
+                "required": [
+                  "code",
+                  "newPassword"
+                ],
                 "description": "New Password & Code"
               }
             }
@@ -1836,7 +2012,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1868,7 +2046,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1900,7 +2081,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -1910,7 +2094,9 @@
     },
     "/auth/change-password": {
       "post": {
-        "tags": ["Password"],
+        "tags": [
+          "Password"
+        ],
         "description": "Change password for logged-in user.",
         "summary": "Change Password",
         "security": [
@@ -1932,7 +2118,10 @@
                     "minLength": 6
                   }
                 },
-                "required": ["oldPassword", "newPassword"],
+                "required": [
+                  "oldPassword",
+                  "newPassword"
+                ],
                 "description": "Old & New Password"
               }
             }
@@ -1950,7 +2139,9 @@
                       "type": "string"
                     }
                   },
-                  "required": ["message"]
+                  "required": [
+                    "message"
+                  ]
                 }
               }
             }
@@ -1982,7 +2173,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -2014,7 +2208,10 @@
                       ]
                     }
                   },
-                  "required": ["error", "code"]
+                  "required": [
+                    "error",
+                    "code"
+                  ]
                 }
               }
             }
@@ -2022,7 +2219,65 @@
         }
       }
     },
-    "/shipments/create-shipments": {
+    "/shipments/{id}/pay": {
+      "post": {
+        "description": "\n### Continue Payment\n**Frontend Usage Guide:**\nAllows a user to retry payment for a shipment that was created but not paid (PENDING/FAILED).\n\n**Response Flow:**\n1. Success (200) returns a `checkoutUrl`.\n2. Frontend **must redirect the user** to this URL for payment.\n",
+        "summary": "Continue Payment for Shipment",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Shipment ID (UUID)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shipmentId": {
+                      "type": "string"
+                    },
+                    "checkoutUrl": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "shipmentId",
+                    "checkoutUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Shipment already paid or invalid status"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Shipment not found"
+          }
+        }
+      }
+    },
+    "/shipments/create-shipment": {
       "post": {
         "description": "\n### Create Shipment & Initiate Payment\n**Frontend Usage Guide:**\nThis endpoint initializes a shipment in the database and creates a localized Stripe Checkout session.\n\n**Rules & Validation:**\n- **Addresses**: Must be valid postal addresses. For international shipments, ensure `countryCode` is standard (e.g. \"PL\", \"US\"). \n- **Packages**: Dimensions (CM/IN) and Weight (KG/LB) must match limits of the selected service.\n- **Rates**: You must pass the rate structure obtained from `GET /shipping/estimate`. The backend verifies the price integrity.\n\n**Response Flow:**\n1. Success (201) returns a `checkoutUrl`.\n2. Frontend **must redirect the user** to this URL for payment.\n3. After payment, the user is returned to the success URL where you call `GET /payments/verify`.\n",
         "summary": "Create Shipment",
@@ -2039,7 +2294,9 @@
                 "properties": {
                   "carrierName": {
                     "type": "string",
-                    "enum": ["FedEx"]
+                    "enum": [
+                      "FedEx"
+                    ]
                   },
                   "pickupAddress": {
                     "type": "object",
@@ -2081,7 +2338,10 @@
                             "type": "string"
                           }
                         },
-                        "required": ["personName", "phoneNumber"]
+                        "required": [
+                          "personName",
+                          "phoneNumber"
+                        ]
                       }
                     },
                     "required": [
@@ -2133,7 +2393,10 @@
                             "type": "string"
                           }
                         },
-                        "required": ["personName", "phoneNumber"]
+                        "required": [
+                          "personName",
+                          "phoneNumber"
+                        ]
                       }
                     },
                     "required": [
@@ -2156,10 +2419,16 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": ["KG", "LB"]
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ]
                           }
                         },
-                        "required": ["value", "units"]
+                        "required": [
+                          "value",
+                          "units"
+                        ]
                       },
                       "dimensions": {
                         "type": "object",
@@ -2175,13 +2444,23 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": ["CM", "IN"]
+                            "enum": [
+                              "CM",
+                              "IN"
+                            ]
                           }
                         },
-                        "required": ["length", "width", "height", "units"]
+                        "required": [
+                          "length",
+                          "width",
+                          "height",
+                          "units"
+                        ]
                       }
                     },
-                    "required": ["weight"]
+                    "required": [
+                      "weight"
+                    ]
                   },
                   "rate": {
                     "type": "object",
@@ -2319,7 +2598,11 @@
                       "nullable": true
                     }
                   },
-                  "required": ["id", "customTrackingNumber", "shipmentStatus"]
+                  "required": [
+                    "id",
+                    "customTrackingNumber",
+                    "shipmentStatus"
+                  ]
                 }
               }
             }
@@ -2415,7 +2698,11 @@
                       "type": "string"
                     }
                   },
-                  "required": ["totalSpent", "totalShipments", "currency"]
+                  "required": [
+                    "totalSpent",
+                    "totalShipments",
+                    "currency"
+                  ]
                 }
               }
             }
@@ -2517,10 +2804,16 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": ["KG", "LB"]
+                            "enum": [
+                              "KG",
+                              "LB"
+                            ]
                           }
                         },
-                        "required": ["value", "units"]
+                        "required": [
+                          "value",
+                          "units"
+                        ]
                       },
                       "dimensions": {
                         "type": "object",
@@ -2536,19 +2829,33 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": ["CM", "IN"]
+                            "enum": [
+                              "CM",
+                              "IN"
+                            ]
                           }
                         },
-                        "required": ["length", "width", "height", "units"]
+                        "required": [
+                          "length",
+                          "width",
+                          "height",
+                          "units"
+                        ]
                       }
                     },
-                    "required": ["weight"]
+                    "required": [
+                      "weight"
+                    ]
                   },
                   "guestId": {
                     "type": "string"
                   }
                 },
-                "required": ["pickup", "dropoff", "package"]
+                "required": [
+                  "pickup",
+                  "dropoff",
+                  "package"
+                ]
               }
             }
           }
@@ -2571,7 +2878,10 @@
                         "properties": {
                           "carrier": {
                             "type": "string",
-                            "enum": ["FedEx", "DHL"]
+                            "enum": [
+                              "FedEx",
+                              "DHL"
+                            ]
                           },
                           "serviceType": {
                             "type": "string"
@@ -2633,7 +2943,10 @@
                             "type": "string"
                           }
                         },
-                        "required": ["carrier", "hasError"]
+                        "required": [
+                          "carrier",
+                          "hasError"
+                        ]
                       },
                       "description": "List of errors per carrier"
                     },
@@ -2642,7 +2955,10 @@
                       "nullable": true
                     }
                   },
-                  "required": ["estimateId", "rates"]
+                  "required": [
+                    "estimateId",
+                    "rates"
+                  ]
                 }
               }
             }
@@ -2681,7 +2997,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["SUCCESS", "FAILED"],
+                      "enum": [
+                        "SUCCESS",
+                        "FAILED"
+                      ],
                       "description": "Overall verification status"
                     },
                     "paymentStatus": {
@@ -2705,7 +3024,11 @@
                       "description": "Error or status message"
                     }
                   },
-                  "required": ["status", "paymentStatus", "shipmentStatus"]
+                  "required": [
+                    "status",
+                    "paymentStatus",
+                    "shipmentStatus"
+                  ]
                 }
               }
             }
@@ -2771,7 +3094,9 @@
                     "maximum": 1
                   }
                 },
-                "required": ["commissionPercentage"]
+                "required": [
+                  "commissionPercentage"
+                ]
               }
             }
           }

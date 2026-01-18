@@ -5,6 +5,17 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.21.0] - 2026-01-18 - Continue to Pay Feature & Tracking Enhancements
+
+- Added: "Continue to Pay" Functionality
+  - Implemented logic to allow users to pay for shipments that are in `CREATED` status.
+  - Added "Complete Payment" button to the Tracking Page for untracked (unpaid) shipments.
+  - Integrated `get-shipment` retrieval in the Tracking Page to resolve Shipment IDs for untracked shipments, ensuring payment flow works even with minimal tracking data.
+  - Added proper loading states and user feedback during the payment resolution and redirection process.
+- **Details**:
+  - Leveraged `getShipment` API to robustly handle missing IDs in tracking responses.
+  - Updated `TrackShipmentPage` to fallback to ID resolution when necessary.
+
 ### [1.20.0] - 2026-01-18 - Shipment Tracking & List Improvements
 
 - Added: "Payment Required" Prompt for Unpaid Shipments

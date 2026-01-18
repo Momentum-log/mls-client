@@ -67,3 +67,16 @@ export const getShipmentStats = async () => {
   const response = await apiClient.get("/shipments/get-shipment-stats");
   return response.data;
 };
+
+/**
+ * Initiates the payment process for an existing unpaid shipment.
+ * @param id - Shipment ID.
+ * @returns Object containing the checkout URL.
+ */
+export const continueToPay = async (id: string) => {
+  const response = await apiClient.post<{
+    shipmentId: string;
+    checkoutUrl: string;
+  }>(`/shipments/${id}/pay`);
+  return response.data;
+};
