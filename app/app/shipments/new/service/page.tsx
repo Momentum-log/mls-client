@@ -16,6 +16,7 @@ import { ShippingEstimatePayload, Rate } from "@/types/shipping";
 import { v4 as uuidv4 } from "uuid";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
+import { useCountryStore } from "@/store/country-store";
 
 export default function ServicePage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function ServicePage() {
     selectedRate,
     setStep,
   } = useShipmentStore();
+  const { countryCode } = useCountryStore();
   const { addToast: toast } = useToast();
 
   // Use React Query Mutation hook
@@ -89,7 +91,8 @@ export default function ServicePage() {
           units: "CM",
         },
       },
-      getOrSetGuestId()
+      getOrSetGuestId(),
+      countryCode,
     );
 
     console.log("Fetching rates payload:", JSON.stringify(payload, null, 2));

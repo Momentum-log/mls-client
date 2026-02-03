@@ -9,6 +9,9 @@ import {
   FaCheck,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
+import { useCountryStore } from "@/store/country-store";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 interface SimplifiedLogisticsShowcaseProps {
   className?: string;
@@ -20,6 +23,19 @@ const SimplifiedLogisticsShowcase: React.FC<
   const [signatureRequired, setSignatureRequired] = useState(true);
   const [insurance, setInsurance] = useState(true);
   const [deliveryOption, setDeliveryOption] = useState("leave");
+
+  const { currency } = useCountryStore();
+  const isPLN = currency === "PLN";
+  const multiplier = isPLN ? 4 : 1;
+
+  const prices = {
+    express: 29.99 * multiplier,
+    standard: 19.99 * multiplier,
+    economy: 14.99 * multiplier,
+    value: 150 * multiplier,
+    insurance: 4.99 * multiplier,
+    total: 34.98 * multiplier, // This total might need recalculation if logic was dynamic, but for showcase it's fine.
+  };
 
   return (
     <div className={`relative w-full ${className}`}>
@@ -69,7 +85,12 @@ const SimplifiedLogisticsShowcase: React.FC<
                           Express
                         </span>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold">$29.99</span>
+                          <span className="text-[10px] font-bold">
+                            {formatCurrency(
+                              prices.express,
+                              currency as SupportedCurrency,
+                            )}
+                          </span>
                           <FaCheck className="w-2 h-2" />
                         </div>
                       </div>
@@ -77,14 +98,20 @@ const SimplifiedLogisticsShowcase: React.FC<
                       <div className="bg-gray-50 rounded px-2 py-1 flex justify-between items-center">
                         <span className="text-[10px]">Standard</span>
                         <span className="text-[10px] text-gray-600">
-                          $19.99
+                          {formatCurrency(
+                            prices.standard,
+                            currency as SupportedCurrency,
+                          )}
                         </span>
                       </div>
                       {/* Economy */}
                       <div className="bg-gray-50 rounded px-2 py-1 flex justify-between items-center">
                         <span className="text-[10px]">Economy</span>
                         <span className="text-[10px] text-gray-600">
-                          $14.99
+                          {formatCurrency(
+                            prices.economy,
+                            currency as SupportedCurrency,
+                          )}
                         </span>
                       </div>
                     </div>
@@ -118,7 +145,13 @@ const SimplifiedLogisticsShowcase: React.FC<
                       </div>
                       <div className="flex justify-between text-[10px]">
                         <span className="text-gray-600">Value:</span>
-                        <span className="font-medium">$150</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            prices.value,
+                            currency as SupportedCurrency,
+                            { showDecimals: false },
+                          )}
+                        </span>
                       </div>
                       <div className="mt-2 space-y-1">
                         <label className="flex items-center gap-1 text-[9px] cursor-pointer">
@@ -139,7 +172,14 @@ const SimplifiedLogisticsShowcase: React.FC<
                             checked={insurance}
                             onChange={(e) => setInsurance(e.target.checked)}
                           />
-                          <span>Insurance ($4.99)</span>
+                          <span>
+                            Insurance (
+                            {formatCurrency(
+                              prices.insurance,
+                              currency as SupportedCurrency,
+                            )}
+                            )
+                          </span>
                         </label>
                       </div>
                     </div>
@@ -250,7 +290,8 @@ const SimplifiedLogisticsShowcase: React.FC<
           <div className="bg-purple-200 h-[50px] px-3 py-2 flex justify-between items-center">
             <div>
               <p className="text-accent-dark font-work-sans font-black text-sm">
-                Total: $34.98
+                Total:{" "}
+                {formatCurrency(prices.total, currency as SupportedCurrency)}
               </p>
               <p className="text-[8px] text-accent-dark/70">
                 All fees included

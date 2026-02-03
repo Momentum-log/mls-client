@@ -22,6 +22,7 @@ import {
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, ShippingEstimatePayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
+import { useCountryStore } from "@/store/country-store";
 
 /**
  * NewShipmentPage provides a single-page, vertically-stacked flow for shipment creation.
@@ -45,6 +46,8 @@ export default function NewShipmentPage() {
     selectedRate,
     setSelectedRate,
   } = useShipmentStore();
+
+  const { countryCode } = useCountryStore();
 
   const [rates, setRates] = useState<Rate[]>([]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -115,7 +118,8 @@ export default function NewShipmentPage() {
             length: packages[0].length,
           },
         },
-        getOrSetGuestId()
+        getOrSetGuestId(),
+        countryCode,
       );
 
       getRates(payload, {
@@ -143,8 +147,8 @@ export default function NewShipmentPage() {
           expandedSection === "pickup"
             ? "current"
             : completedSteps.includes("pickup")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
       {
         id: "dropoff",
@@ -153,8 +157,8 @@ export default function NewShipmentPage() {
           expandedSection === "dropoff"
             ? "current"
             : completedSteps.includes("dropoff")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
       {
         id: "package",
@@ -163,8 +167,8 @@ export default function NewShipmentPage() {
           expandedSection === "package"
             ? "current"
             : completedSteps.includes("package")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
       {
         id: "service",
@@ -173,11 +177,11 @@ export default function NewShipmentPage() {
           expandedSection === "service"
             ? "current"
             : completedSteps.includes("service")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
     ],
-    [expandedSection, completedSteps]
+    [expandedSection, completedSteps],
   );
 
   const isSectionVisible = (id: string) => {
@@ -249,7 +253,8 @@ export default function NewShipmentPage() {
             length: pkg.length,
           },
         },
-        getOrSetGuestId()
+        getOrSetGuestId(),
+        countryCode,
       );
 
       getRates(payload, {
@@ -350,6 +355,7 @@ export default function NewShipmentPage() {
         declaredValue: packages[0].value,
         currency: packages[0].currency,
       },
+      userCountryCode: countryCode,
     };
 
     performCreateShipment(payload, {

@@ -5,6 +5,36 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.24.0] - 2026-02-02 - Client-Side Multi-Currency Support
+
+- Added: Country-Based Currency Detection & Display
+  - **Updated**: Switched from IP-based detection to **Browser Geolocation API** for higher accuracy
+  - **Enhanced**: Service Selection now displays formatted price with symbol AND ISO code (e.g., `1 498,95 zł PLN`)
+  - Created `useCountryStore` Zustand store with sessionStorage persistence for currency preferences
+  - Poland (PL) users see Polish Złoty (zł) formatting, all others see Euro (€)
+  - Added `CountryDetector` component to root layout for automatic detection on page load
+- Added: Currency Formatting Utility (`utils/currency-formatter.ts`)
+  - `formatCurrency()` with locale-aware formatting (Polish: symbol after, Euro: symbol before)
+  - `formatCurrencyCompact()` for compact display without trailing decimals on whole numbers
+  - `getCurrencyForCountry()` helper for currency determination
+- Changed: Homepage Hero Section Updates
+  - Primary CTA changed from "Get a Quote →" to "Get Started →" linking to `/register`
+  - Card 1 (Shipment Tracking) buttons now link to `/track-shipment`
+  - Card 2 (Delivery Quote) displays dynamic currency based on user's detected country
+  - Card 3 (International Shipping) buttons link to `/shipping-estimate` and `/about`
+  - Marked hero component as client component for dynamic rendering
+- Changed: Interactive Showcases & Components
+  - Updated `QuoteEstimatorShowcase`, `ShipmentShowcase`, `ReceiptShowcase`, and `SimplifiedLogisticsShowcase` to use dynamic currency formatting
+  - Implemented multiplier logic (4x) for PLN pricing in showcases to maintain realistic values
+- Changed: Shipping Estimate Integration
+  - Integrated `useCountryStore` to pass `userCountryCode` to API for currency-aware pricing
+  - Updated rate display to use locale-formatted currency via `formatCurrency()`
+  - Updated `ShippingEstimatePayload` type to include optional `userCountryCode`
+- **Details**:
+  - Removed server-side IP detection route (`/api/geo/detect`) in favor of client-side geolocation
+  - Edge runtime used for geo detection API for optimal performance (Deprecated)
+  - Fallback to EUR if country detection fails or permission denied
+
 ### [1.23.0] - 2026-01-19 - Custom 404 Page
 
 - Added: Unified Custom 404 Page

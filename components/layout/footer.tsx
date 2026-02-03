@@ -7,6 +7,7 @@ import {
   FaWhatsapp,
   FaXTwitter,
 } from "react-icons/fa6";
+import CountrySelector from "../shared/country-selector";
 
 export default function Footer() {
   return (
@@ -136,11 +137,12 @@ export default function Footer() {
               </ul>
             </div>
           </div>
-          <div className="mt-12 border-t border-white/10 pt-8 text-center text-white/60 text-sm">
+          <div className="mt-12 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-white/60 text-sm gap-4">
             <p>
               &copy; {new Date().getFullYear()} Momentum Logistics Service. All
               rights reserved.
             </p>
+            <CountrySelector />
           </div>
         </div>
       </Container>

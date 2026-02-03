@@ -14,7 +14,6 @@ import {
 
 import ShippingHero from "@/components/shipping/shipping-hero";
 import { shippingFormSchema, ShippingFormValues } from "./schema";
-// import { resolveAddressFromString } from "@/utils/address-helper"; // Removed in favor of presets
 import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -23,7 +22,6 @@ import {
   SHIPPING_MODES,
 } from "./constants";
 import { Select } from "@/components/ui/select";
-// Make sure to import types correctly
 import { transformShippingData, getEstimatePayload } from "./utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import {
@@ -31,6 +29,9 @@ import {
   ShippingEstimateResponse,
   Rate,
 } from "@/types/shipping";
+import { useCountryStore } from "@/store/country-store";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 // Package Presets
 const PACKAGE_PRESETS = [
@@ -76,6 +77,9 @@ export default function ShippingEstimatePage() {
 
   const { addToast } = useToast();
 
+  // Get user's country for currency determination
+  const { countryCode } = useCountryStore();
+
   // React Query Mutation
   const {
     mutate: estimateMutation,
@@ -108,7 +112,7 @@ export default function ShippingEstimatePage() {
         // Pickup Resolution
         if (values.shippingMode === "import") {
           const details = SUPPORTED_COUNTRIES.find(
-            (c) => c.id === values.pickupLocation
+            (c) => c.id === values.pickupLocation,
           );
           pickupAddr = details
             ? {
@@ -127,7 +131,7 @@ export default function ShippingEstimatePage() {
             : null;
         } else {
           const details = POLAND_CITIES.find(
-            (c) => c.id === values.pickupLocation
+            (c) => c.id === values.pickupLocation,
           );
           pickupAddr = details
             ? {
@@ -149,7 +153,7 @@ export default function ShippingEstimatePage() {
         // Dropoff Resolution
         if (values.shippingMode === "export") {
           const details = SUPPORTED_COUNTRIES.find(
-            (c) => c.id === values.dropoffLocation
+            (c) => c.id === values.dropoffLocation,
           );
           dropoffAddr = details
             ? {
@@ -168,7 +172,7 @@ export default function ShippingEstimatePage() {
             : null;
         } else {
           const details = POLAND_CITIES.find(
-            (c) => c.id === values.dropoffLocation
+            (c) => c.id === values.dropoffLocation,
           );
           dropoffAddr = details
             ? {
@@ -222,23 +226,24 @@ export default function ShippingEstimatePage() {
             },
             dimensions: {
               length: parseFloat(
-                Number(values.package.dimensions.length).toFixed(1)
+                Number(values.package.dimensions.length).toFixed(1),
               ),
               width: parseFloat(
-                Number(values.package.dimensions.width).toFixed(1)
+                Number(values.package.dimensions.width).toFixed(1),
               ),
               height: parseFloat(
-                Number(values.package.dimensions.height).toFixed(1)
+                Number(values.package.dimensions.height).toFixed(1),
               ),
               units: "CM",
             },
           },
-          getOrSetGuestId()
+          getOrSetGuestId(),
+          countryCode || undefined, // Pass country code for currency determination
         );
 
         console.log(
           "Submitting Shipping Payload:",
-          JSON.stringify(payload, null, 2)
+          JSON.stringify(payload, null, 2),
         );
 
         estimateMutation(payload, {
@@ -293,7 +298,7 @@ export default function ShippingEstimatePage() {
   const reverseGeocode = async (lat: number, lon: number) => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
       );
       const data = await response.json();
       if (data && data.display_name) {
@@ -345,7 +350,7 @@ export default function ShippingEstimatePage() {
 
         alert(errorMessage);
         setIsLocating(false);
-      }
+      },
     );
   };
 
@@ -441,12 +446,12 @@ export default function ShippingEstimatePage() {
                                   c.country === "UK"
                                     ? "🇬🇧"
                                     : c.country === "US"
-                                    ? "🇺🇸"
-                                    : c.country === "CN"
-                                    ? "🇨🇳"
-                                    : c.country === "NG"
-                                    ? "🇳🇬"
-                                    : "🇩🇪",
+                                      ? "🇺🇸"
+                                      : c.country === "CN"
+                                        ? "🇨🇳"
+                                        : c.country === "NG"
+                                          ? "🇳🇬"
+                                          : "🇩🇪",
                               }))
                             : POLAND_CITIES.map((c) => ({
                                 label: c.name,
@@ -488,12 +493,12 @@ export default function ShippingEstimatePage() {
                                   c.country === "UK"
                                     ? "🇬🇧"
                                     : c.country === "US"
-                                    ? "🇺🇸"
-                                    : c.country === "CN"
-                                    ? "🇨🇳"
-                                    : c.country === "NG"
-                                    ? "🇳🇬"
-                                    : "🇩🇪",
+                                      ? "🇺🇸"
+                                      : c.country === "CN"
+                                        ? "🇨🇳"
+                                        : c.country === "NG"
+                                          ? "🇳🇬"
+                                          : "🇩🇪",
                               }))
                             : POLAND_CITIES.map((c) => ({
                                 label: c.name,
@@ -730,10 +735,10 @@ export default function ShippingEstimatePage() {
                             <span className="text-white/60 text-sm">Price</span>
                             <div className="flex items-baseline gap-1">
                               <span className="text-2xl font-black text-brand-yellow">
-                                {rate.actualPrice?.toFixed(2)}
-                              </span>
-                              <span className="text-xs text-white/60 font-medium">
-                                {rate.currency}
+                                {formatCurrency(
+                                  rate.actualPrice,
+                                  (rate.currency as SupportedCurrency) || "EUR",
+                                )}
                               </span>
                             </div>
                           </div>

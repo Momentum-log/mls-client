@@ -37,7 +37,7 @@ const humanizeServiceTerms = (text: string): string => {
   // "International Priority Express" -> "Priority Express"
   result = result.replace(
     /International Priority Express/gi,
-    "Priority Express"
+    "Priority Express",
   );
 
   // "International First" -> "First Class"
@@ -81,7 +81,7 @@ const deepClean = (obj: any): any => {
 
 // Entry point
 export const transformShippingData = (
-  data: ShippingEstimateResponse
+  data: ShippingEstimateResponse,
 ): ShippingEstimateResponse => {
   // We deep clean the entire structure
   return deepClean(data) as ShippingEstimateResponse;
@@ -101,7 +101,7 @@ import {
  */
 export const checkIfInternational = (
   pickupCountry: string | undefined,
-  dropoffCountry: string | undefined
+  dropoffCountry: string | undefined,
 ): boolean => {
   if (!pickupCountry || !dropoffCountry) return false;
   return pickupCountry.toUpperCase() !== dropoffCountry.toUpperCase();
@@ -113,7 +113,7 @@ export const checkIfInternational = (
  */
 export const getPayload = (
   isInternational: boolean,
-  data: any
+  data: any,
 ): CreateShipmentPayload => {
   if (isInternational) {
     const payload: InternationalShipmentPayload = {
@@ -139,12 +139,19 @@ export const getPayload = (
  * Constructs the payload for getting shipping estimates.
  * Follows the standard structure: pickup, dropoff, package, guestId.
  * Strips contact and customs information.
+ *
+ * @param pickup - Pickup address details
+ * @param dropoff - Dropoff address details
+ * @param pkg - Package weight and dimensions
+ * @param guestId - Guest identifier for non-authenticated users
+ * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency (e.g., 'PL', 'DE')
  */
 export const getEstimatePayload = (
   pickup: any,
   dropoff: any,
   pkg: any,
-  guestId: string
+  guestId: string,
+  userCountryCode?: string,
 ): ShippingEstimatePayload => {
   const payload: ShippingEstimatePayload = {
     pickup: {
@@ -168,6 +175,8 @@ export const getEstimatePayload = (
       dimensions: pkg.dimensions,
     },
     guestId,
+    // Include userCountryCode if provided (for currency determination)
+    ...(userCountryCode && { userCountryCode }),
   };
 
   return payload;

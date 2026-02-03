@@ -2488,6 +2488,12 @@
                       "carrierPrice",
                       "actualPrice"
                     ]
+                  },
+                  "userCountryCode": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2,
+                    "description": "ISO 3166-1 alpha-2 country code of the user (e.g., 'PL', 'DE'). Determines checkout currency: PL->PLN, others->EUR."
                   }
                 },
                 "required": [
@@ -2849,6 +2855,11 @@
                   },
                   "guestId": {
                     "type": "string"
+                  },
+                  "userCountryCode": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
                   }
                 },
                 "required": [

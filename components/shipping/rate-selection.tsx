@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Button from "@/components/ui/button";
 import apiClient from "@/api";
 // import { ShippingEstimate, ShippingRate } from "@/types/shipping";
+import { useCountryStore } from "@/store/country-store";
 
 interface RateSelectionProps {
   estimate: any;
@@ -13,10 +14,13 @@ const RateSelection: React.FC<RateSelectionProps> = ({
   shipmentData,
 }) => {
   const [selectedRateIndex, setSelectedRateIndex] = useState<number | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get user's country code for the payload
+  const { countryCode } = useCountryStore();
 
   const handleCreateShipment = async () => {
     if (selectedRateIndex === null) return;
@@ -43,6 +47,8 @@ const RateSelection: React.FC<RateSelectionProps> = ({
         dropoffAddress: { ...shipmentData.dropoff, contact },
         package: shipmentData.package,
         rate: rate,
+        // Include userCountryCode in the payload
+        userCountryCode: countryCode || undefined,
       };
 
       const response = await apiClient.post("/shipments", payload);

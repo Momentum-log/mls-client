@@ -10,6 +10,9 @@ import {
   FaSignInAlt,
   FaBox,
 } from "react-icons/fa";
+import { useCountryStore } from "@/store/country-store";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 interface ShipmentShowcaseProps {
   className?: string;
@@ -18,6 +21,21 @@ interface ShipmentShowcaseProps {
 const ShipmentShowcase: React.FC<ShipmentShowcaseProps> = ({
   className = "",
 }) => {
+  const { currency } = useCountryStore();
+
+  const isPLN = currency === "PLN";
+  const multiplier = isPLN ? 4 : 1;
+
+  const prices = {
+    baseRate: 24.5 * multiplier,
+    serviceFee: 3.25 * multiplier,
+    fuelSurcharge: 2.45 * multiplier,
+    insurance: 1.25 * multiplier,
+    signatureFee: 0.0,
+  };
+
+  const total = Object.values(prices).reduce((acc, curr) => acc + curr, 0);
+
   return (
     <div className={`relative w-full ${className}`}>
       {/* Dashed Border Container */}
@@ -149,29 +167,50 @@ const ShipmentShowcase: React.FC<ShipmentShowcaseProps> = ({
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] sm:text-[11px]">
                         <span className="text-gray-900/60">Base Rate:</span>
-                        <span className="font-medium">$24.50</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            prices.baseRate,
+                            currency as SupportedCurrency,
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between text-[10px] sm:text-[11px]">
                         <span className="text-gray-900/60">Service Fee:</span>
-                        <span className="font-medium">$3.25</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            prices.serviceFee,
+                            currency as SupportedCurrency,
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between text-[10px] sm:text-[11px]">
                         <span className="text-gray-900/60">
                           Fuel Surcharge:
                         </span>
-                        <span className="font-medium">$2.45</span>
+                        <span className="font-medium">
+                          {formatCurrency(
+                            prices.fuelSurcharge,
+                            currency as SupportedCurrency,
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between text-[10px] sm:text-[11px]">
                         <span className="text-gray-900/60">Insurance:</span>
                         <span className="font-medium flex items-center gap-1">
-                          $1.25
+                          {formatCurrency(
+                            prices.insurance,
+                            currency as SupportedCurrency,
+                          )}
                           <FaCheck className="w-2 h-2 text-green-600" />
                         </span>
                       </div>
                       <div className="flex justify-between text-[10px] sm:text-[11px]">
                         <span className="text-gray-900/60">Signature Fee:</span>
                         <span className="font-medium flex items-center gap-1">
-                          $0.00
+                          {formatCurrency(
+                            prices.signatureFee,
+                            currency as SupportedCurrency,
+                          )}
                           <FaTimes className="w-2 h-2 text-gray-400" />
                         </span>
                       </div>
@@ -246,7 +285,7 @@ const ShipmentShowcase: React.FC<ShipmentShowcaseProps> = ({
                           Total:
                         </span>
                         <span className="text-brand-blue font-work-sans font-black text-base sm:text-lg">
-                          $31.45
+                          {formatCurrency(total, currency as SupportedCurrency)}
                         </span>
                       </div>
                     </div>

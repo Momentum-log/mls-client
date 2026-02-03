@@ -91,6 +91,8 @@ export interface ShippingEstimatePayload {
   dropoff: EstimateAddress;
   package: EstimatePackageDetails;
   guestId: string;
+  /** Optional ISO 3166-1 alpha-2 country code for currency determination (e.g., 'PL', 'DE') */
+  userCountryCode?: string;
 }
 
 // Shipping estimate response
@@ -227,6 +229,7 @@ export interface LocalShipmentPayload {
   package: PackageDetails;
   rate: Rate;
   customs?: never; // Using 'never' ensures you DON'T pass it by mistake
+  userCountryCode?: string;
 }
 
 /**
@@ -240,6 +243,7 @@ export interface InternationalShipmentPayload {
   package: PackageDetails;
   rate: Rate;
   customs: Customs; // <--- Mandatory
+  userCountryCode?: string;
 }
 
 // Union type helper if you need to handle both generically

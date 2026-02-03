@@ -8,6 +8,9 @@ import {
   FaCheck,
   FaCalculator,
 } from "react-icons/fa";
+import { useCountryStore } from "@/store/country-store";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 interface QuoteEstimatorShowcaseProps {
   className?: string;
@@ -21,6 +24,22 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
   const [specialHandling, setSpecialHandling] = useState(false);
   const [pickupTime, setPickupTime] = useState("today-morning");
   const [deliveryOption, setDeliveryOption] = useState("standard");
+
+  const { currency } = useCountryStore();
+  const isPLN = currency === "PLN";
+  const multiplier = isPLN ? 4 : 1;
+
+  // Pricing constants (EUR base)
+  const prices = {
+    small: 12.99 * multiplier,
+    medium: 19.99 * multiplier,
+    large: 29.99 * multiplier,
+    estValue: 150 * multiplier,
+    standard: 12.99 * multiplier,
+    express: 24.99 * multiplier,
+    overnight: 39.99 * multiplier,
+    total: 29.99 * multiplier,
+  };
 
   return (
     <div className={`relative w-full ${className}`}>
@@ -42,7 +61,7 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
           </div>
 
           {/* Scrollable Content Area */}
-          <div className="h-[300px] md:max-h-[400px] overflow-y-auto px-3 py-2 scrollbar-hide">
+          <div className="h-[300px] md:max-h-[400px] md:h-[400px] overflow-y-auto px-3 py-2 scrollbar-hide">
             {/* Timeline Container */}
             <div className="relative">
               {/* Vertical Line */}
@@ -82,7 +101,12 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold">$12.99</span>
+                          <span className="text-[10px] font-bold">
+                            {formatCurrency(
+                              prices.small,
+                              currency as SupportedCurrency,
+                            )}
+                          </span>
                           {packageType === "small" && (
                             <FaCheck className="w-2 h-2" />
                           )}
@@ -106,7 +130,12 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold">$19.99</span>
+                          <span className="text-[10px] font-bold">
+                            {formatCurrency(
+                              prices.medium,
+                              currency as SupportedCurrency,
+                            )}
+                          </span>
                           {packageType === "medium" && (
                             <FaCheck className="w-2 h-2" />
                           )}
@@ -130,7 +159,12 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <span className="text-[10px] font-bold">$29.99</span>
+                          <span className="text-[10px] font-bold">
+                            {formatCurrency(
+                              prices.large,
+                              currency as SupportedCurrency,
+                            )}
+                          </span>
                           {packageType === "large" && (
                             <FaCheck className="w-2 h-2" />
                           )}
@@ -184,7 +218,11 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                       <div className="flex justify-between text-[10px]">
                         <span className="text-gray-600">Estimated Value:</span>
                         <span className="font-medium text-foreground">
-                          $150
+                          {formatCurrency(
+                            prices.estValue,
+                            currency as SupportedCurrency,
+                            { showDecimals: false },
+                          )}
                         </span>
                       </div>
                       <div className="mt-2 space-y-1">
@@ -318,7 +356,11 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                             onChange={(e) => setDeliveryOption(e.target.value)}
                           />
                           <span className="text-foreground">
-                            Standard Delivery (3-5 days) - $12.99
+                            Standard Delivery (3-5 days) -{" "}
+                            {formatCurrency(
+                              prices.standard,
+                              currency as SupportedCurrency,
+                            )}
                           </span>
                           {deliveryOption === "standard" && (
                             <FaCheck className="w-2 h-2 ml-auto" />
@@ -337,7 +379,11 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                             onChange={(e) => setDeliveryOption(e.target.value)}
                           />
                           <span className="text-foreground">
-                            Express Delivery (1-2 days) - $24.99
+                            Express Delivery (1-2 days) -{" "}
+                            {formatCurrency(
+                              prices.express,
+                              currency as SupportedCurrency,
+                            )}
                           </span>
                           {deliveryOption === "express" && (
                             <FaCheck className="w-2 h-2 ml-auto" />
@@ -356,7 +402,11 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
                             onChange={(e) => setDeliveryOption(e.target.value)}
                           />
                           <span className="text-foreground">
-                            Overnight Delivery - $39.99
+                            Overnight Delivery -{" "}
+                            {formatCurrency(
+                              prices.overnight,
+                              currency as SupportedCurrency,
+                            )}
                           </span>
                           {deliveryOption === "overnight" && (
                             <FaCheck className="w-2 h-2 ml-auto" />
@@ -383,7 +433,8 @@ const QuoteEstimatorShowcase: React.FC<QuoteEstimatorShowcaseProps> = ({
           <div className="bg-brand-yellow h-[50px] px-3 py-2 flex justify-between items-center">
             <div>
               <p className="text-gray-900 font-work-sans font-black text-sm">
-                Total Estimate: $29.99
+                Total Estimate:{" "}
+                {formatCurrency(prices.total, currency as SupportedCurrency)}
               </p>
               <p className="text-[8px] text-gray-900/70">Includes all fees</p>
             </div>
