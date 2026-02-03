@@ -64,25 +64,23 @@ export default function ServicePage() {
     // Construct valid payload matching ShippingEstimatePayload interface
     const payload = getEstimatePayload(
       {
-        postalCode: sender.postalCode,
         countryCode: sender.country,
-        streetLines: [sender.street],
-        city: sender.city,
-        residential: false,
         stateOrProvinceCode: sender.stateOrProvinceCode || "",
+        city: sender.city,
+        postalCode: sender.postalCode,
+        streetLines: [sender.street],
       },
       {
-        postalCode: recipient.postalCode,
         countryCode: recipient.country,
-        streetLines: [recipient.street],
-        city: recipient.city,
-        residential: true,
         stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+        city: recipient.city,
+        postalCode: recipient.postalCode,
+        streetLines: [recipient.street],
       },
       {
         weight: {
-          units: "KG",
           value: Number(packages[0].weight),
+          units: "KG",
         },
         dimensions: {
           length: Number(packages[0].length),
@@ -92,7 +90,7 @@ export default function ServicePage() {
         },
       },
       getOrSetGuestId(),
-      countryCode,
+      countryCode || undefined,
     );
 
     console.log("Fetching rates payload:", JSON.stringify(payload, null, 2));

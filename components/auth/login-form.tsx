@@ -36,7 +36,24 @@ const LoginForm = () => {
       password: "",
       rememberMe: false,
     },
-    validationSchema: toFormikValidationSchema(loginSchema),
+    validate: (values) => {
+      try {
+        loginSchema.parse(values);
+        return {};
+      } catch (error: any) {
+        if (error instanceof z.ZodError) {
+          const formikErrors: Record<string, string> = {};
+          error.issues.forEach((issue) => {
+            const path = issue.path[0] as string;
+            if (!formikErrors[path]) {
+              formikErrors[path] = issue.message;
+            }
+          });
+          return formikErrors;
+        }
+        return {};
+      }
+    },
     onSubmit: async (values, { setSubmitting }) => {
       try {
         setPersistencePreference(values.rememberMe ? "local" : "session");
@@ -52,7 +69,7 @@ const LoginForm = () => {
 
         // Check for redirect param
         const redirectUrl = new URLSearchParams(window.location.search).get(
-          "redirect"
+          "redirect",
         );
         router.push(redirectUrl || "/app/dashboard");
       } catch (err) {

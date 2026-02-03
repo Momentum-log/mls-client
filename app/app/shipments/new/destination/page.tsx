@@ -39,7 +39,7 @@ export default function DestinationPage() {
 
       <AddressForm
         type="dropoff"
-        initialValues={recipient}
+        initialValues={recipient || undefined}
         onSubmit={handleSubmit}
         onBack={handleBack}
       />

@@ -5,7 +5,39 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [1.24.0] - 2026-02-02 - Client-Side Multi-Currency Support
+### [1.25.0] - 2026-02-03 - Global Location Services & Shipping Estimate Refactor
+
+- Added: Unified `AddressFields` Component
+  - Created a single, reusable component for Country, State, City, Zip Code, and Street Address.
+  - Replaced legacy `LocationSelector` with this new, comprehensive component.
+  - Implemented searchable dropdowns (via `Select` component) for all location levels.
+  - Replaced emojis with professional icons (FaGlobe, FaMapLocationDot, FaCity).
+- Added: Enhanced Shipping Estimate Flow
+  - Integrated `postalCode` (Zip Code) and `street` fields into the marketing estimate page.
+  - Replaced legacy local/import/export modes with a unified global pickup/dropoff selector.
+  - Added URL state persistence for all form values including newly added fields.
+- Fixed: "Invalid input: expected string, received undefined" validation error
+  - Migrated validation logic on Shipping Estimate, Login, and Register forms to manual Zod validation for robust error handling.
+  - Ensured all required fields have explicit default values.
+- Changed: Refactored Dashboard Shipment Creation
+  - Migrated `AddressForm` to use the unified `AddressFields` component.
+  - Enabled searchableDropdown functionality for Country, State, and City in the shipment wizard for improved UX.
+  - Restored original section-based layout (Contact Person, Physical Address) in `AddressForm.tsx`.
+
+- Removed: Legacy location handling
+  - Deleted `components/shipping/location-selector.tsx`.
+  - Deleted legacy JSON-based location data files.
+
+  - Standardized `getEstimatePayload` utility for consistent payload construction across the app.
+  - Updated `NewShipmentPage` and `ServicePage` to support the new nested location structure.
+
+- Removed: Legacy Location Data
+  - Deleted `lib/countries.json` and `lib/countries.iso.json` in favor of the dynamic API.
+- Fixed: TypeScript Build Reliability
+  - Resolved all type errors related to nested object access and payload interfaces.
+- **Details**:
+  - Enforced strict 4-step API integration process for the new location selectors.
+  - Verified cross-page compatibility for shipping estimates in both marketing and application sections.
 
 - Added: Country-Based Currency Detection & Display
   - **Updated**: Switched from IP-based detection to **Browser Geolocation API** for higher accuracy

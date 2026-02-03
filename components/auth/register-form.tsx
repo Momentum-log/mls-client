@@ -47,7 +47,24 @@ const RegisterForm = () => {
       password: "",
       confirmPassword: "",
     },
-    validationSchema: toFormikValidationSchema(registerSchema),
+    validate: (values) => {
+      try {
+        registerSchema.parse(values);
+        return {};
+      } catch (error: any) {
+        if (error instanceof z.ZodError) {
+          const formikErrors: Record<string, string> = {};
+          error.issues.forEach((issue) => {
+            const path = issue.path[0] as string;
+            if (!formikErrors[path]) {
+              formikErrors[path] = issue.message;
+            }
+          });
+          return formikErrors;
+        }
+        return {};
+      }
+    },
     onSubmit: async (values, { setSubmitting }) => {
       try {
         addToast({

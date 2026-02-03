@@ -140,44 +140,53 @@ export const getPayload = (
  * Follows the standard structure: pickup, dropoff, package, guestId.
  * Strips contact and customs information.
  *
- * @param pickup - Pickup address details
- * @param dropoff - Dropoff address details
+ * @param pickup - Pickup location details (countryCode, stateOrProvinceCode, city)
+ * @param dropoff - Dropoff location details (countryCode, stateOrProvinceCode, city)
  * @param pkg - Package weight and dimensions
  * @param guestId - Guest identifier for non-authenticated users
- * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency (e.g., 'PL', 'DE')
+ * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency
  */
 export const getEstimatePayload = (
-  pickup: any,
-  dropoff: any,
+  pickup: {
+    countryCode: string;
+    stateOrProvinceCode?: string;
+    city: string;
+    postalCode?: string;
+    streetLines?: string[];
+  },
+  dropoff: {
+    countryCode: string;
+    stateOrProvinceCode?: string;
+    city: string;
+    postalCode?: string;
+    streetLines?: string[];
+  },
   pkg: any,
   guestId: string,
   userCountryCode?: string,
 ): ShippingEstimatePayload => {
-  const payload: ShippingEstimatePayload = {
+  return {
     pickup: {
-      city: pickup.city,
-      postalCode: pickup.postalCode,
       countryCode: pickup.countryCode,
-      residential: !!pickup.residential,
-      streetLines: pickup.streetLines || [],
       stateOrProvinceCode: pickup.stateOrProvinceCode || "",
+      city: pickup.city,
+      postalCode: pickup.postalCode || "00000",
+      streetLines: pickup.streetLines || [],
+      residential: false,
     },
     dropoff: {
-      city: dropoff.city,
-      postalCode: dropoff.postalCode,
       countryCode: dropoff.countryCode,
-      residential: !!dropoff.residential,
-      streetLines: dropoff.streetLines || [],
       stateOrProvinceCode: dropoff.stateOrProvinceCode || "",
+      city: dropoff.city,
+      postalCode: dropoff.postalCode || "00000",
+      streetLines: dropoff.streetLines || [],
+      residential: false,
     },
     package: {
       weight: pkg.weight,
       dimensions: pkg.dimensions,
     },
     guestId,
-    // Include userCountryCode if provided (for currency determination)
     ...(userCountryCode && { userCountryCode }),
   };
-
-  return payload;
 };

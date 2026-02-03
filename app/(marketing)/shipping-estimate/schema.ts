@@ -37,9 +37,20 @@ export const shippingEstimatePayloadSchema = z.object({
 
 // The simpler form schema (what the user interacts with)
 export const shippingFormSchema = z.object({
-  shippingMode: z.enum(["local", "import", "export"]),
-  pickupLocation: z.string().min(2, "Please select a pickup location"),
-  dropoffLocation: z.string().min(2, "Please select a drop-off location"),
+  pickup: z.object({
+    countryCode: z.string().min(2, "Country is required"),
+    stateOrProvinceCode: z.string().optional(),
+    city: z.string().min(1, "City is required"),
+    postalCode: z.string().min(1, "Zip code is required"),
+    street: z.string().min(1, "Street address is required"),
+  }),
+  dropoff: z.object({
+    countryCode: z.string().min(2, "Country is required"),
+    stateOrProvinceCode: z.string().optional(),
+    city: z.string().min(1, "City is required"),
+    postalCode: z.string().min(1, "Zip code is required"),
+    street: z.string().min(1, "Street address is required"),
+  }),
   selectedPreset: z.string(),
   package: z.object({
     weight: z.number().min(0.1, "Weight must be greater than 0"),
