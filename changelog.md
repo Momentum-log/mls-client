@@ -5,6 +5,24 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.26.0] - 2026-02-03 - Phone Input Standards & Cross-Field Validation
+
+- Added: Universal `PhoneInput` Component
+  - Integrated `react-phone-input-2` with custom flat design styling.
+  - Implemented searchable country flag dropdown using project-standard HSL colors.
+  - Standardized phone number input behavior to include automatic country code selection.
+- Changed: Enhanced `AddressForm` Validation
+  - Implemented cross-field validation rule: selected phone country code must match the address country.
+  - Added hidden `phoneCountry` state tracking for robust ISO-level validation via Zod `.refine`.
+  - Replaced standard phone number input with the new universal component in the shipment creation flow.
+- Changed: `PhoneInput` UX Refinements
+  - **Scrollable Dropdown**: Optimized the country list with a fixed max-height and auto-scroll for better navigation.
+  - **Minimalist Search**: Removed unnecessary search icons and expanded the layout to a full-width, clean search bar.
+  - **Typing Support**: Fixed input focus and cursor management to allow seamless manual typing and number editing.
+- **Details**:
+  - Ensured no gradients and solid color usage in the `PhoneInput` dropdown to maintain project aesthetics.
+  - Passed all TypeScript and ESLint checks for the new implementation.
+
 ### [1.25.0] - 2026-02-03 - Global Location Services & Shipping Estimate Refactor
 
 - Added: Unified `AddressFields` Component

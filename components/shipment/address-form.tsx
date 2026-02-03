@@ -8,26 +8,39 @@ import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
 import { Address } from "@/store/shipment-store";
 import AddressFields from "@/components/shared/address-fields";
 import { Input } from "@/components/ui/input";
+import PhoneInputComponent from "@/components/ui/phone-input";
 
 /**
  * Base Validation Schema using Zod.
  */
 const createAddressSchema = (isStateRequired: boolean) =>
-  z.object({
-    name: z.string().min(1, "Name is required"),
-    company: z.string().optional(),
-    street: z
-      .string()
-      .min(1, "Street address is required")
-      .max(35, "Street address cannot exceed 35 characters"),
-    city: z.string().min(1, "City is required"),
-    postalCode: z.string().min(1, "Postal code is required"),
-    country: z.string().min(1, "Country is required"),
-    stateOrProvinceCode: isStateRequired
-      ? z.string().min(1, "State/Province is required")
-      : z.string().optional(),
-    phone: z.string().min(1, "Phone number is required"),
-  });
+  z
+    .object({
+      name: z.string().min(1, "Name is required"),
+      company: z.string().optional(),
+      street: z
+        .string()
+        .min(1, "Street address is required")
+        .max(35, "Street address cannot exceed 35 characters"),
+      city: z.string().min(1, "City is required"),
+      postalCode: z.string().min(1, "Postal code is required"),
+      country: z.string().min(1, "Country is required"),
+      stateOrProvinceCode: isStateRequired
+        ? z.string().min(1, "State/Province is required")
+        : z.string().optional(),
+      phone: z.string().min(1, "Phone number is required"),
+      phoneCountry: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        if (!data.phoneCountry || !data.country) return true;
+        return data.phoneCountry === data.country;
+      },
+      {
+        message: "Phone number country must match address country",
+        path: ["phone"],
+      },
+    );
 
 interface AddressFormProps {
   initialValues?: Partial<Address>;
@@ -52,6 +65,7 @@ export default function AddressForm({
       postalCode: initialValues?.postalCode || "",
       country: initialValues?.country || "",
       phone: initialValues?.phone || "",
+      phoneCountry: initialValues?.country || "PL", // Default to PL or initial
     },
     enableReinitialize: true,
     validate: (values) => {
@@ -62,21 +76,20 @@ export default function AddressForm({
         schema.parse(values);
         return {};
       } catch (error: any) {
+        let formikErrors: Record<string, string> = {};
         if (error instanceof z.ZodError) {
           const fieldErrors = error.flatten().fieldErrors as Record<
             string,
             string[] | undefined
           >;
-          const formikErrors: Record<string, string> = {};
           Object.keys(fieldErrors).forEach((key) => {
             const messages = fieldErrors[key];
             if (messages && messages.length > 0) {
               formikErrors[key] = messages[0];
             }
           });
-          return formikErrors;
         }
-        return {};
+        return formikErrors;
       }
     },
     onSubmit: (values) => {
@@ -147,27 +160,17 @@ export default function AddressForm({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={labelStyles}>Phone Number</label>
-                <Input
-                  name="phone"
-                  type="tel"
-                  value={formik.values.phone}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="+48 000 000 000"
-                  className={
-                    formik.touched.phone && formik.errors.phone
-                      ? "border-red-500"
-                      : ""
-                  }
-                />
-                {formik.touched.phone && formik.errors.phone && (
-                  <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">
-                    {formik.errors.phone}
-                  </p>
-                )}
-              </div>
+              <PhoneInputComponent
+                label="Phone Number"
+                value={formik.values.phone}
+                onChange={(val, country) => {
+                  formik.setFieldValue("phone", val);
+                  formik.setFieldValue("phoneCountry", country);
+                }}
+                onBlur={formik.handleBlur}
+                touched={formik.touched.phone}
+                error={formik.errors.phone}
+              />
             </div>
           </div>
 
