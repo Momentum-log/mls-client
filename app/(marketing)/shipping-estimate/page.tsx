@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { FormikProvider, useFormik } from "formik";
 import { z } from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
@@ -66,7 +66,50 @@ const PACKAGE_PRESETS = [
   },
 ];
 
+/**
+ * Wrapper component that provides Suspense boundary for useSearchParams.
+ */
 export default function ShippingEstimatePage() {
+  return (
+    <Suspense fallback={<ShippingEstimateLoader />}>
+      <ShippingEstimateContent />
+    </Suspense>
+  );
+}
+
+/**
+ * Loading skeleton for the shipping estimate page.
+ */
+function ShippingEstimateLoader() {
+  return (
+    <main className="bg-white min-h-screen">
+      <ShippingHero />
+      <div className="bg-gray-50 py-20">
+        <Container>
+          <div className="text-center mb-12">
+            <div className="h-12 w-80 bg-gray-200 rounded-lg mx-auto mb-6 animate-pulse" />
+            <div className="h-6 w-96 bg-gray-200 rounded-lg mx-auto animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="lg:col-span-3 space-y-6">
+              <div className="bg-white rounded-3xl p-8 h-64 animate-pulse" />
+              <div className="bg-white rounded-3xl p-8 h-64 animate-pulse" />
+              <div className="bg-white rounded-3xl p-8 h-48 animate-pulse" />
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-brand-blue rounded-3xl p-8 h-80 animate-pulse" />
+            </div>
+          </div>
+        </Container>
+      </div>
+    </main>
+  );
+}
+
+/**
+ * Main content component that uses useSearchParams.
+ */
+function ShippingEstimateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();

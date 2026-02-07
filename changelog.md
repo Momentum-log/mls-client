@@ -20,9 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: UI and Layout Improvements
   - `ActionMenu.tsx`: Changed width from fixed `w-48` to auto-sizing (`min-w-max`) and ensured left-aligned, single-line text.
   - `Header.tsx`: Mobile navigation now hides the "Login" button when user is authenticated.
+  - `ShipmentHistoryPage`: Removed `overflow-hidden` from container to prevent ActionMenu dropdown from being clipped.
+- Fixed: Next.js 16 Build Compatibility
+  - Wrapped `useSearchParams()` in Suspense boundary on `/shipping-estimate` page.
+  - Added loading skeleton component for better UX during hydration.
 - **Details**:
   - Updated task documentation and PRD for production finalization.
-  - Verified all changes pass TypeScript type checking (`bunx tsc --noEmit`).
+  - Verified all changes pass TypeScript type checking (`bunx tsc --noEmit`) and production build (`bun run build`).
 
 ### [1.27.0] - 2026-02-03 - Phone Verification & Dual Login
 
