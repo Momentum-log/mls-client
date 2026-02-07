@@ -6,6 +6,7 @@ import QueryProvider from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import GuestIDInitializer from "@/components/auth/guest-id-initializer";
 import CountryDetector from "@/components/shared/country-detector";
+import { VerificationProvider } from "@/components/providers/verification-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,9 +52,11 @@ export default function RootLayout({
       >
         <QueryProvider>
           <ToastProvider>
-            <GuestIDInitializer />
-            <CountryDetector />
-            {children}
+            <VerificationProvider>
+              <GuestIDInitializer />
+              <CountryDetector />
+              {children}
+            </VerificationProvider>
           </ToastProvider>
         </QueryProvider>
       </body>

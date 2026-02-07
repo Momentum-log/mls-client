@@ -39,7 +39,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 interface RefreshResponse {
@@ -107,7 +107,7 @@ apiClient.interceptors.response.use(
       try {
         const response = await axios.post<RefreshResponse>(
           `${baseURL}/auth/refresh-token`,
-          { refreshToken }
+          { refreshToken },
         );
 
         const { accessToken, refreshToken: newRefreshToken } = response.data;
@@ -133,8 +133,15 @@ apiClient.interceptors.response.use(
       }
     }
 
+    if (
+      error.response?.status === 403 &&
+      error.response.data?.message === "Verification Required"
+    ) {
+      useAuthStore.getState().setIsPhoneVerificationModalOpen(true);
+    }
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

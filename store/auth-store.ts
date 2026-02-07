@@ -9,12 +9,14 @@ interface AuthState {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
+  isPhoneVerificationModalOpen: boolean;
 }
 
 interface AuthActions {
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   updateUser: (user: User) => void;
   logout: () => void;
+  setIsPhoneVerificationModalOpen: (isOpen: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState & AuthActions>()(
@@ -24,6 +26,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       isAuthenticated: false,
       accessToken: null,
       refreshToken: null,
+      isPhoneVerificationModalOpen: false,
 
       setAuth: (user, accessToken, refreshToken) => {
         setTokens(accessToken, refreshToken);
@@ -48,6 +51,10 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           refreshToken: null,
         });
       },
+
+      setIsPhoneVerificationModalOpen: (isOpen) => {
+        set({ isPhoneVerificationModalOpen: isOpen });
+      },
     }),
     {
       name: "auth-storage",
@@ -58,6 +65,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import PhoneInputComponent from "@/components/ui/phone-input";
 
 const registerSchema = z
   .object({
@@ -23,6 +24,7 @@ const registerSchema = z
       .string()
       .min(1, "Password is required")
       .min(6, "Password must be at least 6 characters long"),
+    phone: z.string().min(1, "Phone number is required"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -44,6 +46,7 @@ const RegisterForm = () => {
     initialValues: {
       name: "",
       email: "",
+      phone: "",
       password: "",
       confirmPassword: "",
     },
@@ -157,6 +160,18 @@ const RegisterForm = () => {
         {formik.touched.email && formik.errors.email ? (
           <div className="text-xs text-red-500">{formik.errors.email}</div>
         ) : null}
+      </div>
+      {/* Added phone input */}
+      <div className="space-y-2">
+        <PhoneInputComponent
+          label="Phone Number"
+          value={formik.values.phone}
+          onChange={(value) => formik.setFieldValue("phone", value)}
+          onBlur={() => formik.setFieldTouched("phone", true)}
+          error={formik.errors.phone}
+          touched={formik.touched.phone}
+          disabled={formik.isSubmitting}
+        />
       </div>
 
       <div className="space-y-2">

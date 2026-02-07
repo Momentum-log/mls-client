@@ -102,6 +102,37 @@ export default function Footer() {
                 </li>
               </ul>
             </div>
+            <div>
+              <h4 className="text-lg font-bold mb-4 text-brand-yellow">
+                Legal
+              </h4>
+              <ul className="space-y-2 text-white/80 text-sm">
+                <li>
+                  <Link
+                    href="/terms"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Terms and Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/cookies"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Cookie Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
             <div>
               <h4 className="text-lg font-bold mb-4 text-brand-yellow">

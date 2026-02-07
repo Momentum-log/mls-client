@@ -5,17 +5,28 @@ import Button from "@/components/ui/button";
 import { sendVerificationCode } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
 import VerifyEmailModal from "./VerifyEmailModal";
+import VerifyPhoneModal from "./VerifyPhoneModal";
+import { useAuthStore } from "@/store/auth-store";
+import { useSendPhoneOTP } from "@/hooks/auth/use-auth";
 
 /**
  * A persistent banner for unverified accounts.
  */
 const VerificationBanner = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSending, setIsSending] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const { user } = useAuthStore();
   const { addToast } = useToast();
 
-  const handleVerifyNow = async () => {
-    setIsSending(true);
+  const { mutateAsync: sendPhoneOTP, isPending: isSendingPhone } =
+    useSendPhoneOTP();
+
+  // Only show banner if email is not verified (phone verification is optional)
+  if (!user || user.is_verified) return null;
+
+  const handleVerifyEmail = async () => {
+    setIsSendingEmail(true);
     try {
       await sendVerificationCode();
       addToast({
@@ -23,7 +34,7 @@ const VerificationBanner = () => {
         message: "A verification code has been sent to your email.",
         type: "success",
       });
-      setIsModalOpen(true);
+      setIsEmailModalOpen(true);
     } catch (error: any) {
       addToast({
         title: "Error",
@@ -32,7 +43,25 @@ const VerificationBanner = () => {
         type: "error",
       });
     } finally {
-      setIsSending(false);
+      setIsSendingEmail(false);
+    }
+  };
+
+  const handleVerifyPhone = async () => {
+    try {
+      await sendPhoneOTP({});
+      addToast({
+        title: "Code Sent",
+        message: "A verification code has been sent to your phone.",
+        type: "success",
+      });
+      setIsPhoneModalOpen(true);
+    } catch (error: any) {
+      addToast({
+        title: "Error",
+        message: error.response?.data?.message || "Failed to send code",
+        type: "error",
+      });
     }
   };
 
@@ -76,37 +105,34 @@ const VerificationBanner = () => {
           </div>
           <div>
             <h4 className="font-bold text-gray-900 text-sm">
-              Account Unverified
+              Email Verification Required
             </h4>
             <p className="text-gray-600 text-xs">
-              Verify your email to access all features.
+              Verify your email to create shipments and access all features.
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <Button
             variant="primary"
             size="sm"
-            className="flex-1 md:flex-none py-2 px-4 whitespace-nowrap"
-            onClick={handleVerifyNow}
-            disabled={isSending}
+            className="w-full sm:w-32 py-2.5"
+            onClick={handleVerifyEmail}
+            disabled={isSendingEmail}
           >
-            {isSending ? "Sending Code..." : "Verify Now"}
+            {isSendingEmail ? "Sending..." : "Verify Email"}
           </Button>
-          <button
-            type="button"
-            onClick={handleResendCode}
-            className="text-xs font-bold text-brand-blue hover:underline px-2 transition-all"
-          >
-            Resend Code
-          </button>
         </div>
       </div>
 
       <VerifyEmailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isEmailModalOpen}
+        onClose={() => setIsEmailModalOpen(false)}
+      />
+      <VerifyPhoneModal
+        isOpen={isPhoneModalOpen}
+        onClose={() => setIsPhoneModalOpen(false)}
       />
     </>
   );

@@ -9,6 +9,7 @@ import { Address } from "@/store/shipment-store";
 import AddressFields from "@/components/shared/address-fields";
 import { Input } from "@/components/ui/input";
 import PhoneInputComponent from "@/components/ui/phone-input";
+import { useAuthStore } from "@/store/auth-store";
 
 /**
  * Base Validation Schema using Zod.
@@ -55,6 +56,7 @@ export default function AddressForm({
   onBack,
   type,
 }: AddressFormProps) {
+  const { user } = useAuthStore();
   const formik = useFormik({
     initialValues: {
       name: initialValues?.name || "",
@@ -205,14 +207,22 @@ export default function AddressForm({
             <div />
           )}
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="min-w-[180px] shadow-xl shadow-brand-blue/20 bg-brand-blue text-white"
-          >
-            Continue <FiArrowRight className="ml-2" />
-          </Button>
+          <div className="flex flex-col items-end gap-2">
+            {!user?.is_verified && (
+              <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest">
+                Email verification required to proceed
+              </p>
+            )}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="min-w-[180px] shadow-xl shadow-brand-blue/20 bg-brand-blue text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!user?.is_verified}
+            >
+              Continue <FiArrowRight className="ml-2" />
+            </Button>
+          </div>
         </div>
       </form>
     </FormikProvider>

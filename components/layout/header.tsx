@@ -219,15 +219,17 @@ const Header: FC = () => {
               </Button>
             )}
 
-            <div className="mt-6 text-center">
-              <Link
-                href="/login"
-                className="text-white text-lg font-medium hover:text-brand-yellow"
-                onClick={closeMenu}
-              >
-                Login
-              </Link>
-            </div>
+            {!isAuthenticated && (
+              <div className="mt-6 text-center">
+                <Link
+                  href="/login"
+                  className="text-white text-lg font-medium hover:text-brand-yellow"
+                  onClick={closeMenu}
+                >
+                  Login
+                </Link>
+              </div>
+            )}
 
             <div className="mt-8 flex justify-center gap-6 text-white/40">
               <div className="text-xs uppercase tracking-widest">

@@ -5,6 +5,43 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.28.0] - 2026-02-07 - Production Finalization
+
+- Changed: Phone Verification is Now Optional
+  - Users can now create shipments after email verification only.
+  - Removed `is_phone_verified` enforcement from `AddressForm` in shipment creation.
+  - Updated `VerificationBanner.tsx` to only display when email is unverified.
+  - Phone verification remains available as an optional feature in the user profile.
+- Added: Policy Pages
+  - Created `/terms` (Terms and Conditions) page with placeholder content.
+  - Created `/privacy` (Privacy Policy) page with placeholder content.
+  - Created `/cookies` (Cookie Policy) page with placeholder content.
+  - Added a "Legal" section to the footer with links to all policy pages.
+- Fixed: UI and Layout Improvements
+  - `ActionMenu.tsx`: Changed width from fixed `w-48` to auto-sizing (`min-w-max`) and ensured left-aligned, single-line text.
+  - `Header.tsx`: Mobile navigation now hides the "Login" button when user is authenticated.
+- **Details**:
+  - Updated task documentation and PRD for production finalization.
+  - Verified all changes pass TypeScript type checking (`bunx tsc --noEmit`).
+
+### [1.27.0] - 2026-02-03 - Phone Verification & Dual Login
+
+- Added: Dual Login Support
+  - Updated login form to accept either Email or Phone Number as a single identifier.
+- Added: Mandatory Phone Number for Registration
+  - Integrated `PhoneInputComponent` into the registration flow.
+  - Enhanced `RegisterData` types to require a phone number.
+- Added: SMS OTP Verification Flow
+  - Implemented `VerifyPhoneModal` with a 6-digit OTP entry and resend cooldown.
+  - Added `sendPhoneOTP` and `verifyPhoneOTP` API functions and hooks.
+- Added: Global Verification Interceptor
+  - Created `VerificationProvider` to manage global verification triggers.
+  - Configured API interceptor to automatically open the verification modal on 403 "Verification Required" errors.
+- Added: Shipment Creation Restrictions
+  - Updated `AddressForm` to disable shipment creation for unverified accounts, providing clear UI feedback.
+- Changed: Enhanced Verification Banner
+  - Refactored `VerificationBanner` to handle both email and phone verification status simultaneously.
+
 ### [1.26.0] - 2026-02-03 - Phone Input Standards & Cross-Field Validation
 
 - Added: Universal `PhoneInput` Component

@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
-import { login, register } from "@/api/auth";
+import { login, register, sendPhoneOTP, verifyPhoneOTP } from "@/api/auth";
 import { useAuthStore } from "@/store/auth-store";
 import { useToast } from "@/hooks/use-toast";
-import { LoginData, RegisterData } from "@/types/auth";
+import { LoginData, RegisterData, VerifyPhoneData } from "@/types/auth";
 
 export const useRegister = () => {
   return useMutation({
@@ -45,4 +45,23 @@ export const useLogout = () => {
     });
     // Optional: Redirect
   };
+};
+
+/**
+ * Hook for sending phone verification OTP.
+ */
+export const useSendPhoneOTP = () => {
+  return useMutation({
+    mutationFn: (payload?: { phone?: string }) => sendPhoneOTP(payload),
+  });
+};
+
+/**
+ * Hook for verifying phone OTP.
+ */
+export const useVerifyPhoneOTP = () => {
+  return useMutation({
+    mutationFn: (payload: VerifyPhoneData & { phone?: string }) =>
+      verifyPhoneOTP(payload),
+  });
 };

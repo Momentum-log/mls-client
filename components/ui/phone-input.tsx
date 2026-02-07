@@ -61,8 +61,8 @@ export const PhoneInputComponent: React.FC<UniversalPhoneInputProps> = ({
             "!h-[44px] !bg-transparent !border-none !rounded-l-xl !pl-2 !transition-all !duration-200",
             disabled ? "!cursor-not-allowed" : "",
           )}
-          dropdownClass="!rounded-xl !border-gray-100 !shadow-2xl !shadow-black/10 !mt-2 !overflow-hidden !bg-white"
-          searchClass="!hidden" // Keep searchClass hidden if we handle it in style jsx
+          dropdownClass="!rounded-xl !border-gray-100 !shadow-2xl !shadow-black/10 !mt-2 !bg-white !overflow-y-auto"
+          searchClass="!block" // Ensure search box is visible
           containerClass="!w-full"
           inputProps={{
             name: "phone",
