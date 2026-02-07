@@ -5,6 +5,8 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import GuestIDInitializer from "@/components/auth/guest-id-initializer";
+import CountryDetector from "@/components/shared/country-detector";
+import { VerificationProvider } from "@/components/providers/verification-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,7 +20,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   ),
   title: "Momentum Logistics - Fast & Reliable Logistics Services",
   description:
@@ -50,8 +52,11 @@ export default function RootLayout({
       >
         <QueryProvider>
           <ToastProvider>
-            <GuestIDInitializer />
-            {children}
+            <VerificationProvider>
+              <GuestIDInitializer />
+              <CountryDetector />
+              {children}
+            </VerificationProvider>
           </ToastProvider>
         </QueryProvider>
       </body>

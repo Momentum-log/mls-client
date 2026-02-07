@@ -1,4 +1,9 @@
+"use client";
+
 import React from "react";
+import { useCountryStore } from "@/store/country-store";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 interface ReceiptShowcaseProps {
   className?: string;
@@ -7,6 +12,17 @@ interface ReceiptShowcaseProps {
 const ReceiptShowcase: React.FC<ReceiptShowcaseProps> = ({
   className = "",
 }) => {
+  const { currency } = useCountryStore();
+  const isPLN = currency === "PLN";
+  const multiplier = isPLN ? 4 : 1;
+
+  const prices = {
+    baseRate: 24.5 * multiplier,
+    fuelSurcharge: 2.45 * multiplier,
+    insurance: 1.25 * multiplier,
+    total: 28.2 * multiplier,
+  };
+
   return (
     <div className={`relative ${className}`}>
       {/* Dashed Border Container */}
@@ -77,15 +93,30 @@ const ReceiptShowcase: React.FC<ReceiptShowcaseProps> = ({
             <div className="space-y-1">
               <div className="flex justify-between text-[10px] sm:text-[11px]">
                 <span className="text-foreground/60">Base Rate:</span>
-                <span>$24.50</span>
+                <span>
+                  {formatCurrency(
+                    prices.baseRate,
+                    currency as SupportedCurrency,
+                  )}
+                </span>
               </div>
               <div className="flex justify-between text-[10px] sm:text-[11px]">
                 <span className="text-foreground/60">Fuel Surcharge:</span>
-                <span>$2.45</span>
+                <span>
+                  {formatCurrency(
+                    prices.fuelSurcharge,
+                    currency as SupportedCurrency,
+                  )}
+                </span>
               </div>
               <div className="flex justify-between text-[10px] sm:text-[11px]">
                 <span className="text-foreground/60">Insurance:</span>
-                <span>$1.25</span>
+                <span>
+                  {formatCurrency(
+                    prices.insurance,
+                    currency as SupportedCurrency,
+                  )}
+                </span>
               </div>
             </div>
 
@@ -98,7 +129,7 @@ const ReceiptShowcase: React.FC<ReceiptShowcaseProps> = ({
                 Total:
               </span>
               <span className="text-brand-yellow font-work-sans font-black text-base sm:text-lg">
-                $28.20
+                {formatCurrency(prices.total, currency as SupportedCurrency)}
               </span>
             </div>
           </div>

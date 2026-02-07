@@ -60,7 +60,7 @@ export default function ShipmentHistoryPage() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         {shipments && shipments.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {shipments.map((shipment) => (
@@ -86,7 +86,7 @@ export default function ShipmentHistoryPage() {
                             day: "numeric",
                             month: "short",
                             year: "numeric",
-                          }
+                          },
                         )}
                         {" • "}
                         {shipment.actualPrice} {shipment.currency}
@@ -131,9 +131,9 @@ export default function ShipmentHistoryPage() {
                         shipment.shipmentStatus === "DELIVERED"
                           ? "bg-green-100 text-green-700 font-bold"
                           : shipment.shipmentStatus === "FAILED" ||
-                            shipment.shipmentStatus === "CANCELLED"
-                          ? "bg-red-100 text-red-700 font-bold"
-                          : "bg-blue-100 text-blue-700 font-bold"
+                              shipment.shipmentStatus === "CANCELLED"
+                            ? "bg-red-100 text-red-700 font-bold"
+                            : "bg-blue-100 text-blue-700 font-bold"
                       }`}
                     >
                       {formatStatus(shipment.shipmentStatus)}
@@ -150,7 +150,7 @@ export default function ShipmentHistoryPage() {
                           icon: FiEye,
                           onClick: () =>
                             router.push(
-                              `/app/shipments/${shipment.customTrackingNumber}`
+                              `/app/shipments/${shipment.customTrackingNumber}`,
                             ),
                         },
                         {
@@ -158,7 +158,7 @@ export default function ShipmentHistoryPage() {
                           icon: FiCopy,
                           onClick: () =>
                             handleCopyTracking(
-                              shipment.customTrackingNumber || ""
+                              shipment.customTrackingNumber || "",
                             ),
                         },
                         {

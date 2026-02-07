@@ -6,6 +6,8 @@ import { FiX, FiCheck, FiTruck, FiMapPin, FiPackage } from "react-icons/fi";
 import { Address, Package } from "@/store/shipment-store";
 import { Rate } from "@/types/shipping";
 import Button from "@/components/ui/button";
+import { formatCurrencyCompact } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 interface SummaryDrawerProps {
   isOpen: boolean;
@@ -173,7 +175,10 @@ export default function SummaryDrawer({
                     </p>
                     <div className="mt-6 flex items-baseline gap-2 border-t border-white/10 pt-4">
                       <span className="text-3xl font-black text-white">
-                        {rate?.actualPrice || rate?.price}
+                        {formatCurrencyCompact(
+                          rate?.actualPrice as number,
+                          rate?.currency as SupportedCurrency,
+                        )}
                       </span>
                       <span className="text-sm font-bold opacity-60 uppercase">
                         {rate?.currency}

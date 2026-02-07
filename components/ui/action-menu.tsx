@@ -68,14 +68,14 @@ export default function ActionMenu({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -5 }}
             transition={{ duration: 0.1 }}
-            className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-50 focus:outline-none overflow-hidden"
+            className="absolute right-0 mt-2 min-w-max bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-50 focus:outline-none overflow-hidden"
           >
             <div className="py-1">
               {actions.map((action, index) => (
                 <button
                   key={index}
                   onClick={(e) => handleAction(e, action.onClick)}
-                  className={`group flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-brand-blue/5 hover:text-brand-blue transition-colors ${
+                  className={`group flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-brand-blue/5 hover:text-brand-blue transition-colors text-left whitespace-nowrap ${
                     action.className || ""
                   }`}
                 >

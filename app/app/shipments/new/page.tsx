@@ -22,6 +22,7 @@ import {
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, ShippingEstimatePayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
+import { useCountryStore } from "@/store/country-store";
 
 /**
  * NewShipmentPage provides a single-page, vertically-stacked flow for shipment creation.
@@ -45,6 +46,8 @@ export default function NewShipmentPage() {
     selectedRate,
     setSelectedRate,
   } = useShipmentStore();
+
+  const { countryCode } = useCountryStore();
 
   const [rates, setRates] = useState<Rate[]>([]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -92,30 +95,32 @@ export default function NewShipmentPage() {
       const payload = getEstimatePayload(
         {
           city: sender.city,
-          postalCode: sender.postalCode,
           countryCode: sender.country,
-          residential: false,
-          streetLines: [sender.street],
           stateOrProvinceCode: sender.stateOrProvinceCode || "",
+          postalCode: sender.postalCode,
+          streetLines: [sender.street],
         },
         {
           city: recipient.city,
-          postalCode: recipient.postalCode,
           countryCode: recipient.country,
-          residential: false,
-          streetLines: [recipient.street],
           stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+          postalCode: recipient.postalCode,
+          streetLines: [recipient.street],
         },
         {
-          weight: { units: "KG", value: packages[0].weight },
+          weight: {
+            value: parseFloat(packages[0].weight.toFixed(2)),
+            units: "KG",
+          },
           dimensions: {
+            length: parseFloat(packages[0].length.toFixed(1)),
+            width: parseFloat(packages[0].width.toFixed(1)),
+            height: parseFloat(packages[0].height.toFixed(1)),
             units: "CM",
-            width: packages[0].width,
-            height: packages[0].height,
-            length: packages[0].length,
           },
         },
-        getOrSetGuestId()
+        getOrSetGuestId(),
+        countryCode || undefined,
       );
 
       getRates(payload, {
@@ -143,8 +148,8 @@ export default function NewShipmentPage() {
           expandedSection === "pickup"
             ? "current"
             : completedSteps.includes("pickup")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
       {
         id: "dropoff",
@@ -153,8 +158,8 @@ export default function NewShipmentPage() {
           expandedSection === "dropoff"
             ? "current"
             : completedSteps.includes("dropoff")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
       {
         id: "package",
@@ -163,8 +168,8 @@ export default function NewShipmentPage() {
           expandedSection === "package"
             ? "current"
             : completedSteps.includes("package")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
       {
         id: "service",
@@ -173,11 +178,11 @@ export default function NewShipmentPage() {
           expandedSection === "service"
             ? "current"
             : completedSteps.includes("service")
-            ? "completed"
-            : "pending",
+              ? "completed"
+              : "pending",
       },
     ],
-    [expandedSection, completedSteps]
+    [expandedSection, completedSteps],
   );
 
   const isSectionVisible = (id: string) => {
@@ -226,30 +231,32 @@ export default function NewShipmentPage() {
       const payload = getEstimatePayload(
         {
           city: sender.city,
-          postalCode: sender.postalCode,
           countryCode: sender.country,
-          residential: false,
-          streetLines: [sender.street],
           stateOrProvinceCode: sender.stateOrProvinceCode || "",
+          postalCode: sender.postalCode,
+          streetLines: [sender.street],
         },
         {
           city: recipient.city,
-          postalCode: recipient.postalCode,
           countryCode: recipient.country,
-          residential: false,
-          streetLines: [recipient.street],
           stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+          postalCode: recipient.postalCode,
+          streetLines: [recipient.street],
         },
         {
-          weight: { units: "KG", value: pkg.weight },
+          weight: {
+            value: parseFloat(pkg.weight.toFixed(2)),
+            units: "KG",
+          },
           dimensions: {
+            length: parseFloat(pkg.length.toFixed(1)),
+            width: parseFloat(pkg.width.toFixed(1)),
+            height: parseFloat(pkg.height.toFixed(1)),
             units: "CM",
-            width: pkg.width,
-            height: pkg.height,
-            length: pkg.length,
           },
         },
-        getOrSetGuestId()
+        getOrSetGuestId(),
+        countryCode || undefined,
       );
 
       getRates(payload, {
@@ -350,6 +357,7 @@ export default function NewShipmentPage() {
         declaredValue: packages[0].value,
         currency: packages[0].currency,
       },
+      userCountryCode: countryCode,
     };
 
     performCreateShipment(payload, {
@@ -440,7 +448,7 @@ export default function NewShipmentPage() {
         >
           <AddressForm
             type="pickup"
-            initialValues={sender}
+            initialValues={sender || undefined}
             onSubmit={handlePickupSubmit}
           />
         </StackedSection>
@@ -485,7 +493,7 @@ export default function NewShipmentPage() {
           >
             <AddressForm
               type="dropoff"
-              initialValues={recipient}
+              initialValues={recipient || undefined}
               onSubmit={handleDropoffSubmit}
               onBack={() => setExpandedSection("pickup")}
             />

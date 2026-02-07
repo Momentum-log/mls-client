@@ -37,7 +37,7 @@ const humanizeServiceTerms = (text: string): string => {
   // "International Priority Express" -> "Priority Express"
   result = result.replace(
     /International Priority Express/gi,
-    "Priority Express"
+    "Priority Express",
   );
 
   // "International First" -> "First Class"
@@ -81,7 +81,7 @@ const deepClean = (obj: any): any => {
 
 // Entry point
 export const transformShippingData = (
-  data: ShippingEstimateResponse
+  data: ShippingEstimateResponse,
 ): ShippingEstimateResponse => {
   // We deep clean the entire structure
   return deepClean(data) as ShippingEstimateResponse;
@@ -101,7 +101,7 @@ import {
  */
 export const checkIfInternational = (
   pickupCountry: string | undefined,
-  dropoffCountry: string | undefined
+  dropoffCountry: string | undefined,
 ): boolean => {
   if (!pickupCountry || !dropoffCountry) return false;
   return pickupCountry.toUpperCase() !== dropoffCountry.toUpperCase();
@@ -113,7 +113,7 @@ export const checkIfInternational = (
  */
 export const getPayload = (
   isInternational: boolean,
-  data: any
+  data: any,
 ): CreateShipmentPayload => {
   if (isInternational) {
     const payload: InternationalShipmentPayload = {
@@ -139,36 +139,54 @@ export const getPayload = (
  * Constructs the payload for getting shipping estimates.
  * Follows the standard structure: pickup, dropoff, package, guestId.
  * Strips contact and customs information.
+ *
+ * @param pickup - Pickup location details (countryCode, stateOrProvinceCode, city)
+ * @param dropoff - Dropoff location details (countryCode, stateOrProvinceCode, city)
+ * @param pkg - Package weight and dimensions
+ * @param guestId - Guest identifier for non-authenticated users
+ * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency
  */
 export const getEstimatePayload = (
-  pickup: any,
-  dropoff: any,
+  pickup: {
+    countryCode: string;
+    stateOrProvinceCode?: string;
+    city: string;
+    postalCode?: string;
+    streetLines?: string[];
+  },
+  dropoff: {
+    countryCode: string;
+    stateOrProvinceCode?: string;
+    city: string;
+    postalCode?: string;
+    streetLines?: string[];
+  },
   pkg: any,
-  guestId: string
+  guestId: string,
+  userCountryCode?: string,
 ): ShippingEstimatePayload => {
-  const payload: ShippingEstimatePayload = {
+  return {
     pickup: {
-      city: pickup.city,
-      postalCode: pickup.postalCode,
       countryCode: pickup.countryCode,
-      residential: !!pickup.residential,
-      streetLines: pickup.streetLines || [],
       stateOrProvinceCode: pickup.stateOrProvinceCode || "",
+      city: pickup.city,
+      postalCode: pickup.postalCode || "00000",
+      streetLines: pickup.streetLines || [],
+      residential: false,
     },
     dropoff: {
-      city: dropoff.city,
-      postalCode: dropoff.postalCode,
       countryCode: dropoff.countryCode,
-      residential: !!dropoff.residential,
-      streetLines: dropoff.streetLines || [],
       stateOrProvinceCode: dropoff.stateOrProvinceCode || "",
+      city: dropoff.city,
+      postalCode: dropoff.postalCode || "00000",
+      streetLines: dropoff.streetLines || [],
+      residential: false,
     },
     package: {
       weight: pkg.weight,
       dimensions: pkg.dimensions,
     },
     guestId,
+    ...(userCountryCode && { userCountryCode }),
   };
-
-  return payload;
 };

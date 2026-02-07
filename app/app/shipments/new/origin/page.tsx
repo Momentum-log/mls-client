@@ -49,7 +49,7 @@ export default function OriginPage() {
 
       <AddressForm
         type="pickup"
-        initialValues={sender}
+        initialValues={sender || undefined}
         onSubmit={handleSubmit}
       />
     </div>

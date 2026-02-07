@@ -13,10 +13,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Email address is required")
-    .email("Please enter a valid email address"),
+  identifier: z.string().min(1, "Email or phone number is required"),
   password: z.string().min(1, "Password is required"),
 });
 import { useToast } from "@/hooks/use-toast";
@@ -32,11 +29,28 @@ const LoginForm = () => {
 
   const formik = useFormik({
     initialValues: {
-      email: "",
+      identifier: "",
       password: "",
       rememberMe: false,
     },
-    validationSchema: toFormikValidationSchema(loginSchema),
+    validate: (values) => {
+      try {
+        loginSchema.parse(values);
+        return {};
+      } catch (error: any) {
+        if (error instanceof z.ZodError) {
+          const formikErrors: Record<string, string> = {};
+          error.issues.forEach((issue) => {
+            const path = issue.path[0] as string;
+            if (!formikErrors[path]) {
+              formikErrors[path] = issue.message;
+            }
+          });
+          return formikErrors;
+        }
+        return {};
+      }
+    },
     onSubmit: async (values, { setSubmitting }) => {
       try {
         setPersistencePreference(values.rememberMe ? "local" : "session");
@@ -48,11 +62,14 @@ const LoginForm = () => {
           duration: 2000,
         });
 
-        await login({ email: values.email, password: values.password });
+        await login({
+          identifier: values.identifier,
+          password: values.password,
+        });
 
         // Check for redirect param
         const redirectUrl = new URLSearchParams(window.location.search).get(
-          "redirect"
+          "redirect",
         );
         router.push(redirectUrl || "/app/dashboard");
       } catch (err) {
@@ -86,22 +103,24 @@ const LoginForm = () => {
       {/* Removed inline error display */}
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="identifier">Email or Phone Number</Label>
         <Input
-          id="email"
-          name="email"
-          type="email"
-          placeholder="name@example.com"
-          value={formik.values.email}
+          id="identifier"
+          name="identifier"
+          type="text"
+          placeholder="name@example.com or +48..."
+          value={formik.values.identifier}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           className={
-            formik.touched.email && formik.errors.email ? "border-red-500" : ""
+            formik.touched.identifier && formik.errors.identifier
+              ? "border-red-500"
+              : ""
           }
           disabled={formik.isSubmitting}
         />
-        {formik.touched.email && formik.errors.email ? (
-          <div className="text-xs text-red-500">{formik.errors.email}</div>
+        {formik.touched.identifier && formik.errors.identifier ? (
+          <div className="text-xs text-red-500">{formik.errors.identifier}</div>
         ) : null}
       </div>
 

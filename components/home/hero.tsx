@@ -1,9 +1,25 @@
+"use client";
+
 import React from "react";
 import Container from "@/components/shared/container";
 import Button from "@/components/ui/button";
 import Link from "next/link";
+import { useCountryStore } from "@/store/country-store";
+import { formatCurrencyCompact } from "@/utils/currency-formatter";
 
+/**
+ * Homepage Hero Section Component.
+ * Displays main heading, CTAs, and three feature cards with dynamic currency.
+ */
 const Hero: React.FC = () => {
+  const { currency } = useCountryStore();
+
+  // Static price display: 100 PLN or €23 EUR based on detected currency
+  const displayPrice = formatCurrencyCompact(
+    currency === "PLN" ? 100 : 23,
+    currency,
+  );
+
   return (
     <section className="py-16 md:py-24 text-foreground">
       <Container>
@@ -28,9 +44,9 @@ const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
-            <Link href="/shipping-estimate">
+            <Link href="/register">
               <Button variant="primary" size="lg" className="min-w-[200px]">
-                Get a Quote →
+                Get Started →
               </Button>
             </Link>
             <Link href="/about">
@@ -42,7 +58,7 @@ const Hero: React.FC = () => {
 
           {/* Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-8">
-            {/* Card 1 - Orange/Brand Blue */}
+            {/* Card 1 - Shipment Tracking (Blue) */}
             <div className="bg-brand-blue rounded-3xl p-3 text-left relative overflow-hidden">
               <div className="bg-white rounded-2xl p-6 shadow-lg mb-4 relative z-10">
                 <div className="flex items-center justify-between mb-4">
@@ -66,18 +82,22 @@ const Hero: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button>Track Now</Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border border-foreground/20 text-foreground py-2 rounded-lg text-sm font-medium"
-                  >
-                    Details
-                  </Button>
+                  <Link href="/track-shipment" className="flex-1">
+                    <Button className="w-full">Track</Button>
+                  </Link>
+                  <Link href="/track-shipment" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full border border-foreground/20 text-foreground py-2 rounded-lg text-sm font-medium"
+                    >
+                      Details
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* Card 2 - Purple/Lavender */}
+            {/* Card 2 - Delivery Quote (Purple) */}
             <div className="bg-accent-light rounded-3xl p-3 text-left relative overflow-hidden min-h-80">
               <div className="bg-white rounded-2xl p-6 shadow-lg mb-4 relative z-10">
                 <div className="flex items-center justify-between mb-4">
@@ -90,7 +110,7 @@ const Hero: React.FC = () => {
                   Express Delivery
                 </p>
                 <p className="text-3xl font-bold text-foreground mb-4">
-                  $45.99
+                  {displayPrice}
                 </p>
                 <div className="flex items-center justify-between text-xs text-foreground/60">
                   <div>
@@ -105,18 +125,22 @@ const Hero: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button>Book Now</Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border border-foreground/20 text-foreground py-2 rounded-lg text-sm font-medium"
-                  >
-                    Compare
-                  </Button>
+                  <Link href="/shipping-estimate" className="flex-1">
+                    <Button className="w-full">Book Now</Button>
+                  </Link>
+                  <Link href="/shipping-estimate" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full border border-foreground/20 text-foreground py-2 rounded-lg text-sm font-medium"
+                    >
+                      Compare
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
 
-            {/* Card 3 - Yellow/Lime */}
+            {/* Card 3 - International Shipping (Yellow) */}
             <div className="bg-brand-yellow rounded-3xl p-3 text-left relative overflow-hidden min-h-80">
               <div className="bg-white rounded-2xl p-6 shadow-lg mb-4 relative z-10">
                 <div className="flex items-center justify-between mb-4">
@@ -140,13 +164,17 @@ const Hero: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button>Ship Global</Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1 border border-foreground/20 text-foreground py-2 rounded-lg text-sm font-medium"
-                  >
-                    Learn More
-                  </Button>
+                  <Link href="/shipping-estimate" className="flex-1">
+                    <Button className="w-full">Ship Global</Button>
+                  </Link>
+                  <Link href="/about" className="flex-1">
+                    <Button
+                      variant="outline"
+                      className="w-full border border-foreground/20 text-foreground py-2 rounded-lg text-sm font-medium"
+                    >
+                      Learn More
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>

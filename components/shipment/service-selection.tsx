@@ -4,6 +4,8 @@ import React from "react";
 import Button from "@/components/ui/button";
 import { FiCheck, FiTruck, FiClock } from "react-icons/fi";
 import { Rate } from "@/types/shipping";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 
 interface ServiceSelectionProps {
   rates: Rate[];
@@ -101,10 +103,13 @@ export default function ServiceSelection({
 
                 <div className="text-right">
                   <div className="text-xl font-black text-gray-900 tabular-nums">
-                    {rate.actualPrice || rate.price}{" "}
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">
+                    {formatCurrency(
+                      (rate.actualPrice || rate.price) as number,
+                      rate.currency as SupportedCurrency,
+                    )}{" "}
+                    {/* <span className="text-[10px] font-bold text-gray-400 uppercase">
                       {rate.currency}
-                    </span>
+                    </span> */}
                   </div>
                   <div className="text-[9px] font-black text-brand-blue uppercase tracking-widest mt-0.5">
                     Est. Total

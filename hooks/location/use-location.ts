@@ -1,0 +1,43 @@
+import { useQuery } from "@tanstack/react-query";
+import { getCities, getCountries, getStates } from "@/api/location";
+
+/**
+ * Hook to fetch all countries.
+ * Cached for 24 hours (staleTime) since country data rarely changes.
+ */
+export const useCountries = () => {
+  return useQuery({
+    queryKey: ["locations", "countries"],
+    queryFn: getCountries,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+};
+
+/**
+ * Hook to fetch states for a given country.
+ * Enabled only when countryCode is present.
+ */
+export const useStates = (countryCode: string | undefined | null) => {
+  return useQuery({
+    queryKey: ["locations", "states", countryCode],
+    queryFn: () => getStates(countryCode!),
+    enabled: !!countryCode,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+};
+
+/**
+ * Hook to fetch cities for a given state.
+ * Enabled only when countryCode and stateCode are present.
+ */
+export const useCities = (
+  countryCode: string | undefined | null,
+  stateCode: string | undefined | null,
+) => {
+  return useQuery({
+    queryKey: ["locations", "cities", countryCode, stateCode],
+    queryFn: () => getCities(countryCode!, stateCode!),
+    enabled: !!countryCode && !!stateCode,
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
+};

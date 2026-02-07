@@ -7,6 +7,7 @@ import {
   FaWhatsapp,
   FaXTwitter,
 } from "react-icons/fa6";
+import CountrySelector from "../shared/country-selector";
 
 export default function Footer() {
   return (
@@ -101,6 +102,37 @@ export default function Footer() {
                 </li>
               </ul>
             </div>
+            <div>
+              <h4 className="text-lg font-bold mb-4 text-brand-yellow">
+                Legal
+              </h4>
+              <ul className="space-y-2 text-white/80 text-sm">
+                <li>
+                  <Link
+                    href="/terms"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Terms and Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/cookies"
+                    className="hover:text-brand-yellow transition-colors"
+                  >
+                    Cookie Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
             <div>
               <h4 className="text-lg font-bold mb-4 text-brand-yellow">
@@ -136,11 +168,12 @@ export default function Footer() {
               </ul>
             </div>
           </div>
-          <div className="mt-12 border-t border-white/10 pt-8 text-center text-white/60 text-sm">
+          <div className="mt-12 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-white/60 text-sm gap-4">
             <p>
               &copy; {new Date().getFullYear()} Momentum Logistics Service. All
               rights reserved.
             </p>
+            <CountrySelector />
           </div>
         </div>
       </Container>

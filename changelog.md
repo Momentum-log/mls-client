@@ -5,6 +5,127 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.28.0] - 2026-02-07 - Production Finalization
+
+- Changed: Phone Verification is Now Optional
+  - Users can now create shipments after email verification only.
+  - Removed `is_phone_verified` enforcement from `AddressForm` in shipment creation.
+  - Updated `VerificationBanner.tsx` to only display when email is unverified.
+  - Phone verification remains available as an optional feature in the user profile.
+- Added: Policy Pages
+  - Created `/terms` (Terms and Conditions) page with placeholder content.
+  - Created `/privacy` (Privacy Policy) page with placeholder content.
+  - Created `/cookies` (Cookie Policy) page with placeholder content.
+  - Added a "Legal" section to the footer with links to all policy pages.
+- Fixed: UI and Layout Improvements
+  - `ActionMenu.tsx`: Changed width from fixed `w-48` to auto-sizing (`min-w-max`) and ensured left-aligned, single-line text.
+  - `Header.tsx`: Mobile navigation now hides the "Login" button when user is authenticated.
+  - `ShipmentHistoryPage`: Removed `overflow-hidden` from container to prevent ActionMenu dropdown from being clipped.
+- Fixed: Next.js 16 Build Compatibility
+  - Wrapped `useSearchParams()` in Suspense boundary on `/shipping-estimate` page.
+  - Added loading skeleton component for better UX during hydration.
+- **Details**:
+  - Updated task documentation and PRD for production finalization.
+  - Verified all changes pass TypeScript type checking (`bunx tsc --noEmit`) and production build (`bun run build`).
+
+### [1.27.0] - 2026-02-03 - Phone Verification & Dual Login
+
+- Added: Dual Login Support
+  - Updated login form to accept either Email or Phone Number as a single identifier.
+- Added: Mandatory Phone Number for Registration
+  - Integrated `PhoneInputComponent` into the registration flow.
+  - Enhanced `RegisterData` types to require a phone number.
+- Added: SMS OTP Verification Flow
+  - Implemented `VerifyPhoneModal` with a 6-digit OTP entry and resend cooldown.
+  - Added `sendPhoneOTP` and `verifyPhoneOTP` API functions and hooks.
+- Added: Global Verification Interceptor
+  - Created `VerificationProvider` to manage global verification triggers.
+  - Configured API interceptor to automatically open the verification modal on 403 "Verification Required" errors.
+- Added: Shipment Creation Restrictions
+  - Updated `AddressForm` to disable shipment creation for unverified accounts, providing clear UI feedback.
+- Changed: Enhanced Verification Banner
+  - Refactored `VerificationBanner` to handle both email and phone verification status simultaneously.
+
+### [1.26.0] - 2026-02-03 - Phone Input Standards & Cross-Field Validation
+
+- Added: Universal `PhoneInput` Component
+  - Integrated `react-phone-input-2` with custom flat design styling.
+  - Implemented searchable country flag dropdown using project-standard HSL colors.
+  - Standardized phone number input behavior to include automatic country code selection.
+- Changed: Enhanced `AddressForm` Validation
+  - Implemented cross-field validation rule: selected phone country code must match the address country.
+  - Added hidden `phoneCountry` state tracking for robust ISO-level validation via Zod `.refine`.
+  - Replaced standard phone number input with the new universal component in the shipment creation flow.
+- Changed: `PhoneInput` UX Refinements
+  - **Scrollable Dropdown**: Optimized the country list with a fixed max-height and auto-scroll for better navigation.
+  - **Minimalist Search**: Removed unnecessary search icons and expanded the layout to a full-width, clean search bar.
+  - **Typing Support**: Fixed input focus and cursor management to allow seamless manual typing and number editing.
+- **Details**:
+  - Ensured no gradients and solid color usage in the `PhoneInput` dropdown to maintain project aesthetics.
+  - Passed all TypeScript and ESLint checks for the new implementation.
+
+### [1.25.0] - 2026-02-03 - Global Location Services & Shipping Estimate Refactor
+
+- Added: Unified `AddressFields` Component
+  - Created a single, reusable component for Country, State, City, Zip Code, and Street Address.
+  - Replaced legacy `LocationSelector` with this new, comprehensive component.
+  - Implemented searchable dropdowns (via `Select` component) for all location levels.
+  - Replaced emojis with professional icons (FaGlobe, FaMapLocationDot, FaCity).
+- Added: Enhanced Shipping Estimate Flow
+  - Integrated `postalCode` (Zip Code) and `street` fields into the marketing estimate page.
+  - Replaced legacy local/import/export modes with a unified global pickup/dropoff selector.
+  - Added URL state persistence for all form values including newly added fields.
+- Fixed: "Invalid input: expected string, received undefined" validation error
+  - Migrated validation logic on Shipping Estimate, Login, and Register forms to manual Zod validation for robust error handling.
+  - Ensured all required fields have explicit default values.
+- Changed: Refactored Dashboard Shipment Creation
+  - Migrated `AddressForm` to use the unified `AddressFields` component.
+  - Enabled searchableDropdown functionality for Country, State, and City in the shipment wizard for improved UX.
+  - Restored original section-based layout (Contact Person, Physical Address) in `AddressForm.tsx`.
+
+- Removed: Legacy location handling
+  - Deleted `components/shipping/location-selector.tsx`.
+  - Deleted legacy JSON-based location data files.
+
+  - Standardized `getEstimatePayload` utility for consistent payload construction across the app.
+  - Updated `NewShipmentPage` and `ServicePage` to support the new nested location structure.
+
+- Removed: Legacy Location Data
+  - Deleted `lib/countries.json` and `lib/countries.iso.json` in favor of the dynamic API.
+- Fixed: TypeScript Build Reliability
+  - Resolved all type errors related to nested object access and payload interfaces.
+- **Details**:
+  - Enforced strict 4-step API integration process for the new location selectors.
+  - Verified cross-page compatibility for shipping estimates in both marketing and application sections.
+
+- Added: Country-Based Currency Detection & Display
+  - **Updated**: Switched from IP-based detection to **Browser Geolocation API** for higher accuracy
+  - **Enhanced**: Service Selection now displays formatted price with symbol AND ISO code (e.g., `1 498,95 zł PLN`)
+  - Created `useCountryStore` Zustand store with sessionStorage persistence for currency preferences
+  - Poland (PL) users see Polish Złoty (zł) formatting, all others see Euro (€)
+  - Added `CountryDetector` component to root layout for automatic detection on page load
+- Added: Currency Formatting Utility (`utils/currency-formatter.ts`)
+  - `formatCurrency()` with locale-aware formatting (Polish: symbol after, Euro: symbol before)
+  - `formatCurrencyCompact()` for compact display without trailing decimals on whole numbers
+  - `getCurrencyForCountry()` helper for currency determination
+- Changed: Homepage Hero Section Updates
+  - Primary CTA changed from "Get a Quote →" to "Get Started →" linking to `/register`
+  - Card 1 (Shipment Tracking) buttons now link to `/track-shipment`
+  - Card 2 (Delivery Quote) displays dynamic currency based on user's detected country
+  - Card 3 (International Shipping) buttons link to `/shipping-estimate` and `/about`
+  - Marked hero component as client component for dynamic rendering
+- Changed: Interactive Showcases & Components
+  - Updated `QuoteEstimatorShowcase`, `ShipmentShowcase`, `ReceiptShowcase`, and `SimplifiedLogisticsShowcase` to use dynamic currency formatting
+  - Implemented multiplier logic (4x) for PLN pricing in showcases to maintain realistic values
+- Changed: Shipping Estimate Integration
+  - Integrated `useCountryStore` to pass `userCountryCode` to API for currency-aware pricing
+  - Updated rate display to use locale-formatted currency via `formatCurrency()`
+  - Updated `ShippingEstimatePayload` type to include optional `userCountryCode`
+- **Details**:
+  - Removed server-side IP detection route (`/api/geo/detect`) in favor of client-side geolocation
+  - Edge runtime used for geo detection API for optimal performance (Deprecated)
+  - Fallback to EUR if country detection fails or permission denied
+
 ### [1.23.0] - 2026-01-19 - Custom 404 Page
 
 - Added: Unified Custom 404 Page

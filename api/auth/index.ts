@@ -1,4 +1,4 @@
-import { LoginData, RegisterData } from "@/types/auth";
+import { LoginData, RegisterData, VerifyPhoneData } from "@/types/auth";
 import apiClient from "..";
 
 /**
@@ -72,6 +72,20 @@ export const sendVerificationCode = () => {
  */
 export const verifyEmail = (code: string) => {
   return apiClient.post("/auth/verify-email", { code });
+};
+
+/**
+ * Sends a verification code to the registered phone number.
+ */
+export const sendPhoneOTP = (payload?: { phone?: string }) => {
+  return apiClient.post("/auth/send-phone-otp", payload);
+};
+
+/**
+ * Verifies the phone using the SMS code.
+ */
+export const verifyPhoneOTP = (data: VerifyPhoneData) => {
+  return apiClient.post("/auth/verify-phone-otp", data);
 };
 
 /**
