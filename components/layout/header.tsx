@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { FaArrowRight, FaXmark, FaBars, FaUser } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
+import HeaderCountrySelector from "@/components/shared/header-country-selector";
 
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -91,7 +92,8 @@ const Header: FC = () => {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <HeaderCountrySelector />
             {isAuthenticated ? (
               <Button
                 onClick={() => router.push("/app/dashboard")}
@@ -231,8 +233,13 @@ const Header: FC = () => {
               </div>
             )}
 
-            <div className="mt-8 flex justify-center gap-6 text-white/40">
-              <div className="text-xs uppercase tracking-widest">
+            <div className="mt-8 flex flex-col items-center gap-4">
+              {/* Mobile Region Toggle */}
+              <div className="flex items-center gap-3 text-white/80">
+                <span className="text-sm">Region:</span>
+                <HeaderCountrySelector />
+              </div>
+              <div className="text-xs uppercase tracking-widest text-white/40">
                 Momentum Logistics
               </div>
             </div>

@@ -23,6 +23,10 @@ import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, ShippingEstimatePayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
+import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
+
+/** Weight threshold for heavy shipment modal (in kg) */
+const HEAVY_SHIPMENT_THRESHOLD = 70;
 
 /**
  * NewShipmentPage provides a single-page, vertically-stacked flow for shipment creation.
@@ -51,6 +55,8 @@ export default function NewShipmentPage() {
 
   const [rates, setRates] = useState<Rate[]>([]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
+    useState(false);
   const { addToast } = useToast();
 
   // Rate calculation mutation
@@ -222,6 +228,12 @@ export default function NewShipmentPage() {
   };
 
   const handlePackageSubmit = (pkg: Package) => {
+    // Check for heavy shipment (70kg+)
+    if (pkg.weight >= HEAVY_SHIPMENT_THRESHOLD) {
+      setIsHeavyShipmentModalOpen(true);
+      return;
+    }
+
     addPackage(pkg);
     markSectionCompleted("package");
     setExpandedSection("service");
@@ -607,6 +619,12 @@ export default function NewShipmentPage() {
         rate={selectedRate}
         onFinalize={handleFinalize}
         isLoading={isCreatingShipment}
+      />
+
+      {/* Heavy Shipment Modal */}
+      <HeavyShipmentModal
+        isOpen={isHeavyShipmentModalOpen}
+        onClose={() => setIsHeavyShipmentModalOpen(false)}
       />
     </div>
   );

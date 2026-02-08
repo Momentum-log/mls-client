@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, Suspense } from "react";
+import React, { useEffect, Suspense, useState } from "react";
 import { FormikProvider, useFormik } from "formik";
 import { z } from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
@@ -26,6 +26,10 @@ import { formatCurrency } from "@/utils/currency-formatter";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Rate } from "@/types/shipping";
 import { SupportedCurrency } from "@/types/country";
+import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
+
+/** Weight threshold for heavy shipment modal (in kg) */
+const HEAVY_SHIPMENT_THRESHOLD = 70;
 
 // Package Presets
 const PACKAGE_PRESETS = [
@@ -114,6 +118,8 @@ function ShippingEstimateContent() {
   const searchParams = useSearchParams();
   const { addToast } = useToast();
   const { countryCode: userCountryCode } = useCountryStore();
+  const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
+    useState(false);
 
   const {
     mutate: estimateMutation,
@@ -173,6 +179,12 @@ function ShippingEstimateContent() {
       }
     },
     onSubmit: async (values) => {
+      // Check for heavy shipment (70kg+)
+      if (values.package.weight >= HEAVY_SHIPMENT_THRESHOLD) {
+        setIsHeavyShipmentModalOpen(true);
+        return;
+      }
+
       const payload = getEstimatePayload(
         {
           ...values.pickup,
@@ -458,6 +470,12 @@ function ShippingEstimateContent() {
           </FormikProvider>
         </Container>
       </div>
+
+      {/* Heavy Shipment Modal */}
+      <HeavyShipmentModal
+        isOpen={isHeavyShipmentModalOpen}
+        onClose={() => setIsHeavyShipmentModalOpen(false)}
+      />
     </main>
   );
 }
