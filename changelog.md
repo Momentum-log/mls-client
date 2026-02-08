@@ -5,6 +5,24 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [1.29.0] - 2026-02-08 - Heavy Shipment Handling & Region Toggle
+
+- Added: Heavy Shipment Modal (70kg+ threshold)
+  - Created `HeavyShipmentModal` component displaying contact information for heavy freight services.
+  - Integrated modal into Shipping Estimate page (`/shipping-estimate`).
+  - Integrated modal into Shipment Creation flow (`/app/shipments/new`).
+  - Modal triggers automatically when package weight is 70kg or above.
+  - Displays information about FTL, LTL, Port Load, Groupage, and Door-to-Door freight.
+  - Includes WhatsApp, phone, and email contact CTAs.
+- Added: Heavy Freight Section on Homepage
+  - Created `HeavyFreightSection` component for marketing homepage.
+  - Added interactive `HeavyFreightShowcase` with animated weight counter and service selector.
+  - Section placed after "How It Works" to highlight heavy cargo services.
+- Added: Header Region Toggle
+  - Created `HeaderCountrySelector` component showing only flag icon (🇵🇱/🌍) in header.
+  - Dropdown reveals full region names ("Poland" / "International") with currency info.
+  - Integrated into both desktop header navigation and mobile menu.
+
 ### [1.28.0] - 2026-02-07 - Production Finalization
 
 - Changed: Phone Verification is Now Optional

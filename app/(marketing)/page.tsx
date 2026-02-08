@@ -3,6 +3,7 @@ import HowItWorks from "@/components/home/how-it-works";
 import ValueProp from "@/components/home/value-prop";
 import CTASection from "@/components/home/cta-section";
 import FAQSection from "@/components/shared/faq-section";
+import HeavyFreightSection from "@/components/home/heavy-freight-section";
 
 export default function Home() {
   return (
@@ -16,6 +17,9 @@ export default function Home() {
 
         {/* How it works */}
         <HowItWorks />
+
+        {/* Heavy Freight Section */}
+        <HeavyFreightSection />
 
         {/* CTA Section */}
         <CTASection />
