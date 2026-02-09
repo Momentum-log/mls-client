@@ -5,6 +5,12 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.32.0] - 2026-02-09 - Shipping Estimate Redirect
+
+- Changed: 'Book Now' button on Shipping Estimate page
+  - Replaced "Coming Soon" toast message with a redirect to the registration page (`/register`).
+  - This allows users to immediately start the shipment process after getting a quote.
+
 ## [1.31.0] - 2026-02-09 - Address Form City Fallback
 
 - Added: City Fallback Logic in `AddressFields`
