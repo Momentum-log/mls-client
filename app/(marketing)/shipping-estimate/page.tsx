@@ -450,13 +450,7 @@ function ShippingEstimateContent() {
                           <Button
                             variant="outline"
                             className="w-full bg-white text-brand-blue border-none font-bold"
-                            onClick={() =>
-                              addToast({
-                                type: "info",
-                                title: "Coming Soon",
-                                message: "Booking integration is coming soon.",
-                              })
-                            }
+                            onClick={() => router.push("/register")}
                           >
                             Book Now
                           </Button>
