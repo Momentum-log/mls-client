@@ -1,9 +1,6 @@
 import axios from "axios";
 
-const stagingURL = "https://mls-server-omoq.onrender.com/api";
-const localURL = "http://localhost:8000/api";
-
-const baseURL = process.env.NODE_ENV === "development" ? localURL : stagingURL;
+const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const apiClient = axios.create({
   baseURL,

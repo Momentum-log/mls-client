@@ -5,6 +5,12 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.30.0] - 2026-02-09 - API Base URL Configuration
+
+- Changed: API Base URL Configuration
+  - Updated `api/index.ts` to use `NEXT_PUBLIC_BASE_URL` environment variable for API base URL.
+  - This allows for flexible API URL configuration without code changes.
+
 ### [1.29.0] - 2026-02-08 - Heavy Shipment Handling & Region Toggle
 
 - Added: Heavy Shipment Modal (70kg+ threshold)
