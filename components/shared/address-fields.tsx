@@ -165,22 +165,48 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
 
       {/* City */}
       <div>
-        <Select
-          label="City"
-          placeholder={
-            !stateValue && states.length > 0
-              ? "Select State First"
-              : isLoadingCities
-                ? "Loading..."
-                : "Select City"
-          }
-          options={cityOptions}
-          value={cityValue}
-          onChange={handleCityChange}
-          searchable={true}
-          disabled={(!stateValue && states.length > 0) || isLoadingCities}
-          className={cityTouched && cityError ? "border-red-500" : ""}
-        />
+        {stateValue && !isLoadingCities && cities.length === 0 ? (
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              City
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                <FaCity className="h-4 w-4" />
+              </span>
+              <Input
+                name={getFieldName(cityKey)}
+                value={cityValue || ""}
+                onChange={(e) => {
+                  setFieldValue(getFieldName(cityKey), e.target.value);
+                }}
+                onBlur={handleBlur}
+                placeholder="Enter city name"
+                className={cn(
+                  "pl-11",
+                  cityTouched && cityError ? "border-red-500" : "",
+                )}
+              />
+            </div>
+          </div>
+        ) : (
+          <Select
+            label="City"
+            placeholder={
+              !stateValue && states.length > 0
+                ? "Select State First"
+                : isLoadingCities
+                  ? "Loading..."
+                  : "Select City"
+            }
+            options={cityOptions}
+            value={cityValue}
+            onChange={handleCityChange}
+            searchable={true}
+            disabled={(!stateValue && states.length > 0) || isLoadingCities}
+            className={cityTouched && cityError ? "border-red-500" : ""}
+          />
+        )}
         {cityTouched && cityError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">{cityError}</p>
         )}
