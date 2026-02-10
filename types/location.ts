@@ -19,3 +19,21 @@ export interface City {
   countryCode: string;
   stateCode: string;
 }
+
+export interface AutocompleteSuggestion {
+  description: string;
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+}
+
+export interface PlaceDetails {
+  street: string;
+  city: string;
+  state: string;
+  stateCode: string;
+  country: string;
+  countryCode: string;
+  zip: string;
+  formattedAddress: string;
+}
