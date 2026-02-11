@@ -8,14 +8,10 @@ import {
   useCities,
 } from "@/hooks/location/use-location";
 import { Select } from "@/components/ui/select";
-import {
-  FaCity,
-  FaMapLocationDot,
-  FaGlobe,
-  FaMapPin,
-  FaRoad,
-} from "react-icons/fa6";
+import { FaCity, FaMapLocationDot, FaGlobe, FaMapPin } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import { PlaceDetails } from "@/types/location";
 import { cn } from "@/utils/cn";
 
 interface AddressFieldsProps {
@@ -70,6 +66,14 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
     setFieldValue(getFieldName(cityKey), val);
   };
 
+  const handlePlaceSelect = (details: PlaceDetails) => {
+    setFieldValue(getFieldName(streetKey), details.street);
+    setFieldValue(getFieldName(cityKey), details.city);
+    setFieldValue(getFieldName(countryKey), details.countryCode);
+    setFieldValue(getFieldName(stateKey), details.stateCode);
+    setFieldValue(getFieldName(zipKey), details.zip);
+  };
+
   // Options
   const countryOptions = countries.map((c) => ({
     label: c.name,
@@ -117,6 +121,19 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
 
   return (
     <>
+      {/* Street Address - NOW AT THE TOP */}
+      <div className="md:col-span-2">
+        <LocationAutocomplete
+          label="Street Address"
+          value={streetValue || ""}
+          onChange={(val) => setFieldValue(getFieldName(streetKey), val)}
+          onPlaceSelect={handlePlaceSelect}
+          placeholder="Enter street lines"
+          touched={streetTouched}
+          error={streetError}
+        />
+      </div>
+
       {/* Country */}
       <div>
         <Select
@@ -237,36 +254,6 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
         </div>
         {zipTouched && zipError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">{zipError}</p>
-        )}
-      </div>
-
-      {/* Street Address */}
-      <div className="md:col-span-2">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Street Address
-        </label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-            <FaRoad className="h-4 w-4" />
-          </span>
-          <Input
-            name={getFieldName(streetKey)}
-            value={streetValue || ""}
-            onChange={(e) =>
-              setFieldValue(getFieldName(streetKey), e.target.value)
-            }
-            onBlur={handleBlur}
-            placeholder="Enter street lines"
-            className={cn(
-              "pl-11",
-              streetTouched && streetError ? "border-red-500" : "",
-            )}
-          />
-        </div>
-        {streetTouched && streetError && (
-          <p className="text-red-500 text-xs mt-1 font-semibold">
-            {streetError}
-          </p>
         )}
       </div>
     </>

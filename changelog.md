@@ -5,6 +5,25 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.33.0] - 2026-02-10 - Google Places Autocomplete & Street-First Layout
+
+- Added: Google Places Autocomplete Integration
+  - Integrated Google Places Autocomplete into all address forms (Origin, Destination, Shipping Estimate).
+  - Implemented debounced search (300ms) to optimize API calls.
+  - Added automatic population of City, State, Country, and Zip Code upon address selection.
+  - Ensured all auto-populated fields remain editable for manual adjustments.
+  - Implemented `sessiontoken` logic using `uuid` v4 for billing optimization.
+- Added: Reusable `LocationAutocomplete` Component
+  - Created a custom input component with high-contrast suggestions and minimalist design.
+  - Built-in debounce and click-outside handling.
+- Added: API & React Query Integration
+  - Added `getAutocomplete` and `getPlaceDetails` to `api/location/index.ts`.
+  - Created `useAutocomplete` and `usePlaceDetails` hooks.
+  - Added reusable `useDebounce` hook.
+- Changed: Street-First Address Layout
+  - Rearranged `AddressFields` component to place "Street Address" at the top of all forms.
+  - Standardized visual hierarchy for better accessibility and user experience.
+
 ## [1.32.0] - 2026-02-09 - Shipping Estimate Redirect
 
 - Changed: 'Book Now' button on Shipping Estimate page

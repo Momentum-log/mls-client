@@ -1,5 +1,11 @@
 import apiClient from "@/api";
-import { City, Country, State } from "@/types/location";
+import {
+  AutocompleteSuggestion,
+  City,
+  Country,
+  PlaceDetails,
+  State,
+} from "@/types/location";
 
 /**
  * Fetches all available countries.
@@ -32,6 +38,42 @@ export const getCities = async (
 ): Promise<City[]> => {
   const response = await apiClient.get<City[]>(
     `/locations/countries/${countryCode}/states/${stateCode}/cities`,
+  );
+  return response.data;
+};
+
+/**
+ * Fetches address autocomplete suggestions from Google Places.
+ * @param input The text search string
+ * @param sessiontoken Optional session token for billing optimization
+ */
+export const getAutocomplete = async (
+  input: string,
+  sessiontoken?: string,
+): Promise<AutocompleteSuggestion[]> => {
+  const response = await apiClient.get<AutocompleteSuggestion[]>(
+    "/locations/autocomplete",
+    {
+      params: { input, sessiontoken },
+    },
+  );
+  return response.data;
+};
+
+/**
+ * Fetches full place details from Google Places.
+ * @param placeId The unique identifier for a place
+ * @param sessiontoken Optional session token (should match autocomplete call)
+ */
+export const getPlaceDetails = async (
+  placeId: string,
+  sessiontoken?: string,
+): Promise<PlaceDetails> => {
+  const response = await apiClient.get<PlaceDetails>(
+    "/locations/place-details",
+    {
+      params: { placeId, sessiontoken },
+    },
   );
   return response.data;
 };
