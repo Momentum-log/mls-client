@@ -108,7 +108,7 @@ const HeavyFreightSection: React.FC = () => {
                   Talk to an Expert
                 </Button>
               </a>
-              <a href="mailto:info@momentumlogservice.com">
+              <a href="mailto:info@momentumlogservices.com">
                 <Button
                   variant="outline"
                   size="lg"

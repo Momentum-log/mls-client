@@ -104,10 +104,10 @@ export default function TermsPage() {
             <p>
               If you have any questions about these Terms, please contact us at{" "}
               <Link
-                href="mailto:info@momentumlogservice.com"
+                href="mailto:info@momentumlogservices.com"
                 className="text-brand-blue hover:underline"
               >
-                info@momentumlogservice.com
+                info@momentumlogservices.com
               </Link>
               .
             </p>

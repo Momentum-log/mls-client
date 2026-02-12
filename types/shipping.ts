@@ -70,6 +70,8 @@ export interface EstimateAddress {
   residential: boolean;
   streetLines: string[];
   stateOrProvinceCode: string;
+  email?: string;
+  phoneNumber?: string;
 }
 
 /**
@@ -215,6 +217,12 @@ export interface Rate {
 export interface ShippingEstimateResponse {
   estimateId: string;
   rates: Rate[];
+  errors?: {
+    carrier: string;
+    hasError: boolean;
+    errorCode: number;
+    details: string;
+  }[];
   guestId: string;
 }
 

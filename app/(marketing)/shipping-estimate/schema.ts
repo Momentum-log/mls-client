@@ -8,6 +8,8 @@ export const addressSchema = z.object({
   city: z.string().min(1, "City is required"),
   stateOrProvinceCode: z.string().min(2, "State/Province code is required"),
   residential: z.boolean().default(false),
+  email: z.string().optional(),
+  phoneNumber: z.string().optional(),
 });
 
 export const weightSchema = z.object({
@@ -43,6 +45,11 @@ export const shippingFormSchema = z.object({
     city: z.string().min(1, "City is required"),
     postalCode: z.string().min(1, "Zip code is required"),
     street: z.string().min(1, "Street address is required"),
+    email: z
+      .string()
+      .email("Invalid email address")
+      .min(1, "Email is required"),
+    phoneNumber: z.string().min(1, "Phone number is required"),
   }),
   dropoff: z.object({
     countryCode: z.string().min(2, "Country is required"),

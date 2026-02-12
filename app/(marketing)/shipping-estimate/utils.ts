@@ -173,6 +173,8 @@ export const getEstimatePayload = (
       postalCode: pickup.postalCode || "00000",
       streetLines: pickup.streetLines || [],
       residential: false,
+      email: (pickup as any).email,
+      phoneNumber: (pickup as any).phoneNumber,
     },
     dropoff: {
       countryCode: dropoff.countryCode,

@@ -5,6 +5,22 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.0] - 2026-02-12 - Shipping Estimate Enhancements & Pickup Contact Fields
+
+- Added: Pickup Contact Fields in Shipping Estimate
+  - Added mandatory Email and Phone Number fields to the Pick-up Details section.
+  - Integrated `PhoneInput` component for robust phone number capture.
+  - Implemented automatic pre-population of contact fields for authenticated users.
+  - Updated `ShippingEstimatePayload` to include contact information for pickup.
+- Added: Enhanced Rate Error Handling
+  - Implemented a user-friendly "No Rates Found" state in the Quote Summary.
+  - Added display of carrier-specific error details to help users troubleshoot address issues.
+  - Added "Review Addresses" CTA to guide users back to the form when errors occur.
+- Fixed: Restored missing address fields (Street, Country, State, City, Zip) that were accidentally removed during form updates.
+- Changed: Schema & Type Safety
+  - Refactored `shippingFormSchema` to include strict validation for new contact fields.
+  - Updated `ShippingEstimateResponse` and `Rate` types to support error reporting.
+
 ## [1.33.0] - 2026-02-10 - Google Places Autocomplete & Street-First Layout for search friendly.
 
 - Added: Google Places Autocomplete Integration
@@ -610,7 +626,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Instagram and LinkedIn
   - Added WhatsApp link
 - Changed: Updated contact information
-  - Email: `info@momentumlogservice.com`
+  - Email: `info@momentumlogservices.com`
   - Phone: `+48 795 069 276`
 - Changed: Updated FAQ support link to direct to WhatsApp
 - **Details**:
