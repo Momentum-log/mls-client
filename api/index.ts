@@ -27,6 +27,11 @@ apiClient.interceptors.request.use(
         config.headers["X-Guest-ID"] = guestId;
       }
 
+      const mlsKey = process.env.NEXT_PUBLIC_MLS_KEY;
+      if (mlsKey) {
+        config.headers["X-MLS-Key"] = mlsKey;
+      }
+
       const token = getAccessToken();
       if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;

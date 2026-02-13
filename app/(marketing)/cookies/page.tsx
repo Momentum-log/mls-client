@@ -88,10 +88,10 @@ export default function CookiesPage() {
               If you have questions about our Cookie Policy, please contact us
               at{" "}
               <Link
-                href="mailto:info@momentumlogservice.com"
+                href="mailto:info@momentumlogservices.com"
                 className="text-brand-blue hover:underline"
               >
-                info@momentumlogservice.com
+                info@momentumlogservices.com
               </Link>
               .
             </p>

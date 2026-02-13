@@ -108,7 +108,7 @@ const HeavyShipmentModal: React.FC<HeavyShipmentModalProps> = ({
                 Call Us
               </Button>
             </a>
-            <a href="mailto:info@momentumlogservice.com" className="flex-1">
+            <a href="mailto:info@momentumlogservices.com" className="flex-1">
               <Button
                 variant="outline"
                 className="w-full justify-center gap-2 text-sm"

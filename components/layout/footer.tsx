@@ -142,10 +142,10 @@ export default function Footer() {
                 <li>
                   <span className="block font-semibold text-white">Email:</span>
                   <a
-                    href="mailto:info@momentumlogservice.com"
+                    href="mailto:info@momentumlogservices.com"
                     className="hover:text-brand-yellow transition-colors"
                   >
-                    info@momentumlogservice.com
+                    info@momentumlogservices.com
                   </a>
                 </li>
                 <li>
@@ -161,7 +161,7 @@ export default function Footer() {
                   <span className="block font-semibold text-white">
                     Address:
                   </span>
-                  ul. kpt pilota zwirki 17,
+                  Pilota zwirki 17,
                   <br />
                   90-539 Łódź
                 </li>
