@@ -74,8 +74,28 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   };
 
   const handlePlaceSelect = (details: PlaceDetails) => {
-    setFieldValue(getFieldName(streetKey), details.street);
-    setFieldValue(getFieldName(cityKey), details.city);
+    let street = details.street;
+    let city = details.city;
+
+    // Fallback if structured data is missing
+    if (!street || !city) {
+      const parts = details.formattedAddress.split(",").map((s) => s.trim());
+      if (!street && parts.length > 0) {
+        street = parts[0];
+      }
+      if (!city && parts.length > 1) {
+        // usually 2nd part has zip and city (e.g. "00-123 Warsaw")
+        const cityPart = parts[1].replace(/[\d-]+/g, "").trim();
+        if (cityPart) {
+          city = cityPart;
+        } else if (parts.length > 2) {
+          city = parts[2].replace(/[\d-]+/g, "").trim();
+        }
+      }
+    }
+
+    setFieldValue(getFieldName(streetKey), street);
+    setFieldValue(getFieldName(cityKey), city);
     setFieldValue(getFieldName(countryKey), details.countryCode);
     setFieldValue(getFieldName(stateKey), details.stateCode);
     setFieldValue(getFieldName(zipKey), details.zip);
@@ -260,6 +280,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
           className={cityTouched && cityError ? "border-red-500" : ""}
           disabled={!stateValue}
           searchable
+          allowCustom
         />
         {cityTouched && cityError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">{cityError}</p>

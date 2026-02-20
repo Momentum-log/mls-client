@@ -5,6 +5,24 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.0] - 2026-02-20 - Location Permission Enforcement & Address Autocomplete Fixes
+
+- Added: Strict Location Permission Requirement
+  - Implemented `useLocationPermission` custom hook for tracking Geolocation and Permissions API states.
+  - Created `LocationPermissionOverlay` component to provide clear instructions and retry logic for blocked location access.
+  - Integrated mandatory location checks into the "Create Shipment" flow to ensure accurate regional service availability.
+- Added: Enhanced City Selection Flexibility
+  - Updated the `Select` component with `allowCustom` support.
+  - Users can now manually enter city names if they are not provided in the standard autocomplete suggestions.
+- Changed: Resilient Address Autocomplete Parsing
+  - Refactored `handlePlaceSelect` in `AddressFields` to systematically extract street and city data from the `formatted_address` string when structured Google Places data is missing.
+- Removed: IP-Based Location Tracking
+  - Eliminated all legacy IP-detecting logic (`ipInfo`, etc.) from `country-store.ts`.
+  - Migrated the application to use the Browser Geolocation API exclusively for device-level location accuracy.
+- Fixed: Code Quality & Type Safety
+  - Resolved multiple ESLint and TypeScript issues across location hooks, UI overlays, and address form components.
+  - Fixed sync `setState` violations in `useEffect` and unescaped entity warnings.
+
 ## [1.34.3] - 2026-02-14 - Development Environment Stability
 
 - Fixed: Development Server Hangs
