@@ -11,8 +11,11 @@ import { Select } from "@/components/ui/select";
 import { FaCity, FaMapLocationDot, FaGlobe, FaMapPin } from "react-icons/fa6";
 import { Input } from "@/components/ui/input";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import PhoneInput from "@/components/ui/phone-input";
+
 import { PlaceDetails } from "@/types/location";
 import { cn } from "@/utils/cn";
+import { FaEnvelope, FaPhone } from "react-icons/fa6";
 
 interface AddressFieldsProps {
   prefix?: string; // e.g. "pickup" or "dropoff" or undefined for flat structure
@@ -31,6 +34,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   const cityKey = "city";
   const zipKey = "postalCode";
   const streetKey = prefix ? "street" : "street"; // ShippingEstimatePage uses 'street' internally now
+  const emailKey = "email";
+  const phoneKey = "phoneNumber";
 
   const countryValue = prefix
     ? values[prefix]?.[countryKey]
@@ -39,6 +44,8 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   const cityValue = prefix ? values[prefix]?.[cityKey] : values[cityKey];
   const zipValue = prefix ? values[prefix]?.[zipKey] : values[zipKey];
   const streetValue = prefix ? values[prefix]?.[streetKey] : values[streetKey];
+  const emailValue = prefix ? values[prefix]?.[emailKey] : values[emailKey];
+  const phoneValue = prefix ? values[prefix]?.[phoneKey] : values[phoneKey];
 
   // React Query Hooks
   const { data: countries = [], isLoading: isLoadingCountries } =
@@ -116,35 +123,101 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   const cityTouched = getFieldTouched(cityKey);
   const zipError = getFieldError(zipKey);
   const zipTouched = getFieldTouched(zipKey);
-  const streetError = getFieldError(streetKey);
   const streetTouched = getFieldTouched(streetKey);
+  const emailError = getFieldError(emailKey);
+  const emailTouched = getFieldTouched(emailKey);
+  const phoneError = getFieldError(phoneKey);
+  const phoneTouched = getFieldTouched(phoneKey);
 
   return (
     <>
-      {/* Street Address - NOW AT THE TOP */}
+      {/* Contact Fields - Only for Pickup */}
+      {prefix === "pickup" && (
+        <>
+          <div className="md:col-span-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                <FaEnvelope className="h-4 w-4" />
+              </span>
+              <Input
+                name={getFieldName(emailKey)}
+                value={emailValue || ""}
+                onChange={(e) =>
+                  setFieldValue(getFieldName(emailKey), e.target.value)
+                }
+                onBlur={handleBlur}
+                placeholder="your@email.com"
+                className={cn(
+                  "pl-11",
+                  emailTouched && emailError ? "border-red-500" : "",
+                )}
+              />
+            </div>
+            {emailTouched && emailError && (
+              <p className="text-red-500 text-xs mt-1 font-semibold">
+                {emailError}
+              </p>
+            )}
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Phone Number
+            </label>
+            <PhoneInput
+              value={phoneValue || ""}
+              onChange={(val: string) =>
+                setFieldValue(getFieldName(phoneKey), val)
+              }
+              className={cn(phoneTouched && phoneError ? "border-red-500" : "")}
+            />
+
+            {phoneTouched && phoneError && (
+              <p className="text-red-500 text-xs mt-1 font-semibold">
+                {phoneError}
+              </p>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Street Address - Full Width */}
       <div className="md:col-span-2">
-        <LocationAutocomplete
-          label="Street Address"
-          value={streetValue || ""}
-          onChange={(val) => setFieldValue(getFieldName(streetKey), val)}
-          onPlaceSelect={handlePlaceSelect}
-          placeholder="Enter street lines"
-          touched={streetTouched}
-          error={streetError}
-        />
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Street Address
+        </label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <FaMapPin className="h-4 w-4" />
+          </span>
+          <LocationAutocomplete
+            value={streetValue || ""}
+            onChange={(val) => setFieldValue(getFieldName(streetKey), val)}
+            onPlaceSelect={handlePlaceSelect}
+            placeholder="Search for street address..."
+            className={cn(
+              "pl-11",
+              streetTouched && !streetValue ? "border-red-500" : "",
+            )}
+          />
+        </div>
       </div>
 
-      {/* Country */}
-      <div>
+      {/* Country - Searchable Dropdown */}
+      <div className="md:col-span-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          Country
+        </label>
         <Select
-          label="Country"
-          placeholder={isLoadingCountries ? "Loading..." : "Select Country"}
           options={countryOptions}
-          value={countryValue}
+          value={countryValue || ""}
           onChange={handleCountryChange}
-          searchable={true}
-          disabled={isLoadingCountries}
+          placeholder="Select Country"
           className={countryTouched && countryError ? "border-red-500" : ""}
+          searchable
         />
         {countryTouched && countryError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">
@@ -153,25 +226,19 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
         )}
       </div>
 
-      {/* State */}
-      <div>
+      {/* State/Province - Searchable Dropdown */}
+      <div className="md:col-span-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          State / Province
+        </label>
         <Select
-          label="State / Province"
-          placeholder={
-            !countryValue
-              ? "Select Country First"
-              : isLoadingStates
-                ? "Loading..."
-                : states.length === 0
-                  ? "No States Available"
-                  : "Select State"
-          }
           options={stateOptions}
-          value={stateValue}
+          value={stateValue || ""}
           onChange={handleStateChange}
-          searchable={true}
-          disabled={!countryValue || isLoadingStates || states.length === 0}
+          placeholder="Select State"
           className={stateTouched && stateError ? "border-red-500" : ""}
+          disabled={!countryValue}
+          searchable
         />
         {stateTouched && stateError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">
@@ -180,63 +247,33 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
         )}
       </div>
 
-      {/* City */}
-      <div>
-        {stateValue && !isLoadingCities && cities.length === 0 ? (
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              City
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                <FaCity className="h-4 w-4" />
-              </span>
-              <Input
-                name={getFieldName(cityKey)}
-                value={cityValue || ""}
-                onChange={(e) => {
-                  setFieldValue(getFieldName(cityKey), e.target.value);
-                }}
-                onBlur={handleBlur}
-                placeholder="Enter city name"
-                className={cn(
-                  "pl-11",
-                  cityTouched && cityError ? "border-red-500" : "",
-                )}
-              />
-            </div>
-          </div>
-        ) : (
-          <Select
-            label="City"
-            placeholder={
-              !stateValue && states.length > 0
-                ? "Select State First"
-                : isLoadingCities
-                  ? "Loading..."
-                  : "Select City"
-            }
-            options={cityOptions}
-            value={cityValue}
-            onChange={handleCityChange}
-            searchable={true}
-            disabled={(!stateValue && states.length > 0) || isLoadingCities}
-            className={cityTouched && cityError ? "border-red-500" : ""}
-          />
-        )}
+      {/* City - Searchable Dropdown */}
+      <div className="md:col-span-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-2">
+          City
+        </label>
+        <Select
+          options={cityOptions}
+          value={cityValue || ""}
+          onChange={handleCityChange}
+          placeholder="Select City"
+          className={cityTouched && cityError ? "border-red-500" : ""}
+          disabled={!stateValue}
+          searchable
+        />
         {cityTouched && cityError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">{cityError}</p>
         )}
       </div>
 
-      {/* Zip Code */}
-      <div>
+      {/* Postal Code */}
+      <div className="md:col-span-1">
         <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Zip Code / Postal Code
+          Postal Code
         </label>
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-            <FaMapPin className="h-4 w-4" />
+            <FaCity className="h-4 w-4" />
           </span>
           <Input
             name={getFieldName(zipKey)}
@@ -245,7 +282,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
               setFieldValue(getFieldName(zipKey), e.target.value)
             }
             onBlur={handleBlur}
-            placeholder="00000"
+            placeholder="Zip code"
             className={cn(
               "pl-11",
               zipTouched && zipError ? "border-red-500" : "",

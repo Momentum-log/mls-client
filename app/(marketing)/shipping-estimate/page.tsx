@@ -21,7 +21,9 @@ import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
 import { useToast } from "@/hooks/use-toast";
 import { transformShippingData, getEstimatePayload } from "./utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
+import { useAuthStore } from "@/store/auth-store";
 import { useCountryStore } from "@/store/country-store";
+
 import { formatCurrency } from "@/utils/currency-formatter";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Rate } from "@/types/shipping";
@@ -118,6 +120,7 @@ function ShippingEstimateContent() {
   const searchParams = useSearchParams();
   const { addToast } = useToast();
   const { countryCode: userCountryCode } = useCountryStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
     useState(false);
 
@@ -139,7 +142,10 @@ function ShippingEstimateContent() {
         city: searchParams.get("pickupCity") || "",
         postalCode: searchParams.get("pickupZip") || "",
         street: searchParams.get("pickupStreet") || "",
+        email: searchParams.get("pickupEmail") || user?.email || "",
+        phoneNumber: searchParams.get("pickupPhone") || user?.phone || "",
       },
+
       dropoff: {
         countryCode: searchParams.get("dropoffCountry") || "",
         stateOrProvinceCode: searchParams.get("dropoffState") || "",
@@ -252,8 +258,11 @@ function ShippingEstimateContent() {
     if (pickup.city) params.set("pickupCity", pickup.city);
     if (pickup.postalCode) params.set("pickupZip", pickup.postalCode);
     if (pickup.street) params.set("pickupStreet", pickup.street);
+    if (pickup.email) params.set("pickupEmail", pickup.email);
+    if (pickup.phoneNumber) params.set("pickupPhone", pickup.phoneNumber);
 
     if (dropoff.countryCode) params.set("dropoffCountry", dropoff.countryCode);
+
     if (dropoff.stateOrProvinceCode)
       params.set("dropoffState", dropoff.stateOrProvinceCode);
     if (dropoff.city) params.set("dropoffCity", dropoff.city);
@@ -284,9 +293,13 @@ function ShippingEstimateContent() {
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
                   <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+                      <div
+                        id="pickup-details"
+                        className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue"
+                      >
                         <FaShip className="w-5 h-5" />
                       </div>
+
                       <h2 className="font-bold text-xl text-gray-900">
                         Pick-up Details
                       </h2>
@@ -424,7 +437,7 @@ function ShippingEstimateContent() {
                       <div className="h-24 bg-white/10 rounded-2xl"></div>
                       <div className="h-24 bg-white/10 rounded-2xl"></div>
                     </div>
-                  ) : (
+                  ) : estimateData?.rates && estimateData.rates.length > 0 ? (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                       {estimateData?.rates?.map((rate: Rate, index: number) => (
                         <div
@@ -456,6 +469,44 @@ function ShippingEstimateContent() {
                           </Button>
                         </div>
                       ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 animate-in fade-in duration-500">
+                      <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <FaCircleExclamation className="w-8 h-8 text-brand-yellow" />
+                      </div>
+                      <h4 className="font-bold text-xl mb-3">No Rates Found</h4>
+                      <p className="text-white/70 text-sm leading-relaxed mb-6">
+                        We couldn't retrieve shipping rates for this address.
+                        This usually happens if the address is incomplete or
+                        unrecognized by our carriers.
+                      </p>
+                      {estimateData?.errors &&
+                        estimateData.errors.length > 0 && (
+                          <div className="bg-black/20 rounded-xl p-4 mb-6 text-left">
+                            <p className="text-[10px] uppercase font-bold text-white/40 mb-2">
+                              Carrier Feedback
+                            </p>
+                            {estimateData.errors.map((err: any, i: number) => (
+                              <p key={i} className="text-xs text-white/80">
+                                • {err.details}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      <Button
+                        variant="outline"
+                        className="border-white/20 text-white hover:bg-white/10 w-full"
+                        onClick={() => {
+                          const element =
+                            document.getElementById("pickup-details");
+                          if (element) {
+                            element.scrollIntoView({ behavior: "smooth" });
+                          }
+                        }}
+                      >
+                        Review Addresses
+                      </Button>
                     </div>
                   )}
                 </div>
