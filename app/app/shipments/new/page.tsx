@@ -20,10 +20,13 @@ import {
   useCreateShipment,
 } from "@/hooks/shipments/use-shipments";
 import { getOrSetGuestId } from "@/utils/auth-helper";
-import { Rate, ShippingEstimatePayload } from "@/types/shipping";
+import { Rate } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
+
+import { useLocationPermission } from "@/hooks/use-location-permission";
+import { LocationPermissionOverlay } from "@/components/ui/location-permission-overlay";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -58,6 +61,15 @@ export default function NewShipmentPage() {
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
     useState(false);
   const { addToast } = useToast();
+
+  const { permission, requestPermission } = useLocationPermission();
+
+  // Auto-request location permission if in prompt state
+  useEffect(() => {
+    if (permission === "prompt") {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
 
   // Rate calculation mutation
   const { mutate: getRates, isPending: isCalculatingRates } =
@@ -143,6 +155,7 @@ export default function NewShipmentPage() {
     recipient,
     packages,
     getRates,
+    countryCode,
   ]);
 
   const steps: TimelineStep[] = useMemo(
@@ -275,7 +288,7 @@ export default function NewShipmentPage() {
         onSuccess: (data) => {
           setRates(data.rates);
         },
-        onError: (error) => {
+        onError: () => {
           addToast({
             title: "Calculation Failed",
             message:
@@ -393,17 +406,37 @@ export default function NewShipmentPage() {
           }
         }, 1000);
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
+        let msg = "Unable to create shipment. Please try again.";
+        if (error && typeof error === "object" && "response" in error) {
+          const res = (error as { response?: { data?: { error?: string } } })
+            .response;
+          if (res?.data?.error) msg = res.data.error;
+        }
+
         addToast({
           title: "Creation Failed",
-          message:
-            error.response?.data?.error ||
-            "Unable to create shipment. Please try again.",
+          message: msg,
           type: "error",
         });
       },
     });
   };
+
+  if (permission === "denied") {
+    return <LocationPermissionOverlay onRetry={requestPermission} />;
+  }
+
+  if (permission !== "granted") {
+    return (
+      <div className="flex h-[50vh] flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-blue border-t-transparent mb-4"></div>
+        <p className="text-gray-500 font-medium">
+          Waiting for location permission...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start">

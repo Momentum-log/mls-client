@@ -2,7 +2,6 @@
  * Country detection and currency state store.
  * Uses Zustand with sessionStorage persistence.
  *
- *
  * Detects user's country via Browser Geolocation API (navigator.geolocation)
  * and sets currency:
  * - Poland (PL) → PLN
@@ -11,12 +10,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import {
-  CountryStore,
-  CountryState,
-  IPInfoResponse,
-  SupportedCurrency,
-} from "@/types/country";
+import { CountryStore, CountryState, SupportedCurrency } from "@/types/country";
 import { getCurrencyForCountry } from "@/utils/currency-formatter";
 
 /** Initial state before detection */
@@ -26,55 +20,6 @@ const initialState: CountryState = {
   isDetected: false,
   isManualOverride: false,
   isLoading: false,
-};
-
-/**
- * Fetches country information using Browser Geolocation API + Reverse Geocoding.
- * Falls back to IP-based detection if user denies permission or browser API fails.
- */
-const detectLocation = async (): Promise<IPInfoResponse | null> => {
-  return new Promise((resolve) => {
-    if (!("geolocation" in navigator)) {
-      console.warn("Geolocation not supported.");
-      resolve(null);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-
-          const response = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
-          );
-          const data = await response.json();
-
-          if (data && data.countryCode) {
-            resolve({
-              ip: "browser-geo",
-              country_code: data.countryCode,
-              country: data.countryName,
-            } as IPInfoResponse);
-          } else {
-            console.warn(
-              "Reverse geocoding failed (no country code). Data:",
-              data,
-            );
-            resolve(null);
-          }
-        } catch (error) {
-          console.error("Reverse geocoding error:", error);
-          resolve(null);
-        }
-      },
-      (error) => {
-        console.warn("Browser Geolocation denied/error:", error.message);
-        resolve(null); // No fallback
-      },
-      { timeout: 5000 },
-    );
-  });
 };
 
 /**
@@ -104,49 +49,89 @@ export const useCountryStore = create<CountryStore>()(
       },
 
       /**
-       * Detect country via IP geolocation (IPinfo.io).
+       * Detect country via Browser Geolocation API.
        * Only runs if not already detected or manually overridden.
        */
       detectCountry: async () => {
         const state = get();
 
         // Respect manual overrides, but NOT automatic persistence.
-        // We want to re-check IP on every reload/visit to support VPN changes.
         if (state.isManualOverride) {
           return;
         }
 
         set({ isLoading: true });
 
-        // Try Browser Geolocation first, with IP fallback inside
-        const ipInfo = await detectLocation();
-
-        if (ipInfo?.country_code) {
-          const normalizedCode = ipInfo.country_code.toUpperCase();
-          const currency: SupportedCurrency =
-            getCurrencyForCountry(normalizedCode);
-
+        if (!("geolocation" in navigator)) {
+          console.warn("Geolocation not supported. Falling back.");
           set({
-            countryCode: normalizedCode,
-            currency,
-            isDetected: true,
-            isManualOverride: false,
-            isLoading: false,
-          });
-        } else {
-          console.warn("Country Detection Failed or Empty. Using Fallback:", {
             countryCode: "EU",
             currency: "EUR",
-          });
-          // Fallback to EUR if detection fails
-          set({
-            countryCode: "EU", // Generic Europe fallback
-            currency: "EUR",
             isDetected: true,
             isManualOverride: false,
             isLoading: false,
           });
+          return;
         }
+
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+
+              const response = await fetch(
+                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+              );
+              const data = await response.json();
+
+              if (data && data.countryCode) {
+                const normalizedCode = data.countryCode.toUpperCase();
+                const currency: SupportedCurrency =
+                  getCurrencyForCountry(normalizedCode);
+
+                set({
+                  countryCode: normalizedCode,
+                  currency,
+                  isDetected: true,
+                  isManualOverride: false,
+                  isLoading: false,
+                });
+              } else {
+                console.warn(
+                  "Reverse geocoding failed (no country code). Data:",
+                  data,
+                );
+                set({
+                  countryCode: "EU",
+                  currency: "EUR",
+                  isDetected: true,
+                  isManualOverride: false,
+                  isLoading: false,
+                });
+              }
+            } catch (error) {
+              console.error("Reverse geocoding error:", error);
+              set({
+                countryCode: "EU",
+                currency: "EUR",
+                isDetected: true,
+                isManualOverride: false,
+                isLoading: false,
+              });
+            }
+          },
+          (error) => {
+            console.warn("Browser Geolocation denied/error:", error.message);
+            set({
+              countryCode: "EU",
+              currency: "EUR",
+              isDetected: true,
+              isManualOverride: false,
+              isLoading: false,
+            });
+          },
+          { timeout: 5000 },
+        );
       },
 
       /**
@@ -162,7 +147,6 @@ export const useCountryStore = create<CountryStore>()(
       partialize: (state) => ({
         countryCode: state.countryCode,
         currency: state.currency,
-        // Don't persist isDetected so we re-verify on reload (unless manual)
         isManualOverride: state.isManualOverride,
       }),
     },
