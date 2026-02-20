@@ -147,20 +147,8 @@ export const getPayload = (
  * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency
  */
 export const getEstimatePayload = (
-  pickup: {
-    countryCode: string;
-    stateOrProvinceCode?: string;
-    city: string;
-    postalCode?: string;
-    streetLines?: string[];
-  },
-  dropoff: {
-    countryCode: string;
-    stateOrProvinceCode?: string;
-    city: string;
-    postalCode?: string;
-    streetLines?: string[];
-  },
+  pickup: any,
+  dropoff: any,
   pkg: any,
   guestId: string,
   userCountryCode?: string,
@@ -173,8 +161,12 @@ export const getEstimatePayload = (
       postalCode: pickup.postalCode || "00000",
       streetLines: pickup.streetLines || [],
       residential: false,
-      email: (pickup as any).email,
-      phoneNumber: (pickup as any).phoneNumber,
+      contact: {
+        personName: "Estimate",
+        companyName: "",
+        phoneNumber: pickup.phoneNumber || "",
+        email: pickup.email || "",
+      },
     },
     dropoff: {
       countryCode: dropoff.countryCode,
@@ -183,6 +175,12 @@ export const getEstimatePayload = (
       postalCode: dropoff.postalCode || "00000",
       streetLines: dropoff.streetLines || [],
       residential: false,
+      contact: {
+        personName: "Estimate",
+        companyName: "",
+        phoneNumber: "",
+        email: "",
+      },
     },
     package: {
       weight: pkg.weight,
@@ -190,5 +188,7 @@ export const getEstimatePayload = (
     },
     guestId,
     ...(userCountryCode && { userCountryCode }),
+    email: pickup.email,
+    phone: pickup.phoneNumber,
   };
 };

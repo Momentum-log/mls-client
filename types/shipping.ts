@@ -60,21 +60,6 @@ export interface PackageDetails {
 }
 
 /**
- * Simplified Address for shipping estimates.
- * Removes contact information as it's not required for quoting.
- */
-export interface EstimateAddress {
-  city: string;
-  postalCode: string;
-  countryCode: string;
-  residential: boolean;
-  streetLines: string[];
-  stateOrProvinceCode: string;
-  email?: string;
-  phoneNumber?: string;
-}
-
-/**
  * Simplified Package for shipping estimates.
  * Removes customs information.
  */
@@ -86,15 +71,16 @@ export interface EstimatePackageDetails {
 /**
  * Payload for getting shipping rates/estimates.
  * 'customs' is NOT required for estimates regardless of the route.
- * Addresses do NOT require contact details for estimates.
  */
 export interface ShippingEstimatePayload {
-  pickup: EstimateAddress;
-  dropoff: EstimateAddress;
+  pickup: Address;
+  dropoff: Address;
   package: EstimatePackageDetails;
   guestId: string;
   /** Optional ISO 3166-1 alpha-2 country code for currency determination (e.g., 'PL', 'DE') */
   userCountryCode?: string;
+  email?: string;
+  phone?: string;
 }
 
 // Shipping estimate response

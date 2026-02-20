@@ -3,6 +3,7 @@
 import React from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import "@/components/ui/phone-input.css";
 import { cn } from "@/utils/cn";
 
 interface UniversalPhoneInputProps {
@@ -73,67 +74,6 @@ export const PhoneInputComponent: React.FC<UniversalPhoneInputProps> = ({
       {touched && error && (
         <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{error}</p>
       )}
-
-      <style jsx global>{`
-        /* Minimalist tweaks to match the theme */
-        .react-tel-input .flag-dropdown {
-          background-color: transparent !important;
-          border: none !important;
-          top: 2px !important;
-          bottom: 2px !important;
-          left: 2px !important;
-        }
-        .react-tel-input .selected-flag {
-          background-color: transparent !important;
-          border-radius: 10px 0 0 10px !important;
-          padding-left: 12px !important;
-        }
-        .react-tel-input .selected-flag:hover {
-          background-color: rgba(0, 0, 0, 0.02) !important;
-        }
-        .react-tel-input .country-list {
-          border-radius: 12px !important;
-          border: 1px solid #f3f4f6 !important;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
-          max-height: 300px !important;
-          overflow-y: auto !important;
-          width: 300px !important;
-        }
-        .react-tel-input .country-list .country {
-          padding: 10px 15px !important;
-          font-size: 13px !important;
-          font-weight: 500 !important;
-        }
-        .react-tel-input .country-list .country.highlight {
-          background-color: #f8fafc !important;
-        }
-        .react-tel-input .country-list .country:hover {
-          background-color: #f1f5f9 !important;
-        }
-        /* Search Box Refinement */
-        .react-tel-input .search {
-          padding: 10px !important;
-          border-bottom: 1px solid #f3f4f6 !important;
-        }
-        .react-tel-input .search-box {
-          width: 100% !important;
-          margin: 0 !important;
-          padding: 8px 12px !important;
-          border-radius: 8px !important;
-          border: 1px solid #f3f4f6 !important;
-          font-size: 13px !important;
-        }
-        .react-tel-input .search-emoji {
-          display: none !important;
-        }
-        .react-tel-input .search-box input {
-          width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          border: none !important;
-          outline: none !important;
-        }
-      `}</style>
     </div>
   );
 };

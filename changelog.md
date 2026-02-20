@@ -5,6 +5,27 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.3] - 2026-02-14 - Development Environment Stability
+
+- Fixed: Development Server Hangs
+  - Resolved an issue where the development server would hang indefinitely or fail to compile due to zombie Node.js/Bun processes.
+  - Added comprehensive troubleshooting documentation at `docs/dev-server-troubleshooting.md`.
+  - Established a clear protocol for clearing stuck processes (`pkill -f "bun|node|next"`) to restore the dev environment.
+
+## [1.34.2] - 2026-02-14 - Fix Hydration Error in Phone Input
+
+- Fixed: Hydration Mismatch in `PhoneInputComponent`
+  - Replaced `styled-jsx` global styles with a standard CSS file import.
+  - Resolved server/client class name mismatches caused by dynamic class generation.
+  - Validated fix with `bunx tsc --noEmit` and lint checks.
+
+## [1.34.1] - 2026-02-13 - API Authentication Fixes
+
+- Fixed: Google Places API Authentication
+  - Renamed `MLS_KEY` to `NEXT_PUBLIC_MLS_KEY` in `.env.local` to correctly expose the key to the client-side application.
+  - Added request interceptor logic in `api/index.ts` to automatically inject the `X-MLS-Key` header when the key is present.
+  - This ensures guest users can access location autosuggest services without 401 Unauthorized errors.
+
 ## [1.34.0] - 2026-02-12 - Shipping Estimate Enhancements & Pickup Contact Fields
 
 - Added: Pickup Contact Fields in Shipping Estimate

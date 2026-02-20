@@ -1,6 +1,13 @@
 import { z } from "zod";
 
 // Shared schemas
+export const contactSchema = z.object({
+  personName: z.string().default("Estimate"),
+  companyName: z.string().default(""),
+  phoneNumber: z.string().default(""),
+  email: z.string().email().optional().or(z.literal("")),
+});
+
 export const addressSchema = z.object({
   postalCode: z.string().min(1, "Postal code is required"),
   countryCode: z.string().min(2, "Country code is required"),
@@ -8,8 +15,7 @@ export const addressSchema = z.object({
   city: z.string().min(1, "City is required"),
   stateOrProvinceCode: z.string().min(2, "State/Province code is required"),
   residential: z.boolean().default(false),
-  email: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  contact: contactSchema,
 });
 
 export const weightSchema = z.object({
@@ -35,6 +41,9 @@ export const shippingEstimatePayloadSchema = z.object({
   dropoff: addressSchema,
   package: packageDetailsSchema,
   guestId: z.string().min(1, "Guest ID is required"),
+  userCountryCode: z.string().length(2).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
 });
 
 // The simpler form schema (what the user interacts with)
