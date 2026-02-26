@@ -5,6 +5,29 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.36.0] - 2026-02-25 - Shipment Creation Payload Update
+
+- Changed: Shipment Creation Payload Requirements
+  - Renamed `carrierName` to `carrierSlug` across all shipment creation flows and types.
+  - Standardized on lowercase slugs (e.g., "fedex", "mls") for better backend compatibility.
+  - Fixed: Carrier slug manipulation where spaces were being preserved instead of using the provided slug from rates (e.g., "dhl-ecommerce" was becoming "dhl ecommerce").
+  - Fixed: Branding logic where data transformation was incorrectly overwriting original carrier data in payloads; moved transformation to a UI-only layer (`transformedRates`, `displaySelectedRate`) while strictly retaining raw identifiers for backend submissions.
+  - Updated `CreateShipmentPayload`, `LocalShipmentPayload`, and `InternationalShipmentPayload` interfaces.
+- Fixed: Payment Verification Reliability
+  - Ensured consistent carrier slug usage in `SummaryPage` and `NewShipmentPage` to resolve "Carrier not found" errors during payment initialization.
+- Fixed: Shipment Details Runtime Error
+  - Resolved `TypeError: Cannot read properties of null (reading 'trackingNumber')` in the Shipment Details page by adding a safety check for the existence of tracking data.
+- Changed: Compact Verify Page UI
+  - Reduced excessive vertical padding and removed redundant `min-h-screen` containers on the payment verification page.
+  - Optimized card dimensions and internal padding for a more streamlined appearance during verifying, success, and failure states.
+
+- Fixed: Redundant API Calls
+  - Unified shipping estimate logic in `NewShipmentPage` to prevent double calls. Fetching is now centrally managed by a `useEffect` triggered by section transitions and data resets.
+- Fixed: Authentication Stability & Network Errors
+  - Added initialization guards to `AppLayout` to prevent race conditions during auth checks.
+  - Improved error handling for `Network Error` with descriptive troubleshooting logs.
+  - Optimized local API connectivity by switching `localhost` to `127.0.0.1` in environment configuration.
+
 ## [1.35.0] - 2026-02-20 - Location Permission Enforcement & Address Autocomplete Fixes
 
 - Added: Strict Location Permission Requirement

@@ -113,7 +113,7 @@ export const checkIfInternational = (
  */
 export const getPayload = (
   isInternational: boolean,
-  data: any,
+  data: any, // Contains carrierSlug and other shipment data
 ): CreateShipmentPayload => {
   if (isInternational) {
     const payload: InternationalShipmentPayload = {

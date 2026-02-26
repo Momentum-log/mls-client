@@ -24,6 +24,7 @@ import { Rate } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
+import { deepTransformData } from "@/utils/data-transform";
 
 import { useLocationPermission } from "@/hooks/use-location-permission";
 import { LocationPermissionOverlay } from "@/components/ui/location-permission-overlay";
@@ -63,6 +64,15 @@ export default function NewShipmentPage() {
   const { addToast } = useToast();
 
   const { permission, requestPermission } = useLocationPermission();
+
+  // Create memoized transformed rates for UI display only
+  const transformedRates = useMemo(() => deepTransformData(rates), [rates]);
+
+  // Transform selectedRate for UI display only
+  const displaySelectedRate = useMemo(
+    () => (selectedRate ? deepTransformData(selectedRate) : null),
+    [selectedRate],
+  );
 
   // Auto-request location permission if in prompt state
   useEffect(() => {
@@ -144,6 +154,14 @@ export default function NewShipmentPage() {
       getRates(payload, {
         onSuccess: (data) => {
           setRates(data.rates);
+        },
+        onError: () => {
+          addToast({
+            title: "Calculation Failed",
+            message:
+              "Unable to calculate shipping rates. Please check address details.",
+            type: "error",
+          });
         },
       });
     }
@@ -249,55 +267,8 @@ export default function NewShipmentPage() {
 
     addPackage(pkg);
     markSectionCompleted("package");
+    setRates([]); // Clear previous rates to trigger re-fetch in useEffect
     setExpandedSection("service");
-
-    // Trigger Rate Calculation
-    if (sender && recipient) {
-      const payload = getEstimatePayload(
-        {
-          city: sender.city,
-          countryCode: sender.country,
-          stateOrProvinceCode: sender.stateOrProvinceCode || "",
-          postalCode: sender.postalCode,
-          streetLines: [sender.street],
-        },
-        {
-          city: recipient.city,
-          countryCode: recipient.country,
-          stateOrProvinceCode: recipient.stateOrProvinceCode || "",
-          postalCode: recipient.postalCode,
-          streetLines: [recipient.street],
-        },
-        {
-          weight: {
-            value: parseFloat(pkg.weight.toFixed(2)),
-            units: "KG",
-          },
-          dimensions: {
-            length: parseFloat(pkg.length.toFixed(1)),
-            width: parseFloat(pkg.width.toFixed(1)),
-            height: parseFloat(pkg.height.toFixed(1)),
-            units: "CM",
-          },
-        },
-        getOrSetGuestId(),
-        countryCode || undefined,
-      );
-
-      getRates(payload, {
-        onSuccess: (data) => {
-          setRates(data.rates);
-        },
-        onError: () => {
-          addToast({
-            title: "Calculation Failed",
-            message:
-              "Unable to calculate shipping rates. Please check address details.",
-            type: "error",
-          });
-        },
-      });
-    }
 
     addToast({
       title: "Success",
@@ -310,12 +281,15 @@ export default function NewShipmentPage() {
   };
 
   const handleServiceSelect = (rate: Rate) => {
-    setSelectedRate(rate);
+    // Find matching original rate to preserve raw carrier data for the backend
+    const originalRate =
+      rates.find((r) => r.serviceType === rate.serviceType) || rate;
+    setSelectedRate(originalRate);
     markSectionCompleted("service");
     setIsSummaryOpen(true);
     addToast({
       title: "Service Selected",
-      message: `${rate.serviceName} chosen. Review your shipment to continue.`,
+      message: `${deepTransformData(originalRate.serviceName)} chosen. Review your shipment to continue.`,
       type: "success",
     });
   };
@@ -331,7 +305,10 @@ export default function NewShipmentPage() {
     }
 
     const payload = {
-      carrierName: "FedEx", // Default for now
+      carrierSlug:
+        selectedRate.carrierSlug ||
+        selectedRate.carrier?.toLowerCase().replace(/\s+/g, "-") ||
+        "fedex", // Use slug if available, else derive from name
       pickupAddress: {
         streetLines: [sender.street],
         city: sender.city,
@@ -608,11 +585,12 @@ export default function NewShipmentPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-gray-900 leading-tight">
-                      {selectedRate.serviceName}
+                      {displaySelectedRate?.serviceName}
                     </p>
                     <p className="text-xs text-brand-blue font-bold tracking-tight">
-                      {selectedRate.price || selectedRate.actualPrice}{" "}
-                      {selectedRate.currency}
+                      {displaySelectedRate?.price ||
+                        displaySelectedRate?.actualPrice}{" "}
+                      {displaySelectedRate?.currency}
                     </p>
                   </div>
                 </div>
@@ -620,7 +598,7 @@ export default function NewShipmentPage() {
             }
           >
             <ServiceSelection
-              rates={rates}
+              rates={transformedRates}
               selectedRateId={selectedRate?.serviceType || null}
               onSelect={handleServiceSelect}
               isLoading={isCalculatingRates}
@@ -649,7 +627,7 @@ export default function NewShipmentPage() {
         sender={sender}
         recipient={recipient}
         pkg={packages[0] || null}
-        rate={selectedRate}
+        rate={displaySelectedRate}
         onFinalize={handleFinalize}
         isLoading={isCreatingShipment}
       />
