@@ -14,24 +14,37 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isInitializing = React.useRef(false);
 
   useEffect(() => {
     const initAuth = async () => {
+      if (isInitializing.current) return;
+
       const token = getAccessToken();
       if (!token) {
-        router.push("/login");
         setIsLoading(false);
+        router.push("/login");
         return;
       }
 
       if (!user) {
+        isInitializing.current = true;
         try {
           const { getCurrentUser } = await import("@/api/auth");
           const response = await getCurrentUser();
           updateUser(response.data.user);
-        } catch (error) {
-          console.error("Auth check failed", error);
-          router.push("/login");
+        } catch (error: any) {
+          // If it's a network error, the server might be down
+          if (error.message === "Network Error") {
+            console.error(
+              "Backend API is unreachable. Please ensure the server is running on port 8000.",
+            );
+          } else {
+            console.error("Auth check failed", error);
+            router.push("/login");
+          }
+        } finally {
+          isInitializing.current = false;
         }
       }
       setIsLoading(false);
@@ -72,7 +85,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out bg-white md:translate-x-0 md:static md:inset-0",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <SidebarNav

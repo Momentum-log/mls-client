@@ -38,7 +38,7 @@ export default function ShipmentDetailsPage() {
     if (cleanedData.labelUrl) {
       cleanedData.labelUrl = cleanedData.labelUrl.replace(
         "mls.com",
-        "fedex.com"
+        "fedex.com",
       );
     }
 
@@ -54,14 +54,16 @@ export default function ShipmentDetailsPage() {
       };
     }
 
-    // Reconstruct TrackingResponse for the sub-components
-    const tr: TrackingResponse = {
-      trackingNumber: cleanedData.tracking.trackingNumber,
-      carrier: cleanedData.carrier?.name || "MLS",
-      status: cleanedData.tracking.status,
-      timeline: cleanedData.tracking.timeline,
-      shipment: cleanedData,
-    };
+    // Reconstruct TrackingResponse for the sub-components if tracking data exists
+    const tr: TrackingResponse | null = cleanedData.tracking
+      ? {
+          trackingNumber: cleanedData.tracking.trackingNumber,
+          carrier: cleanedData.carrier?.name || "MLS",
+          status: cleanedData.tracking.status,
+          timeline: cleanedData.tracking.timeline,
+          shipment: cleanedData,
+        }
+      : null;
 
     return {
       shipment: cleanedData,

@@ -183,7 +183,8 @@ export interface Rate {
   // Common fields from various API responses
   serviceType: string;
   serviceName: string;
-  carrier: "FedEx" | "DHL" | "MLS"; // Added MLS as it might be transformed
+  carrier: string;
+  carrierSlug?: string;
   actualPrice: number; // The user-facing price
   carrierPrice?: number; // The cost price
   price?: number; // Kept for generic compatibility if needed
@@ -217,7 +218,7 @@ export interface ShippingEstimateResponse {
  * 'customs' is strictly optional (and usually not needed).
  */
 export interface LocalShipmentPayload {
-  carrierName: string; // e.g. "FedEx", "MLS"
+  carrierSlug: string; // e.g. "fedex", "mls"
   pickupAddress: Address;
   dropoffAddress: Address;
   package: PackageDetails;
@@ -231,7 +232,7 @@ export interface LocalShipmentPayload {
  * 'customs' is REQUIRED. TypeScript will error if you forget it.
  */
 export interface InternationalShipmentPayload {
-  carrierName: string;
+  carrierSlug: string;
   pickupAddress: Address;
   dropoffAddress: Address;
   package: PackageDetails;

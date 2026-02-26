@@ -70,7 +70,7 @@ export default function VerifyPage() {
 
   if (!sessionId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="flex items-center justify-center py-2">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
           <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <FiAlertCircle className="w-8 h-8 text-red-500" />
@@ -94,9 +94,9 @@ export default function VerifyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-12 text-center border border-gray-100">
-          <div className="w-16 h-16 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+      <div className="flex items-center justify-center py-2">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
+          <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <h2 className="text-xl font-black text-gray-900 tracking-tight">
             Finalizing Shipment...
           </h2>
@@ -109,11 +109,11 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="flex items-center justify-center py-2">
       <div className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
         {isSuccess ? (
           // SUCCESS STATE
-          <div className="p-8 md:p-12 text-center">
+          <div className="p-8 text-center">
             <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce-slow">
               <FiCheckCircle className="w-10 h-10 text-green-500" />
             </div>
@@ -185,7 +185,7 @@ export default function VerifyPage() {
           </div>
         ) : (
           // FAILURE STATE
-          <div className="p-8 md:p-12 text-center">
+          <div className="p-8 text-center">
             <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-8">
               <FiXCircle className="w-10 h-10 text-red-500" />
             </div>

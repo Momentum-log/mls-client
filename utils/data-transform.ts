@@ -53,6 +53,12 @@ export function deepTransformData<T>(data: T): T {
     const newObj: any = {};
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
+        // SKIP: Do not transform slug fields to preserve backend identifiers
+        if (key === "carrierSlug" || key === "slug") {
+          newObj[key] = (data as any)[key];
+          continue;
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         newObj[key] = deepTransformData((data as any)[key]);
       }
