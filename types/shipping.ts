@@ -1,5 +1,7 @@
+import { Invoice } from "./invoice";
+
 export interface ShippingRate {
-  carrier: "FedEx" | "DHL";
+  carrier: "FedEx" | "DHL" | "InPost" | string;
   serviceType: string;
   serviceName: string;
   carrierPrice: number;
@@ -48,6 +50,61 @@ export interface Dimensions {
   length: number;
 }
 
+export interface ItemDetail {
+  nameEn: string;
+  namePl: string;
+  quantity: number;
+  weight: number;
+  value: number;
+  tariffCode: string;
+}
+
+export type CustomsData =
+  | {
+      customsType: "S"; // Simplified clearance
+      costsOfShipment?: number;
+      currency: "PLN" | "EUR" | string;
+      vatRegistrationNumber?: string;
+      categoryOfItem: "9" | "11" | "21" | "31" | "32" | "91" | string;
+      grossWeight: number;
+      firstName: string;
+      secondaryName: string;
+      countryOfOrigin?: "PL" | string;
+      additionalInfo?: string;
+      customsItem: { item: ItemDetail | ItemDetail[] }[];
+      customAgreements?: {
+        notExceedValue: boolean;
+        notProhibitedGoods: true;
+        notRestrictedGoods: true;
+        invoiceContent: boolean;
+      };
+    }
+  | {
+      customsType: "I"; // Individual clearance
+      costsOfShipment?: number;
+      currency: "PLN" | "EUR" | string;
+      vatRegistrationNumber?: string;
+      categoryOfItem: "9" | "11" | "21" | "32" | string;
+      grossWeight: number;
+      firstName: string;
+      secondaryName: string;
+      countryOfOrigin?: "PL" | string;
+      additionalInfo?: string;
+      customsItem: { item: ItemDetail | ItemDetail[] }[];
+      // Required specific individual items
+      nipNr: string;
+      eoriNr?: string;
+      eoriNrReceiver?: string;
+      vatRegistrationNumberReceiver?: string;
+      invoiceNr?: string;
+      invoiceDate?: string; // YYYY-MM-DD
+      invoice?: string; // Base64
+      customAgreements?: {
+        notProhibitedGoods: true;
+        notRestrictedGoods: true;
+      };
+    };
+
 export interface Customs {
   currency: string;
   declaredValue: number;
@@ -70,17 +127,18 @@ export interface EstimatePackageDetails {
 
 /**
  * Payload for getting shipping rates/estimates.
- * 'customs' is NOT required for estimates regardless of the route.
+ * 'customs' is REQUIRED for international routes.
  */
 export interface ShippingEstimatePayload {
   pickup: Address;
   dropoff: Address;
   package: EstimatePackageDetails;
-  guestId: string;
+  guestId?: string; // Keep consistent with docs
   /** Optional ISO 3166-1 alpha-2 country code for currency determination (e.g., 'PL', 'DE') */
   userCountryCode?: string;
   email?: string;
   phone?: string;
+  customs?: CustomsData;
 }
 
 // Shipping estimate response
@@ -225,6 +283,7 @@ export interface LocalShipmentPayload {
   rate: Rate;
   customs?: never; // Using 'never' ensures you DON'T pass it by mistake
   userCountryCode?: string;
+  preferredPaymentOption?: "payu" | "stripe";
 }
 
 /**
@@ -239,12 +298,18 @@ export interface InternationalShipmentPayload {
   rate: Rate;
   customs: Customs; // <--- Mandatory
   userCountryCode?: string;
+  preferredPaymentOption?: "payu" | "stripe";
 }
 
 // Union type helper if you need to handle both generically
 export type CreateShipmentPayload =
   | LocalShipmentPayload
   | InternationalShipmentPayload;
+
+export type ShipmentMutationPayload = CreateShipmentPayload & {
+  shipmentId?: string;
+  invoiceId?: string;
+};
 
 // --- Verify Response ---
 
@@ -266,10 +331,18 @@ export interface TrackingTimeline {
 
 export interface TrackingResponse {
   trackingNumber: string;
-  carrier: string;
+  carrier?: string;
   status: string;
   timeline: TrackingTimeline[];
-  shipment: Shipment;
+  shipment?: Shipment;
+}
+
+export interface ShipmentTrackingSummary {
+  trackingNumber: string;
+  lastUpdate: string;
+  estimatedDelivery: string;
+  status: string;
+  timeline: TrackingTimeline[];
 }
 
 export interface CarrierInfo {
@@ -321,6 +394,11 @@ export interface Shipment {
   // --- Timestamps ---
   createdAt: string;
   updatedAt: string;
+
+  // --- Invoice (optional, populated when fetching full shipment details) ---
+  invoice?: Invoice; // ShipmentInvoice type from invoice.ts
+  invoiceId?: string;
+  tracking?: TrackingResponse; // TrackingResponse
 }
 
 export interface ShipmentStats {
@@ -329,12 +407,18 @@ export interface ShipmentStats {
   currency: string;
 }
 
-export interface GetShipmentResponse extends Shipment {
-  tracking: {
-    trackingNumber: string;
-    lastUpdate: string;
-    estimatedDelivery: string;
-    status: string;
-    timeline: TrackingTimeline[];
+export interface GetShipmentResponse extends Omit<Shipment, "tracking"> {
+  tracking?: TrackingResponse | ShipmentTrackingSummary;
+  invoice?: Invoice;
+  pdfGenerationStatus?: string;
+  pdfDownloadUrl?: string | null;
+}
+
+export interface ContinueToPayResponse {
+  shipmentId: string;
+  checkoutUrl?: string;
+  invoice?: {
+    id?: string;
+    invoiceId?: string;
   };
 }

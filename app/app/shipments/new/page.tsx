@@ -11,8 +11,15 @@ import { StackedSection } from "@/components/shipment/stacked-section";
 import AddressForm from "@/components/shipment/address-form";
 import PackageForm from "@/components/shipment/package-form";
 import ServiceSelection from "@/components/shipment/service-selection";
+import CustomsForm from "@/components/shipment/customs-form";
 import SummaryDrawer from "@/components/shipment/summary-drawer";
-import { FiMapPin, FiPackage, FiTruck, FiCheckCircle } from "react-icons/fi";
+import {
+  FiMapPin,
+  FiPackage,
+  FiTruck,
+  FiCheckCircle,
+  FiClipboard,
+} from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
 import Button from "@/components/ui/button";
 import {
@@ -20,7 +27,7 @@ import {
   useCreateShipment,
 } from "@/hooks/shipments/use-shipments";
 import { getOrSetGuestId } from "@/utils/auth-helper";
-import { Rate } from "@/types/shipping";
+import { Rate, CustomsData } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
@@ -51,11 +58,19 @@ export default function NewShipmentPage() {
     packages,
     addPackage,
     updatePackage,
+    customs,
+    setCustoms,
     selectedRate,
     setSelectedRate,
   } = useShipmentStore();
 
+  const isInternational =
+    sender?.country &&
+    recipient?.country &&
+    sender.country !== recipient.country;
+
   const { countryCode } = useCountryStore();
+  const activeCurrency = countryCode === "PL" ? "PLN" : "EUR";
 
   const [rates, setRates] = useState<Rate[]>([]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -149,6 +164,7 @@ export default function NewShipmentPage() {
         },
         getOrSetGuestId(),
         countryCode || undefined,
+        customs || undefined,
       );
 
       getRates(payload, {
@@ -165,6 +181,7 @@ export default function NewShipmentPage() {
         },
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     expandedSection,
     rates.length,
@@ -174,10 +191,11 @@ export default function NewShipmentPage() {
     packages,
     getRates,
     countryCode,
+    customs,
   ]);
 
-  const steps: TimelineStep[] = useMemo(
-    () => [
+  const steps: TimelineStep[] = useMemo(() => {
+    const arr: TimelineStep[] = [
       {
         id: "pickup",
         label: "Pick-up Details",
@@ -209,24 +227,37 @@ export default function NewShipmentPage() {
               : "pending",
       },
       {
-        id: "service",
-        label: "Service Selection",
+        id: "customs",
+        label: "Customs Details",
         status:
-          expandedSection === "service"
+          expandedSection === "customs"
             ? "current"
-            : completedSteps.includes("service")
+            : completedSteps.includes("customs")
               ? "completed"
               : "pending",
       },
-    ],
-    [expandedSection, completedSteps],
-  );
+    ];
+
+    arr.push({
+      id: "service",
+      label: "Service Selection",
+      status:
+        expandedSection === "service"
+          ? "current"
+          : completedSteps.includes("service")
+            ? "completed"
+            : "pending",
+    });
+
+    return arr;
+  }, [expandedSection, completedSteps]);
 
   const isSectionVisible = (id: string) => {
     if (id === "pickup") return true;
     if (id === "dropoff") return completedSteps.includes("pickup");
     if (id === "package") return completedSteps.includes("dropoff");
-    if (id === "service") return completedSteps.includes("package");
+    if (id === "customs") return completedSteps.includes("package");
+    if (id === "service") return completedSteps.includes("customs");
     return false;
   };
 
@@ -268,11 +299,32 @@ export default function NewShipmentPage() {
     addPackage(pkg);
     markSectionCompleted("package");
     setRates([]); // Clear previous rates to trigger re-fetch in useEffect
-    setExpandedSection("service");
+
+    if (isInternational) {
+      setExpandedSection("customs");
+    } else {
+      setExpandedSection("service");
+    }
 
     addToast({
       title: "Success",
       message: "Package details confirmed.",
+      type: "success",
+    });
+    document
+      .getElementById("customs")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  const handleCustomsSubmit = (data: CustomsData) => {
+    setCustoms(data);
+    markSectionCompleted("customs");
+    setRates([]); // Clear previous rates
+    setExpandedSection("service");
+
+    addToast({
+      title: "Success",
+      message: "Customs details confirmed.",
       type: "success",
     });
     document
@@ -294,8 +346,14 @@ export default function NewShipmentPage() {
     });
   };
 
-  const handleFinalize = () => {
-    if (!sender || !recipient || !packages[0] || !selectedRate) {
+  const handleFinalize = (paymentMethod: "stripe" | "payu") => {
+    if (
+      !sender ||
+      !recipient ||
+      !packages[0] ||
+      !selectedRate ||
+      (isInternational && !customs)
+    ) {
       addToast({
         title: "Missing Information",
         message: "Please ensure all steps are completed before finalizing.",
@@ -354,30 +412,36 @@ export default function NewShipmentPage() {
         actualPrice: selectedRate.actualPrice,
         currency: selectedRate.currency,
       },
-      customs: {
-        contentsDescription: packages[0].description,
-        declaredValue: packages[0].value,
-        currency: packages[0].currency,
-      },
+      customs: isInternational ? customs : undefined,
       userCountryCode: countryCode,
+      preferredPaymentOption: paymentMethod,
     };
 
     performCreateShipment(payload, {
       onSuccess: (data) => {
+        if (data?.paymentGateway) {
+          localStorage.setItem("lastPaymentGateway", data.paymentGateway);
+        }
+        if (data?.shipmentId) {
+          localStorage.setItem("lastShipmentId", data.shipmentId);
+        }
+
         addToast({
           title: "Shipment Initialized",
-          message: "Redirecting to secure payment page...",
+          message: "Redirecting to invoice...",
           type: "success",
         });
 
         // Small delay to let the user see the toast
         setTimeout(() => {
-          if (data.checkoutUrl) {
+          if (data.invoice?.id) {
+            router.push(`/app/invoices/${data.invoice.id}`);
+          } else if (data.checkoutUrl) {
             window.location.href = data.checkoutUrl;
           } else {
             addToast({
               title: "Error",
-              message: "Checkout URL not found. Please try again.",
+              message: "Invoice or Checkout URL not found. Please try again.",
               type: "error",
             });
           }
@@ -564,11 +628,48 @@ export default function NewShipmentPage() {
               onSubmit={handlePackageSubmit}
               onSync={updatePackage}
               onBack={() => setExpandedSection("dropoff")}
+              submitLabel="Customs Details"
+              isInternational={Boolean(isInternational)}
+              currency={activeCurrency}
             />
           </StackedSection>
         )}
 
-        {/* 4. Service Selection */}
+        {/* 4. Customs Details */}
+        {isSectionVisible("customs") && (
+          <StackedSection
+            id="customs"
+            title="Customs Details"
+            icon={<FiClipboard className="w-5 h-5" />}
+            isExpanded={expandedSection === "customs"}
+            isCompleted={completedSteps.includes("customs")}
+            onEdit={() => setExpandedSection("customs")}
+            summary={
+              customs && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                    Declaration Type
+                  </p>
+                  <p className="font-bold text-gray-900 leading-tight">
+                    {customs.customsType === "S" ? "Business" : "Individual"} -{" "}
+                    {customs.customsItem?.length} items
+                  </p>
+                </div>
+              )
+            }
+          >
+            <CustomsForm
+              initialValues={customs}
+              pkg={packages[0] || null}
+              sender={sender}
+              currency={activeCurrency}
+              onSubmit={handleCustomsSubmit}
+              onBack={() => setExpandedSection("package")}
+            />
+          </StackedSection>
+        )}
+
+        {/* 5. Service Selection */}
         {isSectionVisible("service") && (
           <StackedSection
             id="service"

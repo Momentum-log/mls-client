@@ -6,6 +6,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        default:
+          "bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-opacity-80 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2",
         primary:
           "bg-brand-blue text-white active:bg-opacity-80 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 hover:bg-brand-yellow hover:text-brand-blue hover:ring-2 hover:ring-brand-yellow hover:ring-offset-2",
         secondary:
@@ -68,4 +70,5 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
+export { Button };
 export default Button;

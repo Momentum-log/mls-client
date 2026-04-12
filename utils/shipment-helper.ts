@@ -46,6 +46,8 @@ export const getShipmentDisplayName = (shipment: Shipment) => {
 
 /**
  * Maps a Shipment object to the partial store state required for re-creation.
+ * Includes customs data when available for international shipments.
+ * Used in the "Duplicate Shipment" feature to repopulate the form with previous data.
  */
 export const mapShipmentToStore = (shipment: Shipment) => {
   const mapAddress = (addr: any) => ({
@@ -76,5 +78,6 @@ export const mapShipmentToStore = (shipment: Shipment) => {
     sender: mapAddress(shipment.pickupAddress),
     recipient: mapAddress(shipment.dropoffAddress),
     packages: [pkg],
+    customs: shipment.customs || null,
   };
 };

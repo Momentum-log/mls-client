@@ -143,6 +143,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   const cityTouched = getFieldTouched(cityKey);
   const zipError = getFieldError(zipKey);
   const zipTouched = getFieldTouched(zipKey);
+  const streetError = getFieldError(streetKey);
   const streetTouched = getFieldTouched(streetKey);
   const emailError = getFieldError(emailKey);
   const emailTouched = getFieldTouched(emailKey);
@@ -220,10 +221,13 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
             placeholder="Search for street address..."
             className={cn(
               "pl-11",
-              streetTouched && !streetValue ? "border-red-500" : "",
+              streetTouched && streetError ? "border-red-500" : "",
             )}
           />
         </div>
+        {streetTouched && streetError && (
+          <p className="text-red-500 text-xs mt-1 font-semibold">{streetError}</p>
+        )}
       </div>
 
       {/* Country - Searchable Dropdown */}

@@ -203,3 +203,63 @@ export const Select: React.FC<SelectProps> = ({
     </div>
   );
 };
+
+/**
+ * Subcomponent exports for compound component pattern compatibility.
+ * These components are simplified wrappers that work with the main Select component.
+ * Note: The main Select handles all logic; these are primarily for structural compatibility.
+ */
+
+export interface SelectTriggerProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
+  ({ children, className }, ref) => (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  )
+);
+
+SelectTrigger.displayName = 'SelectTrigger';
+
+export interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
+  ({ children, className }, ref) => (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  )
+);
+
+SelectContent.displayName = 'SelectContent';
+
+export interface SelectItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  value: string;
+  children: React.ReactNode;
+}
+
+export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
+  ({ value, children, ...props }, ref) => (
+    <div ref={ref} data-value={value} {...props}>
+      {children}
+    </div>
+  )
+);
+
+SelectItem.displayName = 'SelectItem';
+
+export interface SelectValueProps {
+  placeholder?: string;
+  children?: React.ReactNode;
+}
+
+export const SelectValue: React.FC<SelectValueProps> = ({ placeholder, children }) => (
+  <span>{children || placeholder}</span>
+);

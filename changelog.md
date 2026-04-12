@@ -5,6 +5,162 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.40.2] - 2026-04-12 - PRD for Codebase Quality Stabilization
+
+- Added: New PRD `docs/prd/prd-codebase-quality-stabilization.md` for full lint/type/react quality hardening in currently reported lint scope.
+- Added: Risk-phased remediation plan with strict validation gates:
+  - `bun run lint` must pass with zero warnings and zero errors.
+  - `bunx tsc --noEmit` must pass.
+  - `bun run build` must pass.
+  - Smoke checks for auth, shipments, invoices, and tracking must pass without runtime warnings.
+- Added: Task categories covering all current rule families and in-scope files, including explicit `any` elimination policy and regression-prevention guardrails.
+
+## [1.40.1] - 2026-04-12 - Invoice List Mapping and Payment Flow Alignment
+
+- Fixed: Invoice list rendering with wrapped API responses
+  - Normalized `/invoices/business/filter` and fallback `/invoices` responses from backend envelope format (`status/data/pagination`) into frontend `ListInvoicesResponse`.
+  - Added mapper for list items (`id/date/breakdown.base`) to frontend invoice fields (`invoiceId/createdAt/totalNetAmount/totalGrossAmount`).
+  - Restored invoice visibility in both the invoices table and invoice sidebar navigation.
+- Changed: Invoice page table readability and consistency
+  - Enforced light-surface styles for invoices layout and table cards to prevent dark unreadable combinations.
+  - Standardized border radii and improved contrast for headers, rows, and pagination controls.
+- Fixed: Carrier masking in user-facing invoice views
+  - Applied carrier display transformation in invoice receipt line items so strings like "FedEx International ..." render as "MLS International ...".
+  - Updated shipment invoice drawer to pass display-transformed invoice data.
+- Fixed: Invoice totals normalization in receipt drawer
+  - Added robust fallbacks for amount fields across API variants (`base/basePrice`, `tax/taxAmount`, `total/totalAmount`).
+  - Corrected net and total values when older/newer invoice payload shapes are returned.
+- Changed: Shipment details payment behavior
+  - Removed standalone "Complete Payment" action from shipment status banner.
+  - Payment is now driven by invoice status and invoice actions (View Invoice -> Pay Now/Update).
+
+## [1.40.0] - 2026-04-11 - Invoice Receipt UI
+
+- Added: **Receipt-Style Invoice View** (`InvoiceReceiptView.tsx`)
+    - Premium receipt-style layout with invoice header, seller/buyer info, line items table, tax breakdown, and gross total
+    - Shared component used by both the dedicated invoice page and the invoice side drawer
+    - Supports condensed mode for drawer views and full mode for the dedicated page
+    - Integrated Pay Now, Download PDF, and Send via Email action buttons
+    - PDF generation polling via `usePdfStatus` hook with retry logic
+- Added: **Expiration Countdown Timer** (`ExpirationCountdown.tsx`)
+    - Live countdown updating every second with three visual states:
+        - **Active** (>24h): Calm blue banner
+        - **Expiring Soon** (<24h): Amber/warning banner with urgency
+        - **Expired** (0): Red banner with "Update Shipment" CTA
+    - Two layout variants: `banner` (full-width top bar) and `inline` (compact near Pay button)
+- Added: **Invoice Side Drawer** (`InvoiceDrawer.tsx`)
+    - Slides in from right via framer-motion animation
+    - Shows condensed InvoiceReceiptView with all actions
+    - "View Full Invoice" footer link navigates to dedicated page
+    - Triggered from "Open Invoice" button on shipment details page
+- Added: **Update Shipment Modal** (`UpdateShipmentModal.tsx`)
+    - Inline rate-picker modal for PENDING/EXPIRED invoices
+    - Fetches fresh rates from original shipment data
+    - Payment method selector (Stripe/PayU) with country-aware defaults
+    - Sends update payload with `shipmentId` + `invoiceId` to trigger server UPDATE flow
+- Changed: **Invoice Detail Page** (`app/app/invoices/[id]/page.tsx`)
+    - Complete rewrite using `InvoiceReceiptView` instead of legacy `InvoiceSummary`
+    - Integrated `UpdateShipmentModal` for inline rate updates
+    - Premium loading skeleton and error state with branded styling
+- Changed: **Shipment Details Page** (`app/app/shipments/[id]/page.tsx`)
+    - InvoiceCard click now opens `InvoiceDrawer` instead of navigating away
+    - Added "Open Invoice" button below InvoiceCard
+    - Integrated `InvoiceDrawer` and `UpdateShipmentModal` overlay components
+    - Update flow redirects to refreshed invoice page on success
+- Changed: Component exports updated in `components/invoice/index.ts`
+
+## [1.39.1] - 2026-04-09 - Invoice Pages and Shipment Integration
+
+- Changed: Shipment Creation redirect updates
+  - Updated the application so that after shipment creation, the user is redirected to the invoice details page (`/app/invoices/[id]`) instead of immediately going to the payment options. This honors the invoice preview flow before payment, where users can choose to 'Pay', 'Download PDF' or 'Email Invoice'.
+
+- Added: Complete invoice pages and routes
+  - `/app/invoices` - List page with pagination, filtering (All, Pending, Paid, Expired), and sorting
+  - `/app/invoices/[id]` - Detail page showing full invoice with all sections and actions
+  - `/app/shipments/payment-success` - Post-payment success page with InvoiceReceipt and next steps
+- Added: Invoice card integration to shipment details
+  - Invoice card now appears in shipment details sidebar when invoice exists
+  - Clickable invoice card opens full invoice detail page
+  - Quick action buttons (download, email, update, pay) in card
+- Added: Update invoice flow hook
+  - `useInvoiceUpdateFlow.ts`: Detects `?invoiceId={id}&shipmentId={sid}` params
+  - Automatically fetches original shipment and invoice data for editing
+  - Enables form pre-population for invoice updates
+- Changed: Shipment details page
+  - Added InvoiceCard component to sidebar
+  - Added router import for navigation to invoice pages
+  - Integrated invoice-related actions
+- Fixed: Component exports
+  - Updated `components/invoice/index.ts` to export all new components
+  - Updated `hooks/invoices/index.ts` to export new hooks
+
+## [1.39.0] - 2026-03-24 - Invoice Management System Client Implementation
+
+- Added: Complete invoice management UI components library
+  - `InvoiceStatusBadge.tsx`: Status display with color-coded badges (Pending→Yellow, Expired→Red, Paid→Green)
+  - `InvoiceActionsNew.tsx`: Action buttons for download, email, update, and payment with PDF polling
+  - `InvoiceCardNew.tsx`: Compact inline invoice card for shipment details view
+  - `InvoiceSummaryNew.tsx`: Full invoice details modal/page with buyer/seller info, line items, and totals
+  - `InvoiceReceiptNew.tsx`: Post-payment confirmation with transaction details
+  - `InvoicesListNew.tsx`: Paginated invoice list with status filtering, sorting, and bulk actions
+- Added: PDF status polling hook
+  - `hooks/invoices/usePdfStatus.ts`: Smart polling with exponential backoff for async PDF generation (max 10 retries)
+- Added: Comprehensive invoice utility functions
+  - `utils/invoice-helpers.ts`: 23+ helpers for formatting, validation, and business logic (23% tax rate, PLN currency)
+- Added: Enhanced invoice type definitions
+  - `types/invoice.ts`: New interfaces for `PdfGenerationStatus`, `InvoiceQuickInfo`, `CreateShipmentResponse`, `PdfStatusResponse`
+- Changed: Invoice data flow alignment
+  - Updated types to distinguish between server-side `pdfGenerationStatus` flag and actual `pdfDownloadUrl`
+  - Clarified async PDF generation: backend generates, client polls via GET `/api/invoices/{id}/pdf`
+- Fixed: Payment link handling
+  - Filters active payment links from `invoice.paymentLinks` array
+  - Shows expiration countdown with formatting (e.g., "Expires in 1 hour 23 minutes")
+
+## [1.38.2] - 2026-03-23 - Shipping Estimate Customs Fine-tuning
+
+- Changed: Package Details Enhancements
+  - Made "Declared Value" strictly required (must be > 0) when the shipment route is international.
+  - Dynamically updates the displayed currency (PLN vs EUR) based on the user's detected country code.
+- Changed: Intelligent Defaults for Customs
+  - The Customs Form now automatically extracts the `sender.name` from the pick-up details and splits it cleanly into `First Name` and `Last Name`.
+  - Automatically imports the total package weight into the "Total Gross Weight" field to eliminate manual re-entry.
+
+## [1.38.1] - 2026-03-23 - Shipping Estimate Customs UX Improvements
+
+- Changed: Unified Package and Customs Data Flow
+  - Streamlined `CustomsForm.tsx` by removing redundant inputs for item weight, value, and quantity.
+  - Automatically derives and evenly splits `weight` and `value` proportionally across declared customs items based on the data entered in the `Package Details` step.
+  - Pre-fills `nameEn` (Item Description) globally and reuses it for the required `namePl` in the background payload.
+- Changed: Shipment Timeline & Buttons Optimization
+  - Promoted "Customs Details" from a fractional step (3.5) to a full step (4), making "Service Selection" step 5.
+  - Made the `Package Details` submit button label dynamic: displays "Customs Details" for international shipments to properly indicate the next step, while remaining "Calculate Rates" for domestic.
+  - Changed the `Customs Details` submit button to "Calculate Rates" reflecting its position right before rate fetching.
+
+## [1.38.0] - 2026-03-23 - Shipping Estimate Customs Integration
+
+- Added: Strict Customs Information Flow for International Shipments
+  - Created `<CustomsForm />` to explicitly collect standard `CustomsData` (`customsType`, `nipNr`, item `tariffCode`, etc.).
+  - Added conditional rendering of "Customs Details" step in the new shipment `VerticalTimeline` when pickup country deviates from dropoff country.
+  - Implemented Business (Simplified) and Individual clearance entity tabs mapped to strict logic.
+- Changed: Payload & API Enhancements
+  - Upgraded payload utility `getEstimatePayload()` to append nested `customs` properties conditionally for international costs.
+  - Retained lightweight quoting mechanism by bypassing customs declarations for domestic shipments.
+- Added: User Settings Persistence
+  - Extended `User` schema and `ProfileForm` to include `defaultCustomsType` (Business/Individual) for future defaults.
+
+## [1.37.0] - 2026-02-28 - Payment Gateway Selection for Checkout
+
+- Added: Preferred Payment Method UI
+  - Introduced an interactive payment selector allowing users to choose between Stripe (Credit/Debit Card) and PayU.
+  - Automatically recommends "PayU" for Polish users (`PL` origin/user profile) and "Stripe" for international users.
+  - Payment method state seamlessly integrates into the shipment payload.
+- Changed: Shipment Creation Payload Upgrades
+  - Extended `CreateShipmentPayload`, `LocalShipmentPayload`, and `InternationalShipmentPayload` types to include the `preferredPaymentOption` property.
+  - The API submission (`getPayload` and `createShipment`) incorporates the selected intent natively.
+- Fixed: Payment Reliability & UI Polish
+  - Persisted the gateway returned by the API (`paymentGateway`) into localStorage ensuring verification flows work effortlessly upon user return.
+  - Cleaned up React hooks violations caused by synchronous effect updates in the summary form.
+
 ## [1.36.0] - 2026-02-25 - Shipment Creation Payload Update
 
 - Changed: Shipment Creation Payload Requirements

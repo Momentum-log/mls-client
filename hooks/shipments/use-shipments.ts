@@ -8,6 +8,8 @@ import {
   getShipment,
 } from "@/api/shipments";
 import {
+  CreateShipmentResponse,
+  ShipmentMutationPayload,
   ShippingEstimatePayload,
   ShippingEstimateResponse,
   Shipment,
@@ -31,7 +33,7 @@ export const useGetShippingEstimate = () => {
  * Hook to create a new shipment.
  */
 export const useCreateShipment = () => {
-  return useMutation<any, Error, any>({
+  return useMutation<CreateShipmentResponse, Error, ShipmentMutationPayload>({
     mutationFn: createShipment,
   });
 };

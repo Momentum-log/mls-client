@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useShipmentStore } from "@/store/shipment-store";
 import { mapShipmentToStore } from "@/utils/shipment-helper";
-import { Shipment } from "@/types/shipping";
+import { Shipment, CustomsData } from "@/types/shipping";
 import { useToast } from "@/hooks/use-toast";
 
 /**
@@ -26,10 +26,21 @@ export const useDuplicateShipment = () => {
       setRecipient(mappedData.recipient as any);
       setPackages(mappedData.packages);
 
+      // 3.5. Set customs data if available
+      const { setCustoms } = useShipmentStore.getState();
+      if (mappedData.customs) {
+        setCustoms(mappedData.customs as any);
+      }
+
       // 4. Mark sections as completed to reveal them in the UI
       useShipmentStore.getState().markSectionCompleted("pickup");
       useShipmentStore.getState().markSectionCompleted("dropoff");
       useShipmentStore.getState().markSectionCompleted("package");
+
+      // 4.5. Mark customs as completed if customs data exists
+      if (mappedData.customs) {
+        useShipmentStore.getState().markSectionCompleted("customs");
+      }
 
       // 5. Expand the Service Selection section since all prior steps are done
       useShipmentStore.getState().setExpandedSection("service");

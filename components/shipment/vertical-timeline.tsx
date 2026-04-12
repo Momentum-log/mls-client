@@ -31,14 +31,14 @@ export const VerticalTimeline: React.FC<VerticalTimelineProps> = ({
           {/* Connector Line */}
           {index !== steps.length - 1 && (
             <div
-              className={`absolute left-[11px] top-[24px] w-[2px] h-[calc(100%-8px)] transition-colors duration-300 ${
+              className={`absolute left-[11px] top-6 w-0.5 h-[calc(100%-8px)] transition-colors duration-300 ${
                 step.status === "completed" ? "bg-brand-blue" : "bg-gray-200"
               }`}
             />
           )}
 
           {/* Icon & Label */}
-          <div className="flex items-start gap-4 pb-8 min-h-[64px]">
+          <div className="flex items-start gap-4 pb-8 min-h-16">
             <div className="relative z-10 pt-1">
               {step.status === "completed" ? (
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-brand-blue/10 text-brand-blue animate-in zoom-in duration-300">
@@ -61,8 +61,8 @@ export const VerticalTimeline: React.FC<VerticalTimelineProps> = ({
                   step.status === "current"
                     ? "text-brand-blue"
                     : step.status === "completed"
-                    ? "text-gray-900"
-                    : "text-gray-400"
+                      ? "text-gray-900"
+                      : "text-gray-400"
                 }`}
               >
                 {step.label}

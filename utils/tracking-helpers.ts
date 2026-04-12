@@ -1,22 +1,12 @@
 import { Shipment } from "@/types/shipping";
-
-// Core replacements
-const replaceFedExText = (text: string): string => {
-  if (!text) return text;
-
-  let result = text;
-  // "fedex" (lowercase) -> "mls"
-  // "FedEx" / "FEDEX" / "Fedex" (mixed/caps) -> "MLS"
-  result = result.replace(/fedex/g, "mls"); // Exact lowercase match
-  result = result.replace(/FedEx/g, "MLS"); // Standard
-  result = result.replace(/FEDEX/g, "MLS"); // ALL CAPS
-  result = result.replace(/Fedex/g, "MLS"); // Title case
-  return result;
-};
+import {
+  deepBrandCarrierDisplay,
+  toDisplayCarrierName,
+} from "@/utils/carrier-branding";
 
 // Formatting/humanizing helper
 const humanizeServiceTerms = (text: string): string => {
-  let result = replaceFedExText(text);
+  let result = toDisplayCarrierName(text);
 
   // Specific Service Name Simplifications
   result = result.replace(/International Connect Plus/gi, "Connect+");
@@ -31,28 +21,34 @@ const humanizeServiceTerms = (text: string): string => {
   return result;
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
 // Deep recursive cleaner
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const deepClean = (obj: any): any => {
+export const deepClean = <T>(obj: T): T => {
   if (typeof obj === "string") {
-    return humanizeServiceTerms(obj);
+    return humanizeServiceTerms(obj) as T;
   }
+
   if (Array.isArray(obj)) {
-    return obj.map((item) => deepClean(item));
+    return obj.map((item) => deepClean(item)) as T;
   }
-  if (obj && typeof obj === "object") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newObj: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        newObj[key] = deepClean(obj[key]);
-      }
-    }
-    return newObj;
+
+  if (!isRecord(obj)) {
+    return obj;
   }
-  return obj;
+
+  const base = deepBrandCarrierDisplay(obj);
+  const result: Record<string, unknown> = {};
+
+  Object.entries(base).forEach(([key, value]) => {
+    result[key] = deepClean(value);
+  });
+
+  return result as T;
 };
 
 export const transformShipmentData = (shipment: Shipment): Shipment => {
-  return deepClean(shipment) as Shipment;
+  return deepClean(shipment);
 };

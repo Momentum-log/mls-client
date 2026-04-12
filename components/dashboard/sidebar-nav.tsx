@@ -12,6 +12,7 @@ import logoLandscape from "@/public/images/logo-landscape.svg";
 import {
   FiHome,
   FiPackage,
+  FiFileText,
   FiSettings,
   FiLogOut,
   FiPlusCircle,
@@ -24,6 +25,7 @@ const navItems = [
   { name: "New Shipment", href: "/app/shipments/new", icon: FiPlusCircle },
   { name: "Track Shipment", href: "/app/track", icon: FiSearch },
   { name: "My Shipments", href: "/app/shipments", icon: FiPackage },
+  { name: "Invoices", href: "/app/invoices", icon: FiFileText },
   { name: "Account", href: "/app/account", icon: FiSettings },
 ];
 

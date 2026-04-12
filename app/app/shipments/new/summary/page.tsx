@@ -116,12 +116,14 @@ export default function SummaryPage() {
 
       toast({
         title: "Shipment Created!",
-        message: "Redirecting to payment...",
+        message: "Redirecting to invoice...",
         type: "success",
         duration: 3000,
       });
 
-      if (checkoutUrl) {
+      if (data.invoice?.id) {
+        router.push(`/app/invoices/${data.invoice.id}`);
+      } else if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
         router.push("/app/dashboard");
