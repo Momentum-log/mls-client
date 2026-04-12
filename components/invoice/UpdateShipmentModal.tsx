@@ -209,8 +209,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       onError: () => {
         addToast({
           title: "Rate Calculation Failed",
-          message:
-            "Unable to fetch fresh rates. Please try again.",
+          message: "Unable to fetch fresh rates. Please try again.",
           type: "error",
         });
       },
@@ -400,9 +399,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
                         selectedRate?.serviceType === rate.serviceType;
                       // Find original (non-transformed) rate for payload
                       const originalRate =
-                        rates.find(
-                          (r) => r.serviceType === rate.serviceType,
-                        ) || rate;
+                        rates.find((r) => r.serviceType === rate.serviceType) ||
+                        rate;
 
                       return (
                         <button

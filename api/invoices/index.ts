@@ -80,7 +80,8 @@ const toPaymentLinks = (item: InvoiceListApiItem): InvoicePaymentLink[] => {
   }
 
   const expiresAt = item.expiresAt || item.date;
-  const isExpired = Boolean(expiresAt) && new Date(expiresAt).getTime() < Date.now();
+  const isExpired =
+    Boolean(expiresAt) && new Date(expiresAt).getTime() < Date.now();
 
   return [
     {
@@ -98,9 +99,12 @@ const toPaymentLinks = (item: InvoiceListApiItem): InvoicePaymentLink[] => {
 const normalizeInvoiceListItem = (item: InvoiceListApiItem): Invoice => {
   const breakdown = item.breakdown;
   const totalNetAmount = breakdown?.basePrice ?? breakdown?.base ?? 0;
-  const totalVATAmount = breakdown?.taxAmount ?? breakdown?.tax ?? item.tax?.taxAmount ?? 0;
+  const totalVATAmount =
+    breakdown?.taxAmount ?? breakdown?.tax ?? item.tax?.taxAmount ?? 0;
   const totalGrossAmount =
-    breakdown?.totalAmount ?? breakdown?.total ?? totalNetAmount + totalVATAmount;
+    breakdown?.totalAmount ??
+    breakdown?.total ??
+    totalNetAmount + totalVATAmount;
 
   return {
     invoiceId: item.id,
@@ -152,7 +156,9 @@ const normalizeInvoicesListResponse = (
     total,
     limit: envelope.pagination?.limit ?? fallback.limit,
     offset: envelope.pagination?.offset ?? fallback.offset,
-    hasMore: envelope.pagination?.hasMore ?? fallback.offset + normalizedInvoices.length < total,
+    hasMore:
+      envelope.pagination?.hasMore ??
+      fallback.offset + normalizedInvoices.length < total,
   };
 };
 
@@ -192,9 +198,9 @@ export const getInvoices = async (
   });
 
   try {
-    const response = await apiClient.get<ListInvoicesResponse | InvoiceListApiEnvelope>(
-      `/invoices/business/filter?${query.toString()}`,
-    );
+    const response = await apiClient.get<
+      ListInvoicesResponse | InvoiceListApiEnvelope
+    >(`/invoices/business/filter?${query.toString()}`);
     return normalizeInvoicesListResponse(response.data, {
       limit: params.limit,
       offset: params.offset,
@@ -204,9 +210,9 @@ export const getInvoices = async (
 
     // Fallback for environments where the business filter route is not enabled yet.
     if (axiosError.response?.status === 404) {
-      const response = await apiClient.get<ListInvoicesResponse | InvoiceListApiEnvelope>(
-        `/invoices?${query.toString()}`,
-      );
+      const response = await apiClient.get<
+        ListInvoicesResponse | InvoiceListApiEnvelope
+      >(`/invoices?${query.toString()}`);
       return normalizeInvoicesListResponse(response.data, {
         limit: params.limit,
         offset: params.offset,
@@ -230,8 +236,12 @@ export const getInvoices = async (
  * console.log(response.data.details);
  * ```
  */
-export const getInvoice = async (invoiceId: string): Promise<GetInvoiceResponse> => {
-  const response = await apiClient.get<GetInvoiceResponse>(`/invoices/${invoiceId}`);
+export const getInvoice = async (
+  invoiceId: string,
+): Promise<GetInvoiceResponse> => {
+  const response = await apiClient.get<GetInvoiceResponse>(
+    `/invoices/${invoiceId}`,
+  );
   return response.data;
 };
 

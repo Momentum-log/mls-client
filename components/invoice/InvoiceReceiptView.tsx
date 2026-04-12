@@ -36,11 +36,7 @@ import {
 import { toDisplayCarrierName } from "@/utils/carrier-branding";
 import { useToast } from "@/hooks/use-toast";
 import Button from "@/components/ui/button";
-import {
-  FiCreditCard,
-  FiRefreshCw,
-  FiCheckCircle,
-} from "react-icons/fi";
+import { FiCreditCard, FiRefreshCw, FiCheckCircle } from "react-icons/fi";
 
 /**
  * Props for InvoiceReceiptView component
@@ -285,9 +281,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
                 To
               </p>
-              <p className="font-bold text-gray-900 text-sm">
-                {buyerName}
-              </p>
+              <p className="font-bold text-gray-900 text-sm">{buyerName}</p>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                 {buildAddressString(
                   buyerStreet,

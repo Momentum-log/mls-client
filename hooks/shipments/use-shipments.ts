@@ -105,7 +105,7 @@ export const useShipmentStats = () => {
     // Filter and sort for recent shipments
     const sortedShipments = [...shipments].sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
     shipments.forEach((shipment) => {

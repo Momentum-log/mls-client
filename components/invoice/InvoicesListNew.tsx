@@ -196,7 +196,9 @@ export const InvoicesList: React.FC<InvoicesListProps> = ({
             </p>
             <Select
               value={selectedStatus}
-              onChange={(val) => handleStatusChange(val as InvoiceStatus | "all")}
+              onChange={(val) =>
+                handleStatusChange(val as InvoiceStatus | "all")
+              }
               className="w-full sm:w-52 mt-2"
               options={[
                 { label: "All Invoices", value: "all" },

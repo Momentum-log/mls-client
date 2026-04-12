@@ -34,7 +34,9 @@ export const InvoicesSidebar: React.FC<InvoicesSidebarProps> = ({
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<InvoiceStatus | "ALL">("ALL");
+  const [filterStatus, setFilterStatus] = useState<InvoiceStatus | "ALL">(
+    "ALL",
+  );
 
   // Fetch invoices
   const { data: invoicesResponse, isLoading } = useGetInvoices({
@@ -178,9 +180,7 @@ export const InvoicesSidebar: React.FC<InvoicesSidebarProps> = ({
           {filteredInvoices.map((invoice: Invoice) => (
             <button
               key={invoice.invoiceId}
-              onClick={() =>
-                handleInvoiceClick(invoice.invoiceId || "")
-              }
+              onClick={() => handleInvoiceClick(invoice.invoiceId || "")}
               className={`w-full p-3 rounded-lg border text-left transition-all ${
                 selectedInvoiceId === invoice.invoiceId
                   ? "bg-brand-blue/10 border-brand-blue shadow-sm"
@@ -194,7 +194,8 @@ export const InvoicesSidebar: React.FC<InvoicesSidebarProps> = ({
                     Invoice
                   </p>
                   <p className="font-bold text-gray-900 text-sm truncate">
-                    {invoice.invoiceNumber || invoice.invoiceId?.substring(0, 8)}
+                    {invoice.invoiceNumber ||
+                      invoice.invoiceId?.substring(0, 8)}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -221,10 +222,7 @@ export const InvoicesSidebar: React.FC<InvoicesSidebarProps> = ({
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs text-gray-500">Created</span>
                   <span className="text-xs text-gray-600 font-medium">
-                    {formatInvoiceDate(
-                      invoice.createdAt,
-                      false,
-                    )}
+                    {formatInvoiceDate(invoice.createdAt, false)}
                   </span>
                 </div>
               </div>

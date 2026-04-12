@@ -37,36 +37,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.40.0] - 2026-04-11 - Invoice Receipt UI
 
 - Added: **Receipt-Style Invoice View** (`InvoiceReceiptView.tsx`)
-    - Premium receipt-style layout with invoice header, seller/buyer info, line items table, tax breakdown, and gross total
-    - Shared component used by both the dedicated invoice page and the invoice side drawer
-    - Supports condensed mode for drawer views and full mode for the dedicated page
-    - Integrated Pay Now, Download PDF, and Send via Email action buttons
-    - PDF generation polling via `usePdfStatus` hook with retry logic
+  - Premium receipt-style layout with invoice header, seller/buyer info, line items table, tax breakdown, and gross total
+  - Shared component used by both the dedicated invoice page and the invoice side drawer
+  - Supports condensed mode for drawer views and full mode for the dedicated page
+  - Integrated Pay Now, Download PDF, and Send via Email action buttons
+  - PDF generation polling via `usePdfStatus` hook with retry logic
 - Added: **Expiration Countdown Timer** (`ExpirationCountdown.tsx`)
-    - Live countdown updating every second with three visual states:
-        - **Active** (>24h): Calm blue banner
-        - **Expiring Soon** (<24h): Amber/warning banner with urgency
-        - **Expired** (0): Red banner with "Update Shipment" CTA
-    - Two layout variants: `banner` (full-width top bar) and `inline` (compact near Pay button)
+  - Live countdown updating every second with three visual states:
+    - **Active** (>24h): Calm blue banner
+    - **Expiring Soon** (<24h): Amber/warning banner with urgency
+    - **Expired** (0): Red banner with "Update Shipment" CTA
+  - Two layout variants: `banner` (full-width top bar) and `inline` (compact near Pay button)
 - Added: **Invoice Side Drawer** (`InvoiceDrawer.tsx`)
-    - Slides in from right via framer-motion animation
-    - Shows condensed InvoiceReceiptView with all actions
-    - "View Full Invoice" footer link navigates to dedicated page
-    - Triggered from "Open Invoice" button on shipment details page
+  - Slides in from right via framer-motion animation
+  - Shows condensed InvoiceReceiptView with all actions
+  - "View Full Invoice" footer link navigates to dedicated page
+  - Triggered from "Open Invoice" button on shipment details page
 - Added: **Update Shipment Modal** (`UpdateShipmentModal.tsx`)
-    - Inline rate-picker modal for PENDING/EXPIRED invoices
-    - Fetches fresh rates from original shipment data
-    - Payment method selector (Stripe/PayU) with country-aware defaults
-    - Sends update payload with `shipmentId` + `invoiceId` to trigger server UPDATE flow
+  - Inline rate-picker modal for PENDING/EXPIRED invoices
+  - Fetches fresh rates from original shipment data
+  - Payment method selector (Stripe/PayU) with country-aware defaults
+  - Sends update payload with `shipmentId` + `invoiceId` to trigger server UPDATE flow
 - Changed: **Invoice Detail Page** (`app/app/invoices/[id]/page.tsx`)
-    - Complete rewrite using `InvoiceReceiptView` instead of legacy `InvoiceSummary`
-    - Integrated `UpdateShipmentModal` for inline rate updates
-    - Premium loading skeleton and error state with branded styling
+  - Complete rewrite using `InvoiceReceiptView` instead of legacy `InvoiceSummary`
+  - Integrated `UpdateShipmentModal` for inline rate updates
+  - Premium loading skeleton and error state with branded styling
 - Changed: **Shipment Details Page** (`app/app/shipments/[id]/page.tsx`)
-    - InvoiceCard click now opens `InvoiceDrawer` instead of navigating away
-    - Added "Open Invoice" button below InvoiceCard
-    - Integrated `InvoiceDrawer` and `UpdateShipmentModal` overlay components
-    - Update flow redirects to refreshed invoice page on success
+  - InvoiceCard click now opens `InvoiceDrawer` instead of navigating away
+  - Added "Open Invoice" button below InvoiceCard
+  - Integrated `InvoiceDrawer` and `UpdateShipmentModal` overlay components
+  - Update flow redirects to refreshed invoice page on success
 - Changed: Component exports updated in `components/invoice/index.ts`
 
 ## [1.39.1] - 2026-04-09 - Invoice Pages and Shipment Integration

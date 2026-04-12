@@ -90,8 +90,8 @@ const RateSelection: React.FC<RateSelectionProps> = ({
         "response" in err &&
         (err as { response?: { data?: { error?: string } } }).response?.data
           ?.error
-          ? (err as { response?: { data?: { error?: string } } }).response?.
-              data?.error
+          ? (err as { response?: { data?: { error?: string } } }).response?.data
+              ?.error
           : "Failed to create shipment";
 
       setError(errorMessage);
@@ -120,7 +120,8 @@ const RateSelection: React.FC<RateSelectionProps> = ({
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-bold text-gray-900">
-                    {toDisplayCarrierName(rate.carrier)} - {toDisplayCarrierName(rate.serviceName)}
+                    {toDisplayCarrierName(rate.carrier)} -{" "}
+                    {toDisplayCarrierName(rate.serviceName)}
                   </p>
                   <p className="text-sm text-gray-500">
                     {rate.deliveryDescription || "Standard Delivery"}

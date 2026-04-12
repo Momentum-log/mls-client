@@ -12,7 +12,7 @@ const humanizeServiceTerms = (text: string): string => {
   result = result.replace(/International Connect Plus/gi, "Connect+");
   result = result.replace(
     /International Priority Express/gi,
-    "Priority Express"
+    "Priority Express",
   );
   result = result.replace(/International First/gi, "First Class");
   result = result.replace(/International Priority/gi, "Priority");
