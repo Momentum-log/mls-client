@@ -18,13 +18,14 @@
 
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { PdfGenerationStatus } from "@/types/invoice";
+// import { PdfGenerationStatus } from "@/types/invoice";
 import { InvoiceReceiptView } from "@/components/invoice/InvoiceReceiptView";
 import { UpdateShipmentModal } from "@/components/invoice/UpdateShipmentModal";
 import { useToast } from "@/hooks/use-toast";
-import { FiArrowLeft, FiInfo } from "react-icons/fi";
+import { FiArrowLeft, FiRefreshCw, FiTruck } from "react-icons/fi";
 import Button from "@/components/ui/button";
 import { useGetInvoice } from "@/hooks/invoices/use-invoices-api";
+import { FaCircleInfo } from "react-icons/fa6";
 
 /**
  * InvoiceDetailPage Component
@@ -46,8 +47,14 @@ export default function InvoiceDetailPage() {
     isError: isGetInvoiceError,
   } = useGetInvoice(invoiceId);
 
-  // Extract invoice from response
+  // Extract invoice and shipment from response
   const invoice = invoiceResponse?.data?.details;
+  const shipment = invoiceResponse?.data?.shipment;
+
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
+  // Check if invoice is expired
+  const isInvoiceExpired = invoice?.isExpired ?? false;
 
   const handleUpdateSuccess = () => {
     addToast({
@@ -56,16 +63,6 @@ export default function InvoiceDetailPage() {
       type: "success",
     });
   };
-
-  const [shipmentData, setShipmentData] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-
-  /**
-   * Handle successful update from the UpdateShipmentModal
-   */
 
   // Loading skeleton
   if (isGettingInvoice) {
@@ -87,7 +84,7 @@ export default function InvoiceDetailPage() {
       <div className="container mx-auto py-20 max-w-lg px-4 text-center">
         <div className="bg-red-50 border border-red-100 p-10 rounded-3xl">
           <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FiInfo className="w-10 h-10" />
+            <FaCircleInfo className="w-10 h-10" />
           </div>
           <h3 className="text-2xl font-black text-red-900 mb-2">
             Invoice Not Found
@@ -108,18 +105,15 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  // Get shipmentId from localStorage or from the invoice context
-  const shipmentId = localStorage.getItem("lastShipmentId") || "";
+  // // Derive PDF status from invoice data (no state needed)
+  // const pdfGenerationStatus = invoice?.paymentLink
+  //   ? PdfGenerationStatus.READY
+  //   : PdfGenerationStatus.PENDING;
 
-  // Derive PDF status from invoice data (no state needed)
-  const pdfGenerationStatus = invoice?.paymentLink
-    ? PdfGenerationStatus.READY
-    : PdfGenerationStatus.PENDING;
-
-  const pdfDownloadUrl = invoice?.paymentLink || null;
+  // const pdfDownloadUrl = invoice?.paymentLink || null;
 
   return (
-    <div className="container mx-auto py-12 max-w-3xl px-4">
+    <div className="container mx-auto py-12 max-w-4xl px-4">
       {/* Back Button */}
       <button
         onClick={() => router.back()}
@@ -139,24 +133,60 @@ export default function InvoiceDetailPage() {
         </p>
       </div>
 
+      {/* Shipment Info Card (if shipment exists) */}
+      {shipment && (
+        <div className="bg-linear-to-br from-brand-blue/5 to-brand-blue/10 border border-brand-blue/20 rounded-3xl p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-brand-blue/10 rounded-xl shrink-0">
+                <FiTruck className="w-6 h-6 text-brand-blue" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                  Shipment Details
+                </p>
+                <h3 className="font-bold text-gray-900 mb-2">
+                  {shipment.serviceName || shipment.serviceType || "Shipment"}
+                </h3>
+                {shipment.customTrackingNumber && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-semibold">Tracking:</span>{" "}
+                    <span className="font-mono text-brand-blue">
+                      {shipment.customTrackingNumber}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </div>
+            {isInvoiceExpired && (
+              <Button
+                onClick={() => setShowUpdateModal(true)}
+                variant="primary"
+                className="shrink-0 h-12 rounded-xl font-bold flex items-center gap-2 cursor-pointer"
+              >
+                <FiRefreshCw className="w-4 h-4" />
+                Update Shipment
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Receipt View */}
       <InvoiceReceiptView
         invoice={invoice}
-        pdfGenerationStatus={pdfGenerationStatus}
-        pdfDownloadUrl={pdfDownloadUrl as string | null}
-        shipmentId={shipmentId}
-        onUpdateShipment={
-          shipmentData ? () => setShowUpdateModal(true) : undefined
-        }
+        // pdfGenerationStatus={pdfGenerationStatus}
+        // pdfDownloadUrl={pdfDownloadUrl as string | null}
+        shipmentId={shipment?.id}
       />
 
       {/* Update Shipment Modal */}
-      {shipmentData && shipmentId && (
+      {shipment && (
         <UpdateShipmentModal
           isOpen={showUpdateModal}
           onClose={() => setShowUpdateModal(false)}
-          shipment={shipmentData}
-          shipmentId={shipmentId}
+          shipment={shipment}
+          shipmentId={shipment.id}
           invoiceId={invoiceId}
           onUpdateSuccess={handleUpdateSuccess}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useShipmentStore, Address, Package } from "@/store/shipment-store";
 import {
@@ -27,7 +27,7 @@ import {
   useCreateShipment,
 } from "@/hooks/shipments/use-shipments";
 import { getOrSetGuestId } from "@/utils/auth-helper";
-import { Rate, CustomsData } from "@/types/shipping";
+import { Rate, CustomsData, ShipmentMutationPayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
@@ -82,6 +82,8 @@ export default function NewShipmentPage() {
 
   // Create memoized transformed rates for UI display only
   const transformedRates = useMemo(() => deepTransformData(rates), [rates]);
+  const hasFetchedRatesRef = useRef(false);
+  const [isFetchingRates, setIsFetchingRates] = useState(false);
 
   // Transform selectedRate for UI display only
   const displaySelectedRate = useMemo(
@@ -98,7 +100,24 @@ export default function NewShipmentPage() {
 
   // Rate calculation mutation
   const { mutate: getRates, isPending: isCalculatingRates } =
-    useGetShippingEstimate();
+    useGetShippingEstimate({
+      onSuccess: (data) => {
+        setIsFetchingRates(false);
+        hasFetchedRatesRef.current = false;
+        console.log("Fetched rates on load:", data);
+        setRates(data.rates);
+      },
+      onError: () => {
+        hasFetchedRatesRef.current = false;
+        setIsFetchingRates(false);
+        addToast({
+          title: "Calculation Failed",
+          message:
+            "Unable to calculate shipping rates. Please check address details.",
+          type: "error",
+        });
+      },
+    });
 
   // Create shipment mutation
   const { mutate: performCreateShipment, isPending: isCreatingShipment } =
@@ -126,65 +145,66 @@ export default function NewShipmentPage() {
   // Navigation warning for unsaved changes
 
   // Auto-fetch rates if we land on Service Selection (e.g. from Duplicate functionality)
-  useEffect(() => {
-    if (
-      expandedSection === "service" &&
-      rates.length === 0 &&
-      !isCalculatingRates &&
-      sender &&
-      recipient &&
-      packages.length > 0
-    ) {
-      const payload = getEstimatePayload(
-        {
-          city: sender.city,
-          countryCode: sender.country,
-          stateOrProvinceCode: sender.stateOrProvinceCode || "",
-          postalCode: sender.postalCode,
-          streetLines: [sender.street],
-        },
-        {
-          city: recipient.city,
-          countryCode: recipient.country,
-          stateOrProvinceCode: recipient.stateOrProvinceCode || "",
-          postalCode: recipient.postalCode,
-          streetLines: [recipient.street],
-        },
-        {
-          weight: {
-            value: parseFloat(packages[0].weight.toFixed(2)),
-            units: "KG",
-          },
-          dimensions: {
-            length: parseFloat(packages[0].length.toFixed(1)),
-            width: parseFloat(packages[0].width.toFixed(1)),
-            height: parseFloat(packages[0].height.toFixed(1)),
-            units: "CM",
-          },
-        },
-        getOrSetGuestId(),
-        countryCode || undefined,
-        customs || undefined,
-      );
 
-      getRates(payload, {
-        onSuccess: (data) => {
-          setRates(data.rates);
-        },
-        onError: () => {
-          addToast({
-            title: "Calculation Failed",
-            message:
-              "Unable to calculate shipping rates. Please check address details.",
-            type: "error",
-          });
-        },
-      });
+  useEffect(() => {
+    console.log("🔥 effect entered", {
+      expandedSection,
+      hasFetched: hasFetchedRatesRef.current,
+      isCalculatingRates,
+      sender: !!sender,
+      recipient: !!recipient,
+      packagesLength: packages.length,
+    });
+
+    if (
+      expandedSection !== "service" ||
+      hasFetchedRatesRef.current || // ← hard guard: only ever fire once per mount
+      isCalculatingRates ||
+      !sender ||
+      !recipient ||
+      packages.length === 0
+    ) {
+      console.log("Early Return - Not all conditions met");
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const payload = getEstimatePayload(
+      {
+        city: sender.city,
+        countryCode: sender.country,
+        stateOrProvinceCode: sender.stateOrProvinceCode || "",
+        postalCode: sender.postalCode,
+        streetLines: [sender.street],
+      },
+      {
+        city: recipient.city,
+        countryCode: recipient.country,
+        stateOrProvinceCode: recipient.stateOrProvinceCode || "",
+        postalCode: recipient.postalCode,
+        streetLines: [recipient.street],
+      },
+      {
+        weight: {
+          value: parseFloat(packages[0].weight.toFixed(2)),
+          units: "KG",
+        },
+        dimensions: {
+          length: parseFloat(packages[0].length.toFixed(1)),
+          width: parseFloat(packages[0].width.toFixed(1)),
+          height: parseFloat(packages[0].height.toFixed(1)),
+          units: "CM",
+        },
+      },
+      getOrSetGuestId(),
+      countryCode || undefined,
+      customs || undefined,
+    );
+
+    hasFetchedRatesRef.current = true;
+    setIsFetchingRates(true);
+    getRates(payload);
   }, [
     expandedSection,
-    rates.length,
     isCalculatingRates,
     sender,
     recipient,
@@ -192,6 +212,7 @@ export default function NewShipmentPage() {
     getRates,
     countryCode,
     customs,
+    addToast,
   ]);
 
   const steps: TimelineStep[] = useMemo(() => {
@@ -330,6 +351,9 @@ export default function NewShipmentPage() {
     document
       .getElementById("service")
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    hasFetchedRatesRef.current = false;
+    setRates([]);
   };
 
   const handleServiceSelect = (rate: Rate) => {
@@ -362,7 +386,7 @@ export default function NewShipmentPage() {
       return;
     }
 
-    const payload = {
+    const payload: ShipmentMutationPayload = {
       carrierSlug:
         selectedRate.carrierSlug ||
         selectedRate.carrier?.toLowerCase().replace(/\s+/g, "-") ||
@@ -377,7 +401,7 @@ export default function NewShipmentPage() {
         contact: {
           personName: sender.name,
           phoneNumber: sender.phone,
-          companyName: sender.company,
+          companyName: sender.company ?? "",
         },
       },
       dropoffAddress: {
@@ -390,7 +414,7 @@ export default function NewShipmentPage() {
         contact: {
           personName: recipient.name,
           phoneNumber: recipient.phone,
-          companyName: recipient.company,
+          companyName: recipient.company ?? "",
         },
       },
       package: {
@@ -405,14 +429,8 @@ export default function NewShipmentPage() {
           units: "CM",
         },
       },
-      rate: {
-        serviceType: selectedRate.serviceType,
-        serviceName: selectedRate.serviceName,
-        carrierPrice: selectedRate.carrierPrice,
-        actualPrice: selectedRate.actualPrice,
-        currency: selectedRate.currency,
-      },
-      customs: isInternational ? customs : undefined,
+      rate: selectedRate,
+      customs: customs ?? undefined,
       userCountryCode: countryCode,
       preferredPaymentOption: paymentMethod,
     };
@@ -702,8 +720,8 @@ export default function NewShipmentPage() {
               rates={transformedRates}
               selectedRateId={selectedRate?.serviceType || null}
               onSelect={handleServiceSelect}
-              isLoading={isCalculatingRates}
-              onBack={() => setExpandedSection("package")}
+              isLoading={isFetchingRates}
+              onBack={() => setExpandedSection("customs")}
             />
           </StackedSection>
         )}

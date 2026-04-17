@@ -388,16 +388,16 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
             </Button>
           )}
 
-          {showPayBtn && isLinkExpired && (
+          {/* {showPayBtn && isLinkExpired && (
             <Button
               variant="outline"
               size="lg"
-              className="flex-1 h-14 rounded-2xl text-base font-bold"
+              className="flex-1 h-14 rounded-3xl text-base font-bold cursor-not-allowed!"
               disabled
             >
               Payment Link Expired
             </Button>
-          )}
+          )} */}
         </div>
 
         {/* Inline expiration countdown near Pay */}

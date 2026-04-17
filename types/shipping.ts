@@ -52,7 +52,6 @@ export interface Dimensions {
 
 export interface ItemDetail {
   nameEn: string;
-  namePl: string;
   quantity: number;
   weight: number;
   value: number;
@@ -105,11 +104,11 @@ export type CustomsData =
       };
     };
 
-export interface Customs {
-  currency: string;
-  declaredValue: number;
-  contentsDescription: string;
-}
+// Extracts the object where customsType is "I"
+export type IndividualClearanceData = Extract<
+  CustomsData,
+  { customsType: "I" }
+>;
 
 export interface PackageDetails {
   weight: Weight;
@@ -296,7 +295,7 @@ export interface InternationalShipmentPayload {
   dropoffAddress: Address;
   package: PackageDetails;
   rate: Rate;
-  customs: Customs; // <--- Mandatory
+  customs: CustomsData; // <--- Mandatory
   userCountryCode?: string;
   preferredPaymentOption?: "payu" | "stripe";
 }
@@ -384,7 +383,7 @@ export interface Shipment {
   // --- Physical Specs ---
   weight: Weight;
   dimensions: Dimensions;
-  customs?: Customs;
+  customs?: CustomsData;
 
   // --- Logistics ---
   pickupAddress: Address;

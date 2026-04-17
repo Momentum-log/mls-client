@@ -8,7 +8,6 @@ import {
   getShipment,
 } from "@/api/shipments";
 import {
-  CreateShipmentResponse,
   ShipmentMutationPayload,
   ShippingEstimatePayload,
   ShippingEstimateResponse,
@@ -18,14 +17,20 @@ import {
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
+import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
  * Hook to get shipping estimates (rates).
 
  */
-export const useGetShippingEstimate = () => {
+export const useGetShippingEstimate = (options?: {
+  onSuccess?: (data: ShippingEstimateResponse) => void;
+  onError?: (error: Error) => void;
+}) => {
   return useMutation<ShippingEstimateResponse, Error, ShippingEstimatePayload>({
     mutationFn: getShippingEstimate,
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
   });
 };
 

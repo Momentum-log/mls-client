@@ -50,7 +50,18 @@ export const getShipmentDisplayName = (shipment: Shipment) => {
  * Used in the "Duplicate Shipment" feature to repopulate the form with previous data.
  */
 export const mapShipmentToStore = (shipment: Shipment) => {
-  const mapAddress = (addr: any) => ({
+  const mapAddress = (addr: {
+    contact?: {
+      personName?: string;
+      companyName?: string;
+      phoneNumber?: string;
+    };
+    streetLines?: string[];
+    city?: string;
+    postalCode?: string;
+    countryCode?: string;
+    stateOrProvinceCode?: string;
+  }) => ({
     name: addr.contact?.personName || "",
     company: addr.contact?.companyName || "",
     phone: addr.contact?.phoneNumber || "",
@@ -69,8 +80,8 @@ export const mapShipmentToStore = (shipment: Shipment) => {
     length: shipment.dimensions.length,
     width: shipment.dimensions.width,
     height: shipment.dimensions.height,
-    description: shipment.customs?.contentsDescription || "Merchandise",
-    value: shipment.customs?.declaredValue || 1,
+    description: shipment.customs?.firstName ?? "",
+    value: shipment.customs?.costsOfShipment ?? 1,
     currency: shipment.customs?.currency || shipment.currency,
   };
 

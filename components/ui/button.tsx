@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:pointer-events-none font-satoshi font-semibold cursor-pointer",
+  "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed font-satoshi font-semibold cursor-pointer",
   {
     variants: {
       variant: {
@@ -34,11 +34,12 @@ const buttonVariants = cva(
       size: "md",
       rounded: "ios",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
 }

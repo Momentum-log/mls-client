@@ -5,9 +5,18 @@ import { useFormik, FormikProvider, FieldArray } from "formik";
 import { z } from "zod";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FiArrowRight, FiArrowLeft, FiPlus, FiTrash2, FiHelpCircle } from "react-icons/fi";
-import { CustomsData } from "@/types/shipping";
-import { useAuthStore } from "@/store/auth-store";
+import {
+  FiArrowRight,
+  FiArrowLeft,
+  FiPlus,
+  FiTrash2,
+  FiHelpCircle,
+} from "react-icons/fi";
+import {
+  CustomsData,
+  IndividualClearanceData,
+  ItemDetail,
+} from "@/types/shipping";
 import { Package, Address } from "@/store/shipment-store";
 
 const ITEM_CATEGORIES = [
@@ -21,17 +30,20 @@ const ITEM_CATEGORIES = [
 const createCustomsSchema = (type: "S" | "I") =>
   z.object({
     customsType: z.enum(["S", "I"]),
-    firstName: z.string().min(1, "Sender First Name is required"),
+    firstName: z.string().min(1, "Item description is required"),
     secondaryName: z.string().min(1, "Sender Last Name is required"),
     categoryOfItem: z.string().min(1, "Category is required"),
     grossWeight: z.number().min(0.1, "Total weight required"),
-    nipNr: type === "I" ? z.string().min(1, "NIP number is required for Individuals") : z.string().optional(),
+    nipNr:
+      type === "I"
+        ? z.string().min(1, "NIP number is required for Individuals")
+        : z.string().optional(),
     customsItem: z
       .array(
         z.object({
           nameEn: z.string().min(1, "Name required"),
           tariffCode: z.string().min(1, "Tariff Code required"),
-        })
+        }),
       )
       .min(1, "At least one item must be declared"),
   });
@@ -55,20 +67,21 @@ export default function CustomsForm({
   onBack,
   defaultCustomsType = "S",
 }: CustomsFormProps) {
-  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<"S" | "I">(
-    initialValues?.customsType || defaultCustomsType
+    initialValues?.customsType || defaultCustomsType,
   );
 
   const getInitialItems = () => {
     if (initialValues?.customsItem && initialValues.customsItem.length > 0) {
-      return initialValues.customsItem.map((ci: any) => {
-        const payload = Array.isArray(ci.item) ? ci.item[0] : ci.item;
-        return {
-          nameEn: payload?.nameEn || "",
-          tariffCode: payload?.tariffCode || "",
-        };
-      });
+      return initialValues.customsItem.map(
+        (ci: { item: ItemDetail | ItemDetail[] }) => {
+          const payload = Array.isArray(ci.item) ? ci.item[0] : ci.item;
+          return {
+            nameEn: payload?.nameEn || "",
+            tariffCode: payload?.tariffCode || "",
+          };
+        },
+      );
     }
     return [
       {
@@ -81,11 +94,13 @@ export default function CustomsForm({
   const formik = useFormik({
     initialValues: {
       customsType: activeTab,
-      firstName: initialValues?.firstName || (sender ? sender.name.split(" ")[0] : ""),
-      secondaryName: initialValues?.secondaryName || (sender ? sender.name.split(" ").slice(1).join(" ") : ""),
+      firstName: initialValues?.firstName || pkg?.description || "",
+      secondaryName:
+        initialValues?.secondaryName ||
+        (sender ? sender.name.split(" ").slice(1).join(" ") : ""),
       categoryOfItem: initialValues?.categoryOfItem || "11",
       grossWeight: initialValues?.grossWeight || pkg?.weight || 1,
-      nipNr: (initialValues as any)?.nipNr || "",
+      nipNr: (initialValues as IndividualClearanceData)?.nipNr || "",
       customsItem: getInitialItems(),
     },
     enableReinitialize: false,
@@ -94,11 +109,20 @@ export default function CustomsForm({
       try {
         schema.parse(values);
         return {};
-      } catch (error: any) {
-        let formikErrors: Record<string, any> = {};
+      } catch (error: unknown) {
+        type CustomsItemErrors = Record<string, string>;
+        type CustomsFormErrors = {
+          [key: string]: unknown;
+          customsItem?: CustomsItemErrors[];
+        };
+
+        const formikErrors: CustomsFormErrors = {};
         if (error instanceof z.ZodError) {
-          const fieldErrors = error.flatten().fieldErrors as Record<string, string[] | undefined>;
-          
+          const fieldErrors = error.flatten().fieldErrors as Record<
+            string,
+            string[] | undefined
+          >;
+
           Object.keys(fieldErrors).forEach((key) => {
             const messages = fieldErrors[key];
             if (messages && messages.length > 0) {
@@ -107,17 +131,24 @@ export default function CustomsForm({
           });
 
           // Handle array errors manually for formik
-          const innerErrors = error.issues.filter(i => i.path.length > 1);
+          const innerErrors = error.issues.filter((i) => i.path.length > 1);
           if (innerErrors.length > 0) {
+            if (!formikErrors.customsItem) {
               formikErrors.customsItem = [];
-              innerErrors.forEach(err => {
-                  if (err.path[0] === 'customsItem') {
-                      const index = err.path[1] as number;
-                      const field = err.path[2] as string;
-                      if (!formikErrors.customsItem[index]) formikErrors.customsItem[index] = {};
-                      formikErrors.customsItem[index][field] = err.message;
-                  }
-              });
+            }
+
+            innerErrors.forEach((err) => {
+              if (err.path[0] === "customsItem") {
+                const index = err.path[1] as number;
+                const field = err.path[2] as string;
+
+                if (!formikErrors.customsItem![index]) {
+                  formikErrors.customsItem![index] = {};
+                }
+
+                formikErrors.customsItem![index][field] = err.message;
+              }
+            });
           }
         }
         return formikErrors;
@@ -128,7 +159,7 @@ export default function CustomsForm({
       const itemCount = values.customsItem.length;
       const totalWeight = pkg?.weight || 1;
       const totalValue = pkg?.value || 1;
-      
+
       const weightPerItem = Number((totalWeight / itemCount).toFixed(2));
       const valuePerItem = Number((totalValue / itemCount).toFixed(2));
 
@@ -137,7 +168,6 @@ export default function CustomsForm({
         item: [
           {
             nameEn: item.nameEn,
-            namePl: item.nameEn, // Use English name for Polish to satisfy schema without extra UI
             quantity: 1,
             weight: weightPerItem,
             value: valuePerItem,
@@ -148,7 +178,7 @@ export default function CustomsForm({
 
       const basePayload = {
         customsType: values.customsType,
-        currency, 
+        currency,
         categoryOfItem: values.categoryOfItem,
         grossWeight: Number(values.grossWeight),
         firstName: values.firstName,
@@ -172,14 +202,17 @@ export default function CustomsForm({
     formik.setFieldValue("customsType", type);
   };
 
-  const labelStyles = "text-xs font-black uppercase tracking-tight text-gray-700 block mb-2";
+  const labelStyles =
+    "text-xs font-black uppercase tracking-tight text-gray-700 block mb-2";
   const errorStyles = "text-red-500 text-[11px] font-bold mt-1 ml-1 block";
 
   return (
     <FormikProvider value={formik}>
       <form onSubmit={formik.handleSubmit} className="space-y-8">
         <div>
-          <h2 className="text-xl font-black text-gray-900 mb-1">Customs Details</h2>
+          <h2 className="text-xl font-black text-gray-900 mb-1">
+            Customs Details
+          </h2>
           <p className="text-sm text-gray-500">
             Mandatory information for international shipping clearance.
           </p>
@@ -208,22 +241,24 @@ export default function CustomsForm({
                   : "text-gray-500 hover:text-gray-900"
               }`}
             >
-              Individual 
+              Individual
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className={labelStyles}>First Name</label>
+              <label className={labelStyles}>Item Description</label>
               <Input
                 name="firstName"
                 value={formik.values.firstName}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                placeholder="Sender First Name"
+                placeholder="Item Description (e.g., Cotton T-Shirt)"
               />
               {formik.touched.firstName && formik.errors.firstName && (
-                <span className={errorStyles}>{formik.errors.firstName as string}</span>
+                <span className={errorStyles}>
+                  {formik.errors.firstName as string}
+                </span>
               )}
             </div>
             <div>
@@ -236,7 +271,9 @@ export default function CustomsForm({
                 placeholder="Sender Last Name"
               />
               {formik.touched.secondaryName && formik.errors.secondaryName && (
-                <span className={errorStyles}>{formik.errors.secondaryName as string}</span>
+                <span className={errorStyles}>
+                  {formik.errors.secondaryName as string}
+                </span>
               )}
             </div>
 
@@ -270,7 +307,9 @@ export default function CustomsForm({
                 placeholder="e.g. 2.5"
               />
               {formik.touched.grossWeight && formik.errors.grossWeight && (
-                <span className={errorStyles}>{formik.errors.grossWeight as string}</span>
+                <span className={errorStyles}>
+                  {formik.errors.grossWeight as string}
+                </span>
               )}
             </div>
 
@@ -285,7 +324,9 @@ export default function CustomsForm({
                   placeholder="e.g. 1234567890"
                 />
                 {formik.touched.nipNr && formik.errors.nipNr && (
-                  <span className={errorStyles}>{formik.errors.nipNr as string}</span>
+                  <span className={errorStyles}>
+                    {formik.errors.nipNr as string}
+                  </span>
                 )}
               </div>
             )}
@@ -307,11 +348,20 @@ export default function CustomsForm({
             render={(arrayHelpers) => (
               <div className="space-y-6">
                 {formik.values.customsItem.map((item, index) => {
-                  const errorBag = (formik.errors.customsItem as any)?.[index] || {};
-                  const touchedBag = (formik.touched.customsItem as any)?.[index] || {};
+                  const errorBag =
+                    (formik.errors.customsItem as ItemDetail[] | undefined)?.[
+                      index
+                    ] || {};
+                  const touchedBag =
+                    (formik.touched.customsItem as ItemDetail[] | undefined)?.[
+                      index
+                    ] || {};
 
                   return (
-                    <div key={index} className="p-5 border border-gray-200 rounded-2xl relative bg-gray-50/50">
+                    <div
+                      key={index}
+                      className="p-5 border border-gray-200 rounded-2xl relative bg-gray-50/50"
+                    >
                       {formik.values.customsItem.length > 1 && (
                         <button
                           type="button"
@@ -324,7 +374,9 @@ export default function CustomsForm({
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-1">
-                          <label className={labelStyles}>Item Name / Description</label>
+                          <label className={labelStyles}>
+                            Item Name / Description
+                          </label>
                           <Input
                             name={`customsItem.${index}.nameEn`}
                             value={item.nameEn}
@@ -332,9 +384,12 @@ export default function CustomsForm({
                             onBlur={formik.handleBlur}
                             placeholder="e.g. Cotton T-Shirt"
                           />
-                          {touchedBag.nameEn && errorBag.nameEn && (
-                             <span className={errorStyles}>{errorBag.nameEn}</span>
-                          )}
+                          {(touchedBag as ItemDetail).nameEn &&
+                            (errorBag as ItemDetail).nameEn && (
+                              <span className={errorStyles}>
+                                {(errorBag as ItemDetail).nameEn}
+                              </span>
+                            )}
                         </div>
 
                         <div className="md:col-span-1">
@@ -358,9 +413,12 @@ export default function CustomsForm({
                             onBlur={formik.handleBlur}
                             placeholder="e.g. 610910"
                           />
-                          {touchedBag.tariffCode && errorBag.tariffCode && (
-                             <span className={errorStyles}>{errorBag.tariffCode}</span>
-                          )}
+                          {(touchedBag as ItemDetail).tariffCode &&
+                            (errorBag as ItemDetail).tariffCode && (
+                              <span className={errorStyles}>
+                                {(errorBag as ItemDetail).tariffCode}
+                              </span>
+                            )}
                         </div>
                       </div>
                     </div>

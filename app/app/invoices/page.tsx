@@ -21,9 +21,7 @@ export default function InvoicesPage() {
         </p>
       </div>
 
-      <div className="max-w-md">
-        <InvoicesSidebar />
-      </div>
+      <InvoicesSidebar />
     </div>
   );
 }
