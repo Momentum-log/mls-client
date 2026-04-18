@@ -168,17 +168,24 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       return;
     }
 
+    const weightValue =
+      typeof pkg.weight === "number" ? pkg.weight : (pkg.weight?.value ?? 1);
+    const weightUnits =
+      typeof pkg.weight === "number" ? "KG" : (pkg.weight?.units ?? "KG");
+
     const payload = getEstimatePayload(
       {
-        city: pickupAddress.city,
-        countryCode: pickupAddress.countryCode || pickupAddress.country,
+        city: pickupAddress.city || "",
+        countryCode:
+          pickupAddress.countryCode || pickupAddress.country || "",
         stateOrProvinceCode: pickupAddress.stateOrProvinceCode || "",
         postalCode: pickupAddress.postalCode,
         streetLines: pickupAddress.streetLines || [pickupAddress.street || ""],
       },
       {
-        city: dropoffAddress.city,
-        countryCode: dropoffAddress.countryCode || dropoffAddress.country,
+        city: dropoffAddress.city || "",
+        countryCode:
+          dropoffAddress.countryCode || dropoffAddress.country || "",
         stateOrProvinceCode: dropoffAddress.stateOrProvinceCode || "",
         postalCode: dropoffAddress.postalCode,
         streetLines: dropoffAddress.streetLines || [
@@ -187,8 +194,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       },
       {
         weight: {
-          value: pkg.weight?.value || pkg.weight || 1,
-          units: pkg.weight?.units || "KG",
+          value: weightValue,
+          units: weightUnits,
         },
         dimensions: {
           length: pkg.dimensions?.length || 10,
@@ -229,6 +236,21 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       weight: shipment.weight,
       dimensions: shipment.dimensions,
     };
+
+    if (!pickupAddress || !dropoffAddress || !pkg) {
+      addToast({
+        title: "Missing Data",
+        message: "Could not prepare shipment update payload.",
+        type: "error",
+      });
+      return;
+    }
+
+    const weightValue =
+      typeof pkg.weight === "number" ? pkg.weight : (pkg.weight?.value ?? 1);
+    const weightUnits =
+      typeof pkg.weight === "number" ? "KG" : (pkg.weight?.units ?? "KG");
+
     const isInternational =
       (pickupAddress?.countryCode || pickupAddress?.country) !==
       (dropoffAddress?.countryCode || dropoffAddress?.country);
@@ -240,10 +262,10 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
         "fedex",
       pickupAddress: {
         streetLines: pickupAddress.streetLines || [pickupAddress.street || ""],
-        city: pickupAddress.city,
+        city: pickupAddress.city || "",
         stateOrProvinceCode: pickupAddress.stateOrProvinceCode || "",
-        postalCode: pickupAddress.postalCode,
-        countryCode: pickupAddress.countryCode || pickupAddress.country,
+        postalCode: pickupAddress.postalCode || "",
+        countryCode: pickupAddress.countryCode || pickupAddress.country || "",
         residential: false,
         contact: {
           personName:
@@ -258,10 +280,11 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
         streetLines: dropoffAddress.streetLines || [
           dropoffAddress.street || "",
         ],
-        city: dropoffAddress.city,
+        city: dropoffAddress.city || "",
         stateOrProvinceCode: dropoffAddress.stateOrProvinceCode || "",
-        postalCode: dropoffAddress.postalCode,
-        countryCode: dropoffAddress.countryCode || dropoffAddress.country,
+        postalCode: dropoffAddress.postalCode || "",
+        countryCode:
+          dropoffAddress.countryCode || dropoffAddress.country || "",
         residential: false,
         contact: {
           personName:
@@ -274,8 +297,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       },
       package: {
         weight: {
-          value: pkg.weight?.value || pkg.weight || 1,
-          units: pkg.weight?.units || "KG",
+          value: weightValue,
+          units: weightUnits,
         },
         dimensions: {
           length: pkg.dimensions?.length || 10,
@@ -285,6 +308,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
         },
       },
       rate: {
+        carrier: selectedRate.carrier,
         serviceType: selectedRate.serviceType,
         serviceName: selectedRate.serviceName,
         carrierPrice: selectedRate.carrierPrice,

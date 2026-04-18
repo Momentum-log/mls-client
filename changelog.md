@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replaced with shipment invoice request action.
   - Updated action labels and footer copy to reflect new behavior.
 
+- Fixed: **TypeScript Strictness Issues** (tracking & shipping components)
+  - Added null guards for optional `shipment` in `TrackingResponse` across tracking components.
+  - Fixed `TrackingDetails.tsx` to use `categoryOfItem` instead of non-existent `contentsDescription` field.
+  - Fixed `TrackingOverview.tsx` and `TrackingTimelineView.tsx` with proper shipment type narrowing.
+
 ## [1.41.2] - 2026-04-18 - Payment Success API Integration Refactor
 
 - Added: **Payments Types Layer** (`types/payments.ts`)

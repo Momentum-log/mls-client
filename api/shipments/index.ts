@@ -1,12 +1,12 @@
 import apiClient from "..";
 import {
-  CreateShipmentResponse,
   ContinueToPayResponse,
   GetShipmentResponse,
   ShipmentMutationPayload,
   ShippingEstimatePayload,
   TrackingResponse,
 } from "@/types/shipping";
+import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
  * Calculates shipping rates for a given package and route.

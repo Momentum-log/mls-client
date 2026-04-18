@@ -24,7 +24,7 @@ import { deepTransformData } from "@/utils/data-transform";
 
 export default function SummaryPage() {
   const router = useRouter();
-  const { sender, recipient, packages, selectedRate, setStep, reset } =
+  const { sender, recipient, packages, customs, selectedRate, setStep, reset } =
     useShipmentStore();
   const { user } = useAuthStore();
   const { addToast: toast } = useToast();
@@ -45,6 +45,16 @@ export default function SummaryPage() {
   }, [setStep, sender, recipient, packages, selectedRate, router]);
 
   const handleBook = async () => {
+    if (!sender || !recipient || packages.length === 0 || !selectedRate) {
+      toast({
+        title: "Missing Shipment Data",
+        message: "Please complete shipment details before booking.",
+        type: "error",
+      });
+      router.push("/app/shipments/new/origin");
+      return;
+    }
+
     setLoading(true);
     try {
       // Determine if shipment is international
@@ -99,11 +109,27 @@ export default function SummaryPage() {
           },
         },
         rate: selectedRate,
-        customs: {
-          declaredValue: packages[0].value,
-          contentsDescription: packages[0].description,
-          currency: packages[0].currency,
-        },
+        customs:
+          customs ||
+          {
+            customsType: "S",
+            currency: packages[0].currency,
+            categoryOfItem: "91",
+            grossWeight: Number(packages[0].weight),
+            firstName: sender.name,
+            secondaryName: recipient.name,
+            customsItem: [
+              {
+                item: {
+                  nameEn: packages[0].description || "Package",
+                  quantity: 1,
+                  weight: Number(packages[0].weight),
+                  value: Number(packages[0].value),
+                  tariffCode: "",
+                },
+              },
+            ],
+          },
       });
 
       console.log(
@@ -112,7 +138,7 @@ export default function SummaryPage() {
       );
 
       const data = await createShipment(payload);
-      const { checkoutUrl, sessionId } = data; // Ensure backend returns sessionId if needed manually
+      const { checkoutUrl } = data;
 
       toast({
         title: "Shipment Created!",

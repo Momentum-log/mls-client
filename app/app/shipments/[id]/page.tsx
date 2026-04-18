@@ -348,7 +348,7 @@ export default function ShipmentDetailsPage() {
           }}
           recipientName={user?.name}
           recipientAddress={user?.address}
-          itemQuantity={rawData?.packages?.length || 0}
+          itemQuantity={1}
           serviceDescription={
             rawData?.serviceName
               ? `Logistics Service - ${rawData.serviceName}`

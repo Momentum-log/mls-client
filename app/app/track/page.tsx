@@ -213,7 +213,9 @@ export default function TrackShipmentPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <div className="flex flex-col gap-6">
                 <TrackingOverview trackingResponse={trackingResponse} />
-                <TrackingDetails shipment={trackingResponse.shipment} />
+                {trackingResponse.shipment && (
+                  <TrackingDetails shipment={trackingResponse.shipment} />
+                )}
               </div>
             </div>
 

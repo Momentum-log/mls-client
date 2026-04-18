@@ -1,7 +1,6 @@
 import { ShippingEstimateResponse } from "@/types/shipping";
 import {
   CreateShipmentPayload,
-  Customs,
   CustomsData,
   InternationalShipmentPayload,
   LocalShipmentPayload,
@@ -100,7 +99,7 @@ interface EstimatePackageInput {
 }
 
 type CreatePayloadInput = Omit<ShipmentMutationPayload, "customs"> & {
-  customs?: Customs;
+  customs?: CustomsData;
 };
 
 /**
@@ -123,13 +122,15 @@ export const getPayload = (
   data: CreatePayloadInput,
 ): CreateShipmentPayload => {
   if (isInternational) {
+    if (!data.customs) {
+      throw new Error(
+        "Customs data is required for international shipment payloads.",
+      );
+    }
+
     const payload: InternationalShipmentPayload = {
       ...data,
-      customs: {
-        declaredValue: data.customs?.declaredValue || 0,
-        contentsDescription: data.customs?.contentsDescription || "",
-        currency: data.customs?.currency || "USD",
-      },
+      customs: data.customs,
     };
     return payload;
   } else {

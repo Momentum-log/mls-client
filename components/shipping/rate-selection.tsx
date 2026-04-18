@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import Button from "@/components/ui/button";
 import apiClient from "@/api";
 import {
+  Rate,
   ShippingEstimateResponse,
-  ShippingRate,
   ShipmentMutationPayload,
 } from "@/types/shipping";
 import { useCountryStore } from "@/store/country-store";
@@ -94,7 +94,7 @@ const RateSelection: React.FC<RateSelectionProps> = ({
               ?.error
           : "Failed to create shipment";
 
-      setError(errorMessage);
+      setError(errorMessage || "Failed to create shipment");
       setLoading(false);
     }
   };
@@ -107,7 +107,7 @@ const RateSelection: React.FC<RateSelectionProps> = ({
         <p>No rates available for this route.</p>
       ) : (
         <div className="space-y-3">
-          {estimate.rates.map((rate: ShippingRate, index: number) => (
+          {estimate.rates.map((rate: Rate, index: number) => (
             <div
               key={index}
               className={`p-4 border rounded-xl cursor-pointer transition-all ${
@@ -131,7 +131,8 @@ const RateSelection: React.FC<RateSelectionProps> = ({
                   <p className="font-bold text-lg text-brand-blue">
                     {rate.actualPrice} {rate.currency}
                   </p>
-                  {rate.carrierPrice < rate.actualPrice && (
+                  {(rate.carrierPrice ?? rate.actualPrice) <
+                    rate.actualPrice && (
                     <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
                       Secure
                     </span>
