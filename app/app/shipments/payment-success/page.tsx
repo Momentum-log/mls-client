@@ -7,17 +7,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import {
-  useDownloadPaymentInvoicePdf,
   usePaymentInvoice,
-  useSendPaymentInvoiceEmail,
+  useRequestShipmentInvoice,
 } from "@/hooks/payments/use-payments";
-import { generateInvoiceFilename } from "@/utils/invoice-helper";
 
 /**
  * Payment Success Page
  *
  * Displays after a successful payment is completed.
- * Shows invoice receipt and provides options to download, email, or view full invoice.
+ * Shows invoice receipt and provides options to request invoice processing or view full invoice.
  */
 export default function PaymentSuccessPage() {
   const router = useRouter();
@@ -36,79 +34,43 @@ export default function PaymentSuccessPage() {
     error: invoiceError,
   } = usePaymentInvoice(invoiceId || "", Boolean(invoiceId));
 
-  // Download PDF mutation
-  const { mutateAsync: downloadPdf, isPending: isDownloading } =
-    useDownloadPaymentInvoicePdf();
-
-  // Send email mutation
-  const { mutateAsync: sendEmail, isPending: isSendingEmail } =
-    useSendPaymentInvoiceEmail();
+  // Request shipment invoice mutation
+  const { mutateAsync: requestInvoice, isPending: isRequestingInvoice } =
+    useRequestShipmentInvoice();
 
   /**
-   * Handle download PDF
+   * Handle shipment invoice request
    */
-  const handleDownloadPdf = useCallback(async () => {
-    if (!invoice) return;
-
-    try {
-      const blob = await downloadPdf(invoice.invoiceId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${generateInvoiceFilename(invoice.invoiceNumber)}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
+  const handleRequestShipmentInvoice = useCallback(async () => {
+    if (!shipmentId) {
       toast({
-        title: "Success",
-        message: "Invoice downloaded successfully.",
-        type: "success",
-      });
-    } catch (err) {
-      toast({
-        title: "Download Error",
-        message:
-          err instanceof Error ? err.message : "Failed to download invoice",
-        type: "error",
-      });
-    }
-  }, [invoice, downloadPdf, toast]);
-
-  /**
-   * Handle email receipt
-   */
-  const handleEmailReceipt = useCallback(async () => {
-    if (!invoice) return;
-    if (!invoice.customerEmail) {
-      toast({
-        title: "Email Error",
-        message: "Customer email is not available for this invoice.",
+        title: "Request Error",
+        message: "Shipment ID is missing. Unable to request invoice.",
         type: "error",
       });
       return;
     }
 
     try {
-      await sendEmail({
-        invoiceId: invoice.invoiceId,
-        email: invoice.customerEmail,
-      });
+      await requestInvoice({ shipmentId });
 
       toast({
-        title: "Success",
-        message: "Receipt sent to your email address.",
+        title: "Request Submitted",
+        message:
+          "Your shipment invoice request has been submitted successfully.",
         type: "success",
       });
     } catch (err) {
       toast({
-        title: "Email Error",
-        message: err instanceof Error ? err.message : "Failed to send email",
+        title: "Request Error",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to submit shipment invoice request",
         type: "error",
       });
     }
-  }, [invoice, sendEmail, toast]);
+  }, [shipmentId, requestInvoice, toast]);
 
   /**
    * Handle view full invoice
@@ -200,11 +162,9 @@ export default function PaymentSuccessPage() {
         invoice={invoice}
         transactionId={transactionId || undefined}
         paymentMethod={paymentMethod}
-        onDownload={handleDownloadPdf}
-        onEmail={handleEmailReceipt}
+        onRequestShipmentInvoice={handleRequestShipmentInvoice}
         onViewDetails={handleViewInvoice}
-        isDownloading={isDownloading}
-        isSendingEmail={isSendingEmail}
+        isRequestingShipmentInvoice={isRequestingInvoice}
       />
 
       {/* Next Steps */}

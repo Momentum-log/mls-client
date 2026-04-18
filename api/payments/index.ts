@@ -2,8 +2,8 @@ import apiClient from "..";
 import {
   PaymentInvoiceModel,
   PaymentInvoiceResponse,
-  SendPaymentInvoiceEmailRequest,
-  SendPaymentInvoiceEmailResponse,
+  RequestShipmentInvoiceRequest,
+  RequestShipmentInvoiceResponse,
   VerifyPaymentResponse,
 } from "@/types/payments";
 
@@ -80,34 +80,16 @@ export const getPaymentInvoice = async (
 };
 
 /**
- * Downloads payment invoice PDF as a blob.
+ * Requests shipment invoice processing.
  *
- * @param invoiceId - Invoice identifier
- * @returns PDF blob
- */
-export const downloadPaymentInvoicePdf = async (
-  invoiceId: string,
-): Promise<Blob> => {
-  const response = await apiClient.get(`/invoices/${invoiceId}/pdf`, {
-    responseType: "blob",
-  });
-  return response.data as Blob;
-};
-
-/**
- * Sends a payment receipt email for an invoice.
- *
- * @param payload - Email payload containing invoice ID and recipient email
+ * @param payload - Shipment identifier payload
  * @returns API response envelope
  */
-export const sendPaymentInvoiceEmail = async (
-  payload: SendPaymentInvoiceEmailRequest,
-): Promise<SendPaymentInvoiceEmailResponse> => {
-  const response = await apiClient.post<SendPaymentInvoiceEmailResponse>(
-    `/invoices/${payload.invoiceId}/email`,
-    {
-      email: payload.email,
-    },
+export const requestShipmentInvoice = async (
+  payload: RequestShipmentInvoiceRequest,
+): Promise<RequestShipmentInvoiceResponse> => {
+  const response = await apiClient.post<RequestShipmentInvoiceResponse>(
+    `/shipments/${payload.shipmentId}/request-invoice`,
   );
 
   return response.data;

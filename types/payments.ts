@@ -39,17 +39,16 @@ export interface PaymentInvoiceResponse {
 }
 
 /**
- * Request payload to send invoice receipt by email.
+ * Request payload to request a shipment invoice.
  */
-export interface SendPaymentInvoiceEmailRequest {
-  invoiceId: string;
-  email: string;
+export interface RequestShipmentInvoiceRequest {
+  shipmentId: string;
 }
 
 /**
- * Response payload for invoice email send endpoint.
+ * Response payload for shipment invoice request endpoint.
  */
-export interface SendPaymentInvoiceEmailResponse {
+export interface RequestShipmentInvoiceResponse {
   status?: string;
   message?: string;
 }

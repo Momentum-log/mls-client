@@ -5,6 +5,27 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.41.3] - 2026-04-18 - Remove PDF/Invoice Email Flows
+
+- Changed: **Payments Types** (`types/payments.ts`)
+  - Removed invoice-email payload types.
+  - Added shipment invoice request payload/response types.
+
+- Changed: **Payments API** (`api/payments/index.ts`)
+  - Removed payment PDF download API integration.
+  - Removed payment invoice email API integration.
+  - Added `requestShipmentInvoice({ shipmentId })` API call for shipment invoice requests.
+
+- Changed: **Payments Hooks** (`hooks/payments/use-payments.ts`)
+  - Removed PDF download mutation hook.
+  - Removed invoice-email mutation hook.
+  - Added `useRequestShipmentInvoice` mutation hook.
+
+- Changed: **Payment Success UI Flow** (`app/app/shipments/payment-success/page.tsx`, `components/invoice/InvoiceReceiptNew.tsx`)
+  - Removed download/email action wiring and related handlers.
+  - Replaced with shipment invoice request action.
+  - Updated action labels and footer copy to reflect new behavior.
+
 ## [1.41.2] - 2026-04-18 - Payment Success API Integration Refactor
 
 - Added: **Payments Types Layer** (`types/payments.ts`)

@@ -30,18 +30,14 @@ interface InvoiceReceiptProps {
   transactionId?: string;
   /** Optional payment method (e.g., "Credit Card", "PayU") */
   paymentMethod?: string;
-  /** Callback for download button */
-  onDownload?: () => void;
-  /** Callback for email button */
-  onEmail?: () => void;
+  /** Callback for shipment invoice request button */
+  onRequestShipmentInvoice?: () => void;
   /** Callback for view details button */
   onViewDetails?: () => void;
   /** Optional CSS classes */
   className?: string;
-  /** Optional loading state for download button */
-  isDownloading?: boolean;
-  /** Optional loading state for email button */
-  isSendingEmail?: boolean;
+  /** Optional loading state for shipment invoice request button */
+  isRequestingShipmentInvoice?: boolean;
 }
 
 /**
@@ -58,12 +54,10 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
   invoice,
   transactionId,
   paymentMethod,
-  onDownload,
-  onEmail,
+  onRequestShipmentInvoice,
   onViewDetails,
   className = "",
-  isDownloading = false,
-  isSendingEmail = false,
+  isRequestingShipmentInvoice = false,
 }) => {
   const buyerAddress = buildAddressString(
     invoice.buyerStreet,
@@ -210,27 +204,17 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
       {/* Action Buttons */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row gap-2">
-          {onDownload && (
+          {onRequestShipmentInvoice && (
             <Button
-              onClick={onDownload}
-              disabled={isDownloading}
+              onClick={onRequestShipmentInvoice}
+              disabled={isRequestingShipmentInvoice}
               variant="default"
               size="sm"
               className="flex-1"
             >
-              {isDownloading ? "Downloading..." : "Download Invoice"}
-            </Button>
-          )}
-
-          {onEmail && (
-            <Button
-              onClick={onEmail}
-              disabled={isSendingEmail}
-              variant="outline"
-              size="sm"
-              className="flex-1"
-            >
-              {isSendingEmail ? "Sending..." : "Email Receipt"}
+              {isRequestingShipmentInvoice
+                ? "Requesting..."
+                : "Request Shipment Invoice"}
             </Button>
           )}
 
@@ -250,8 +234,8 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
       {/* Footer Note */}
       <Card className="p-4 bg-muted/50">
         <p className="text-xs text-muted-foreground leading-relaxed">
-          A payment confirmation has been sent to your email address. If you
-          don't see it, please check your spam folder. For support, contact our
+          Need an invoice copy? Use the request action above and our team will
+          process your shipment invoice request. For support, contact our
           customer service team.
         </p>
       </Card>

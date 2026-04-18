@@ -1,14 +1,13 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  downloadPaymentInvoicePdf,
   getPaymentInvoice,
-  sendPaymentInvoiceEmail,
+  requestShipmentInvoice,
   verifyPayment,
 } from "@/api/payments";
 import {
   PaymentInvoiceModel,
-  SendPaymentInvoiceEmailRequest,
-  SendPaymentInvoiceEmailResponse,
+  RequestShipmentInvoiceRequest,
+  RequestShipmentInvoiceResponse,
   VerifyPaymentResponse,
 } from "@/types/payments";
 
@@ -36,28 +35,17 @@ export const usePaymentInvoice = (invoiceId: string, enabled = true) => {
 };
 
 /**
- * Downloads a payment invoice PDF.
+ * Requests shipment invoice processing.
  *
- * @returns Mutation for downloading invoice PDF blob
+ * @returns Mutation for shipment invoice request
  */
-export const useDownloadPaymentInvoicePdf = () => {
-  return useMutation<Blob, Error, string>({
-    mutationFn: downloadPaymentInvoicePdf,
-  });
-};
-
-/**
- * Sends payment invoice receipt email.
- *
- * @returns Mutation for sending receipt email
- */
-export const useSendPaymentInvoiceEmail = () => {
+export const useRequestShipmentInvoice = () => {
   return useMutation<
-    SendPaymentInvoiceEmailResponse,
+    RequestShipmentInvoiceResponse,
     Error,
-    SendPaymentInvoiceEmailRequest
+    RequestShipmentInvoiceRequest
   >({
-    mutationFn: sendPaymentInvoiceEmail,
+    mutationFn: requestShipmentInvoice,
   });
 };
 
