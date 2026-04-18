@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useGetShipment } from "@/hooks/shipments/use-shipments";
 import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
+import { useAuth } from "@/hooks/useAuth";
 import { deepTransformData } from "@/utils/data-transform";
 import TrackingOverview from "@/components/tracking/TrackingOverview";
 import TrackingDetails from "@/components/tracking/TrackingDetails";
@@ -28,6 +29,7 @@ export default function ShipmentDetailsPage() {
   // Fetch shipment and tracking data
   const { data: rawData, isLoading, error } = useGetShipment(id);
   const { duplicateShipment } = useDuplicateShipment();
+  const { user } = useAuth();
 
   // Invoice drawer & update modal state
   const [isInvoiceDrawerOpen, setIsInvoiceDrawerOpen] = useState(false);
@@ -344,6 +346,14 @@ export default function ShipmentDetailsPage() {
             setIsInvoiceDrawerOpen(false);
             setIsUpdateModalOpen(true);
           }}
+          recipientName={user?.name}
+          recipientAddress={user?.address}
+          itemQuantity={rawData?.packages?.length || 0}
+          serviceDescription={
+            rawData?.serviceName
+              ? `Logistics Service - ${rawData.serviceName}`
+              : "Logistics Service"
+          }
         />
       )}
 

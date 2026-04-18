@@ -35,6 +35,8 @@ import { deepTransformData } from "@/utils/data-transform";
 
 import { useLocationPermission } from "@/hooks/use-location-permission";
 import { LocationPermissionOverlay } from "@/components/ui/location-permission-overlay";
+import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
+import { useVerification } from "@/hooks/shipments/useVerification";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -79,6 +81,7 @@ export default function NewShipmentPage() {
   const { addToast } = useToast();
 
   const { permission, requestPermission } = useLocationPermission();
+  const { isVerificationRequired, error } = useVerification();
 
   // Create memoized transformed rates for UI display only
   const transformedRates = useMemo(() => deepTransformData(rates), [rates]);
@@ -130,6 +133,32 @@ export default function NewShipmentPage() {
   // 4. We do NOT use cleanup on unmount because Strict Mode triggers it prematurely.
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
+  const verificationRequiredParam =
+    searchParams.get("verificationRequired") === "1";
+  const guardParam = searchParams.get("guard");
+
+  const requiresEmailVerification =
+    error?.type === "EMAIL_NOT_VERIFIED" ||
+    error?.type === "BOTH" ||
+    guardParam === "email" ||
+    guardParam === "both";
+
+  const requiresAddressUpdate =
+    error?.type === "ADDRESS_INCOMPLETE" ||
+    error?.type === "BOTH" ||
+    guardParam === "address" ||
+    guardParam === "both";
+
+  const shouldShowVerificationModal =
+    isVerificationRequired || verificationRequiredParam;
+
+  const handleVerifyEmail = () => {
+    router.push("/app/account?openVerifyEmail=1&next=/app/shipments/new");
+  };
+
+  const handleUpdateAddress = () => {
+    router.push("/app/account?focusAddress=1&next=/app/shipments/new");
+  };
 
   useEffect(() => {
     if (source === "duplicate") {
@@ -498,86 +527,54 @@ export default function NewShipmentPage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 items-start">
-      {/* Left Sidebar: Timeline */}
-      <div className="hidden lg:block w-64 sticky top-24">
-        <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-          <h4 className="text-[10px] uppercase tracking-widest text-gray-400 font-black mb-6">
-            Shipment Journey
-          </h4>
-          <VerticalTimeline steps={steps} />
+    <>
+      <AccountVerificationModal
+        isOpen={shouldShowVerificationModal}
+        requiresEmailVerification={requiresEmailVerification}
+        requiresAddressUpdate={requiresAddressUpdate}
+        onVerifyEmail={handleVerifyEmail}
+        onUpdateAddress={handleUpdateAddress}
+      />
+
+      <div
+        className={`flex flex-col lg:flex-row gap-8 items-start transition-all ${
+          shouldShowVerificationModal ? "pointer-events-none select-none" : ""
+        }`}
+      >
+        {/* Left Sidebar: Timeline */}
+        <div className="hidden lg:block w-64 sticky top-24">
+          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <h4 className="text-[10px] uppercase tracking-widest text-gray-400 font-black mb-6">
+              Shipment Journey
+            </h4>
+            <VerticalTimeline steps={steps} />
+          </div>
         </div>
-      </div>
 
-      {/* Main Content: Stacked Sections */}
-      <div className="flex-1 w-full space-y-4">
-        {/* Navigation Warning Notice */}
+        {/* Main Content: Stacked Sections */}
+        <div className="flex-1 w-full space-y-4">
+          {/* Navigation Warning Notice */}
 
-        {/* 1. Pick-up Details */}
-        <StackedSection
-          id="pickup"
-          title="Pick-up Details"
-          icon={<FiMapPin className="w-5 h-5" />}
-          isExpanded={expandedSection === "pickup"}
-          isCompleted={completedSteps.includes("pickup")}
-          onEdit={() => setExpandedSection("pickup")}
-          summary={
-            sender && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                    Contact
-                  </p>
-                  <p className="font-bold text-gray-900 leading-tight">
-                    {sender.name}
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium">
-                    {sender.phone}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                    Location
-                  </p>
-                  <p className="font-bold text-gray-900 leading-tight">
-                    {sender.city}
-                  </p>
-                  <p className="text-xs text-gray-500 font-medium line-clamp-1">
-                    {sender.street}
-                  </p>
-                </div>
-              </div>
-            )
-          }
-        >
-          <AddressForm
-            type="pickup"
-            initialValues={sender || undefined}
-            onSubmit={handlePickupSubmit}
-          />
-        </StackedSection>
-
-        {/* 2. Drop-off Details */}
-        {isSectionVisible("dropoff") && (
+          {/* 1. Pick-up Details */}
           <StackedSection
-            id="dropoff"
-            title="Drop-off Details"
+            id="pickup"
+            title="Pick-up Details"
             icon={<FiMapPin className="w-5 h-5" />}
-            isExpanded={expandedSection === "dropoff"}
-            isCompleted={completedSteps.includes("dropoff")}
-            onEdit={() => setExpandedSection("dropoff")}
+            isExpanded={expandedSection === "pickup"}
+            isCompleted={completedSteps.includes("pickup")}
+            onEdit={() => setExpandedSection("pickup")}
             summary={
-              recipient && (
+              sender && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
                       Contact
                     </p>
                     <p className="font-bold text-gray-900 leading-tight">
-                      {recipient.name}
+                      {sender.name}
                     </p>
                     <p className="text-xs text-gray-500 font-medium">
-                      {recipient.phone}
+                      {sender.phone}
                     </p>
                   </div>
                   <div>
@@ -585,10 +582,10 @@ export default function NewShipmentPage() {
                       Location
                     </p>
                     <p className="font-bold text-gray-900 leading-tight">
-                      {recipient.city}
+                      {sender.city}
                     </p>
                     <p className="text-xs text-gray-500 font-medium line-clamp-1">
-                      {recipient.street}
+                      {sender.street}
                     </p>
                   </div>
                 </div>
@@ -596,166 +593,212 @@ export default function NewShipmentPage() {
             }
           >
             <AddressForm
-              type="dropoff"
-              initialValues={recipient || undefined}
-              onSubmit={handleDropoffSubmit}
-              onBack={() => setExpandedSection("pickup")}
+              type="pickup"
+              initialValues={sender || undefined}
+              onSubmit={handlePickupSubmit}
             />
           </StackedSection>
-        )}
 
-        {/* 3. Package Details */}
-        {isSectionVisible("package") && (
-          <StackedSection
-            id="package"
-            title="Package Details"
-            icon={<FiPackage className="w-5 h-5" />}
-            isExpanded={expandedSection === "package"}
-            isCompleted={completedSteps.includes("package")}
-            onEdit={() => setExpandedSection("package")}
-            summary={
-              packages.length > 0 && (
-                <div className="grid grid-cols-2 gap-4">
+          {/* 2. Drop-off Details */}
+          {isSectionVisible("dropoff") && (
+            <StackedSection
+              id="dropoff"
+              title="Drop-off Details"
+              icon={<FiMapPin className="w-5 h-5" />}
+              isExpanded={expandedSection === "dropoff"}
+              isCompleted={completedSteps.includes("dropoff")}
+              onEdit={() => setExpandedSection("dropoff")}
+              summary={
+                recipient && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                        Contact
+                      </p>
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {recipient.name}
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {recipient.phone}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                        Location
+                      </p>
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {recipient.city}
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium line-clamp-1">
+                        {recipient.street}
+                      </p>
+                    </div>
+                  </div>
+                )
+              }
+            >
+              <AddressForm
+                type="dropoff"
+                initialValues={recipient || undefined}
+                onSubmit={handleDropoffSubmit}
+                onBack={() => setExpandedSection("pickup")}
+              />
+            </StackedSection>
+          )}
+
+          {/* 3. Package Details */}
+          {isSectionVisible("package") && (
+            <StackedSection
+              id="package"
+              title="Package Details"
+              icon={<FiPackage className="w-5 h-5" />}
+              isExpanded={expandedSection === "package"}
+              isCompleted={completedSteps.includes("package")}
+              onEdit={() => setExpandedSection("package")}
+              summary={
+                packages.length > 0 && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                        Dimensions
+                      </p>
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {packages[0].length}x{packages[0].width}x
+                        {packages[0].height} cm
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {packages[0].weight} kg | {packages[0].value}{" "}
+                        {packages[0].currency}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                        Description
+                      </p>
+                      <p className="font-bold text-gray-900 leading-tight line-clamp-1">
+                        {packages[0].description}
+                      </p>
+                    </div>
+                  </div>
+                )
+              }
+            >
+              <PackageForm
+                initialValue={packages[0] || null}
+                onSubmit={handlePackageSubmit}
+                onSync={updatePackage}
+                onBack={() => setExpandedSection("dropoff")}
+                submitLabel="Customs Details"
+                isInternational={Boolean(isInternational)}
+                currency={activeCurrency}
+              />
+            </StackedSection>
+          )}
+
+          {/* 4. Customs Details */}
+          {isSectionVisible("customs") && (
+            <StackedSection
+              id="customs"
+              title="Customs Details"
+              icon={<FiClipboard className="w-5 h-5" />}
+              isExpanded={expandedSection === "customs"}
+              isCompleted={completedSteps.includes("customs")}
+              onEdit={() => setExpandedSection("customs")}
+              summary={
+                customs && (
                   <div>
                     <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                      Dimensions
+                      Declaration Type
                     </p>
                     <p className="font-bold text-gray-900 leading-tight">
-                      {packages[0].length}x{packages[0].width}x
-                      {packages[0].height} cm
-                    </p>
-                    <p className="text-xs text-gray-500 font-medium">
-                      {packages[0].weight} kg | {packages[0].value}{" "}
-                      {packages[0].currency}
+                      {customs.customsType === "S" ? "Business" : "Individual"}{" "}
+                      - {customs.customsItem?.length} items
                     </p>
                   </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                      Description
-                    </p>
-                    <p className="font-bold text-gray-900 leading-tight line-clamp-1">
-                      {packages[0].description}
-                    </p>
-                  </div>
-                </div>
-              )
-            }
-          >
-            <PackageForm
-              initialValue={packages[0] || null}
-              onSubmit={handlePackageSubmit}
-              onSync={updatePackage}
-              onBack={() => setExpandedSection("dropoff")}
-              submitLabel="Customs Details"
-              isInternational={Boolean(isInternational)}
-              currency={activeCurrency}
-            />
-          </StackedSection>
-        )}
+                )
+              }
+            >
+              <CustomsForm
+                initialValues={customs}
+                pkg={packages[0] || null}
+                sender={sender}
+                currency={activeCurrency}
+                onSubmit={handleCustomsSubmit}
+                onBack={() => setExpandedSection("package")}
+              />
+            </StackedSection>
+          )}
 
-        {/* 4. Customs Details */}
-        {isSectionVisible("customs") && (
-          <StackedSection
-            id="customs"
-            title="Customs Details"
-            icon={<FiClipboard className="w-5 h-5" />}
-            isExpanded={expandedSection === "customs"}
-            isCompleted={completedSteps.includes("customs")}
-            onEdit={() => setExpandedSection("customs")}
-            summary={
-              customs && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                    Declaration Type
-                  </p>
-                  <p className="font-bold text-gray-900 leading-tight">
-                    {customs.customsType === "S" ? "Business" : "Individual"} -{" "}
-                    {customs.customsItem?.length} items
-                  </p>
-                </div>
-              )
-            }
-          >
-            <CustomsForm
-              initialValues={customs}
-              pkg={packages[0] || null}
-              sender={sender}
-              currency={activeCurrency}
-              onSubmit={handleCustomsSubmit}
-              onBack={() => setExpandedSection("package")}
-            />
-          </StackedSection>
-        )}
-
-        {/* 5. Service Selection */}
-        {isSectionVisible("service") && (
-          <StackedSection
-            id="service"
-            title="Service Selection"
-            icon={<FiTruck className="w-5 h-5" />}
-            isExpanded={expandedSection === "service"}
-            isCompleted={completedSteps.includes("service")}
-            onEdit={() => setExpandedSection("service")}
-            summary={
-              selectedRate && (
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center text-brand-blue">
-                    <FiCheckCircle className="w-4 h-4" />
+          {/* 5. Service Selection */}
+          {isSectionVisible("service") && (
+            <StackedSection
+              id="service"
+              title="Service Selection"
+              icon={<FiTruck className="w-5 h-5" />}
+              isExpanded={expandedSection === "service"}
+              isCompleted={completedSteps.includes("service")}
+              onEdit={() => setExpandedSection("service")}
+              summary={
+                selectedRate && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+                      <FiCheckCircle className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {displaySelectedRate?.serviceName}
+                      </p>
+                      <p className="text-xs text-brand-blue font-bold tracking-tight">
+                        {displaySelectedRate?.price ||
+                          displaySelectedRate?.actualPrice}{" "}
+                        {displaySelectedRate?.currency}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-gray-900 leading-tight">
-                      {displaySelectedRate?.serviceName}
-                    </p>
-                    <p className="text-xs text-brand-blue font-bold tracking-tight">
-                      {displaySelectedRate?.price ||
-                        displaySelectedRate?.actualPrice}{" "}
-                      {displaySelectedRate?.currency}
-                    </p>
-                  </div>
-                </div>
-              )
-            }
-          >
-            <ServiceSelection
-              rates={transformedRates}
-              selectedRateId={selectedRate?.serviceType || null}
-              onSelect={handleServiceSelect}
-              isLoading={isFetchingRates}
-              onBack={() => setExpandedSection("customs")}
-            />
-          </StackedSection>
-        )}
+                )
+              }
+            >
+              <ServiceSelection
+                rates={transformedRates}
+                selectedRateId={selectedRate?.serviceType || null}
+                onSelect={handleServiceSelect}
+                isLoading={isFetchingRates}
+                onBack={() => setExpandedSection("customs")}
+              />
+            </StackedSection>
+          )}
 
-        {/* Action Button for Summary (if not already open) */}
-        {completedSteps.includes("service") && !isSummaryOpen && (
-          <Button
-            variant="primary"
-            size="lg"
-            className="w-full h-16 rounded-3xl text-lg font-black shadow-2xl shadow-brand-blue/30 mt-8 animate-in fade-in zoom-in-95 duration-500"
-            onClick={() => setIsSummaryOpen(true)}
-          >
-            Review & Create Shipment <FiCheckCircle className="ml-2" />
-          </Button>
-        )}
+          {/* Action Button for Summary (if not already open) */}
+          {completedSteps.includes("service") && !isSummaryOpen && (
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full h-16 rounded-3xl text-lg font-black shadow-2xl shadow-brand-blue/30 mt-8 animate-in fade-in zoom-in-95 duration-500"
+              onClick={() => setIsSummaryOpen(true)}
+            >
+              Review & Create Shipment <FiCheckCircle className="ml-2" />
+            </Button>
+          )}
+        </div>
+
+        {/* Summary Drawer */}
+        <SummaryDrawer
+          isOpen={isSummaryOpen}
+          onClose={() => setIsSummaryOpen(false)}
+          sender={sender}
+          recipient={recipient}
+          pkg={packages[0] || null}
+          rate={displaySelectedRate}
+          onFinalize={handleFinalize}
+          isLoading={isCreatingShipment}
+        />
+
+        {/* Heavy Shipment Modal */}
+        <HeavyShipmentModal
+          isOpen={isHeavyShipmentModalOpen}
+          onClose={() => setIsHeavyShipmentModalOpen(false)}
+        />
       </div>
-
-      {/* Summary Drawer */}
-      <SummaryDrawer
-        isOpen={isSummaryOpen}
-        onClose={() => setIsSummaryOpen(false)}
-        sender={sender}
-        recipient={recipient}
-        pkg={packages[0] || null}
-        rate={displaySelectedRate}
-        onFinalize={handleFinalize}
-        isLoading={isCreatingShipment}
-      />
-
-      {/* Heavy Shipment Modal */}
-      <HeavyShipmentModal
-        isOpen={isHeavyShipmentModalOpen}
-        onClose={() => setIsHeavyShipmentModalOpen(false)}
-      />
-    </div>
+    </>
   );
 }

@@ -38,10 +38,11 @@ export default function ForgotPasswordPage() {
         type: "success",
       });
       setStep("reset");
-    } catch (error: any) {
+    } catch (error: unknown) {
       addToast({
         title: "Error",
-        message: error.response?.data?.error || "Failed to send reset code",
+        message:
+          error instanceof Error ? error.message : "Failed to send reset code",
         type: "error",
       });
     } finally {
@@ -71,10 +72,11 @@ export default function ForgotPasswordPage() {
         type: "success",
       });
       router.push("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
       addToast({
         title: "Error",
-        message: error.response?.data?.error || "Failed to reset password",
+        message:
+          error instanceof Error ? error.message : "Failed to reset password",
         type: "error",
       });
     } finally {

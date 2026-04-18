@@ -5,6 +5,108 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.41.1] - 2026-04-18 - Shipment Guard Flow Refinement
+
+- Changed: **Middleware Guard Behavior** (`proxy.ts`)
+  - Updated shipment creation guard flow to keep users on `/app/shipments/new` instead of redirecting to account.
+  - Middleware now computes missing requirements (`email`, `address`, or `both`) and passes guard state via query params.
+  - Added stale guard cleanup once the account is compliant.
+
+- Changed: **Shipment Creation Blocking UX** (`app/app/shipments/new/page.tsx`)
+  - Added page-level, non-dismissible verification modal shown directly on shipment page.
+  - Background page remains visible but fully non-interactive while blocked.
+  - Modal now conditionally shows required actions based on what is missing.
+
+- Changed: **Account Verification Modal CTAs** (`components/shipment/account-verification-modal.tsx`, `types/verification.ts`)
+  - Added separate CTA handlers for `Verify Email` and `Update Address`.
+  - Added conditional checklist and messaging for missing email, missing address, or both.
+
+- Changed: **Account Page Auto-Assist Flow** (`components/account/VerificationBanner.tsx`, `components/account/ProfileForm.tsx`)
+  - Added auto-trigger for sending verification code and opening email verification modal when arriving with `openVerifyEmail=1`.
+  - Added automatic profile edit mode when arriving with `focusAddress=1` for quick address updates.
+
+- Fixed: **Address Completeness Detection** (`utils/verification-helpers.ts`)
+  - Address validation now accepts both `postalCode` and legacy `zip` fields to avoid false checks.
+
+- Changed: **Verification Navigation Target** (`hooks/shipments/useVerification.ts`)
+  - Updated verification CTA route params to open the account email verification flow directly.
+
+## [1.41.0] - 2026-04-18 - Invoice UI & Account Verification Enhancement
+
+- Added: **Account Verification Modal** (`components/shipment/account-verification-modal.tsx`)
+  - Non-dismissible modal with lock icon and verification checklist
+  - Prompts users to verify email and complete address before shipment creation
+  - Click-outside and Escape key are disabled (non-dismissible)
+  - Primary CTA routes users to account settings page
+  - Responsive design for mobile and desktop viewports
+  - Animated entrance/exit with Framer Motion
+
+- Added: **Verification Types & Interfaces** (`types/verification.ts`)
+  - `VerificationStatus` interface for tracking email and address verification states
+  - `VerificationError` interface for detailed error messaging
+  - `AccountVerificationModalProps` interface for modal component props
+
+- Added: **Verification Utilities** (`utils/verification-helpers.ts`)
+  - `isEmailVerified()` - Check if user email is verified
+  - `hasCompleteAddress()` - Validate user address completeness (street, city, postal, country)
+  - `getVerificationStatus()` - Get overall verification state
+  - `needsVerification()` - Determine if verification is required
+  - `getVerificationError()` - Generate user-friendly error messages
+  - `formatUserAddress()` - Format address for display
+  - `extractUserInfoForInvoice()` - Extract name and address for invoice population
+
+- Added: **Verification Hook** (`hooks/shipments/useVerification.ts`)
+  - `useVerification()` hook for managing verification state
+  - Provides real-time verification status, error details, and status change detection
+  - `canProceed()` callback to check if user can proceed with shipment
+  - `triggerVerification()` callback to navigate to account settings
+
+- Added: **Form Submission Validation** (updates to `utils/form-submission-validation.ts`)
+  - `hasVerificationStatusChanged()` - Detect when user completes verification
+
+- Changed: **Customs Form Integration** (`components/shipment/customs-form.tsx`)
+  - Integrated `AccountVerificationModal` component
+  - Added verification status checks on component mount
+  - Form is disabled (opacity-50, pointer-events-none) while modal is open
+  - Modal closes automatically when verification status changes to complete
+  - Submit button blocked until verification requirements are met
+
+- Changed: **Invoice Drawer Enhanced** (`components/invoice/InvoiceDrawer.tsx`)
+  - Added optional props for user data population:
+    - `recipientName`: User name from profile
+    - `recipientAddress`: User address from profile
+    - `itemQuantity`: Count of items in shipment
+    - `serviceDescription`: Auto-generated description from shipment service name
+  - All props passed to `InvoiceReceiptView` for display
+
+- Changed: **Invoice Receipt View Enhanced** (`components/invoice/InvoiceReceiptView.tsx`)
+  - Added optional props for user data population
+  - Recipient name populated from user profile when available
+  - Recipient address populated from user profile (graceful fallback if missing)
+  - Service name set to "Logistics"
+  - Service description auto-generated from shipment context
+  - Item quantity auto-populated from shipment data
+
+- Added: **Invoice Data Population Utilities** (`utils/invoice-data-population.ts`)
+  - Added helpers to enrich invoice display data from user and shipment context
+  - Added safe fallbacks for missing recipient/address/service fields
+  - Added display-oriented extraction utility for consistent invoice rendering
+
+- Changed: **Shipment Details Page** (`app/app/shipments/[id]/page.tsx`)
+  - Integrated `useAuth()` hook for user data access
+  - Passes user name, address, and item quantity to `InvoiceDrawer`
+  - Auto-generates service description from shipment data
+  - Enables automatic invoice data population
+
+- Fixed: **JSX Syntax Errors** in Customs Form
+  - Fixed missing closing `>` on form element
+  - Corrected indentation for proper JSX nesting
+  - Resolved all JSX structure issues
+
+- Fixed: **TypeScript Type Errors** in Verification Helpers
+  - Cast `Address` objects to `Record<string, any>` for bracket notation access
+  - Resolved index signature errors in helper functions
+
 ## [1.40.2] - 2026-04-12 - PRD for Codebase Quality Stabilization
 
 - Added: New PRD `docs/prd/prd-codebase-quality-stabilization.md` for full lint/type/react quality hardening in currently reported lint scope.

@@ -3,7 +3,7 @@
 import React from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
-import { toFormikValidationSchema } from "zod-formik-adapter";
+// import { toFormikValidationSchema } from "zod-formik-adapter";
 import { useLogin } from "@/hooks/auth/use-auth";
 import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/ui/password-input";
@@ -20,8 +20,6 @@ import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { setPersistencePreference } from "@/utils/secure-storage";
 
-// ... existing imports
-
 const LoginForm = () => {
   const { mutateAsync: login } = useLogin();
   const router = useRouter();
@@ -37,7 +35,7 @@ const LoginForm = () => {
       try {
         loginSchema.parse(values);
         return {};
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (error instanceof z.ZodError) {
           const formikErrors: Record<string, string> = {};
           error.issues.forEach((issue) => {

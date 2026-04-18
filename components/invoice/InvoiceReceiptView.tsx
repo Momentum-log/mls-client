@@ -54,6 +54,14 @@ interface InvoiceReceiptViewProps {
   onPayNow?: () => void;
   /** Optional CSS classes */
   className?: string;
+  /** Optional recipient name from user profile (for invoice population) */
+  recipientName?: string;
+  /** Optional recipient address from user profile (for invoice population) */
+  recipientAddress?: any;
+  /** Optional item quantity from shipment (for invoice population) */
+  itemQuantity?: number;
+  /** Optional service description (auto-generated from shipment data) */
+  serviceDescription?: string;
 }
 
 /**
@@ -79,6 +87,10 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   onUpdateShipment,
   onPayNow,
   className = "",
+  recipientName,
+  recipientAddress,
+  itemQuantity,
+  serviceDescription,
 }) => {
   const { addToast } = useToast();
 
@@ -133,12 +145,15 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   const sellerPostalCode = getString("sellerPostalCode");
   const sellerNIP = getString("sellerNIP");
 
-  const buyerName = getString("buyerName");
-  const buyerStreet = getString("buyerStreet");
-  const buyerBuildingNumber = getString("buyerBuildingNumber");
-  const buyerCity = getString("buyerCity");
-  const buyerPostalCode = getString("buyerPostalCode");
-  const buyerApartmentNumber = getString("buyerApartmentNumber");
+  const buyerName = recipientName || getString("buyerName");
+  const buyerStreet = recipientAddress?.street || getString("buyerStreet");
+  const buyerBuildingNumber =
+    recipientAddress?.buildingNumber || getString("buyerBuildingNumber");
+  const buyerCity = recipientAddress?.city || getString("buyerCity");
+  const buyerPostalCode =
+    recipientAddress?.postalCode || getString("buyerPostalCode");
+  const buyerApartmentNumber =
+    recipientAddress?.apartmentNumber || getString("buyerApartmentNumber");
 
   const totalNetAmount =
     getNumberish(rawInvoice.totalNetAmount) ||
@@ -236,15 +251,15 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
       {/* ── Receipt Card ── */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="px-8 py-6 border-b border-gray-100 flex items-start justify-between">
+        <div className="px-8 py-8 border-b border-gray-100 flex items-start justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
               Invoice
             </p>
-            <h2 className="text-lg font-mono font-black text-gray-900 tracking-tight">
+            <h2 className="text-2xl font-mono font-black text-gray-900 tracking-tight mb-3">
               {invoiceNumber}
             </h2>
-            <p className="text-xs text-gray-500 font-medium mt-1">
+            <p className="text-sm text-gray-600 font-medium">
               Issued {formatInvoiceDate(createdAt, false)}
             </p>
           </div>
@@ -253,16 +268,16 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
 
         {/* Seller & Buyer */}
         {!condensed && (
-          <div className="px-8 py-6 border-b border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="px-8 py-8 border-b border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Seller */}
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
                 From
               </p>
-              <p className="font-bold text-gray-900 text-sm">
+              <p className="font-bold text-gray-900 text-sm mb-2">
                 {sellerCompanyName}
               </p>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              <p className="text-sm text-gray-600 leading-relaxed font-medium">
                 {buildAddressString(
                   sellerStreet,
                   sellerBuildingNumber,
@@ -271,38 +286,50 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
                   sellerApartmentNumber,
                 )}
               </p>
-              <p className="text-xs text-gray-400 font-medium mt-1">
-                NIP: {sellerNIP}
-              </p>
+              {sellerNIP && (
+                <p className="text-xs text-gray-500 font-medium mt-3">
+                  <span className="font-bold text-gray-600">NIP:</span>{" "}
+                  {sellerNIP}
+                </p>
+              )}
             </div>
 
             {/* Buyer */}
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">
                 To
               </p>
-              <p className="font-bold text-gray-900 text-sm">{buyerName}</p>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                {buildAddressString(
-                  buyerStreet,
-                  buyerBuildingNumber,
-                  buyerCity,
-                  buyerPostalCode,
-                  buyerApartmentNumber,
-                )}
+              <p className="font-bold text-gray-900 text-sm mb-2">
+                {buyerName || "Customer"}
               </p>
+              {buyerStreet && (
+                <p className="text-sm text-gray-600 leading-relaxed font-medium">
+                  {buildAddressString(
+                    buyerStreet,
+                    buyerBuildingNumber,
+                    buyerCity,
+                    buyerPostalCode,
+                    buyerApartmentNumber,
+                  )}
+                </p>
+              )}
+              {!buyerStreet && (
+                <p className="text-sm text-gray-400 italic">
+                  Address not provided
+                </p>
+              )}
             </div>
           </div>
         )}
 
         {/* Line Items */}
-        <div className="px-8 py-6 border-b border-gray-100">
-          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
+        <div className="px-8 py-8 border-b border-gray-100">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-5">
             Services
           </p>
 
           {/* Table Header */}
-          <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 pb-3 border-b border-gray-50">
+          <div className="hidden md:grid grid-cols-12 gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 pb-4 border-b border-gray-100">
             <div className="col-span-5">Description</div>
             <div className="col-span-1 text-right">Qty</div>
             <div className="col-span-2 text-right">Net Price</div>
@@ -314,25 +341,26 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
           {(lineItems ?? []).map((item, index: number) => (
             <div
               key={item.lineItemId || index}
-              className="grid grid-cols-1 md:grid-cols-12 gap-2 py-4 border-b border-gray-50 last:border-0"
+              className="grid grid-cols-1 md:grid-cols-12 gap-2 py-5 border-b border-gray-50 last:border-0"
             >
               {/* Mobile: stacked */}
               <div className="col-span-5">
                 <p className="font-bold text-gray-900 text-sm">
-                  {toDisplayCarrierName(item.serviceName)}
+                  {serviceDescription || toDisplayCarrierName(item.serviceName)}
                 </p>
                 <p className="text-[10px] text-gray-400 font-medium md:hidden">
-                  {item.quantity} × {formatAmount(item.unitNetPrice, false)} •
-                  VAT {formatTaxRate(item.taxRate)}
+                  {itemQuantity || item.quantity} ×{" "}
+                  {formatAmount(item.unitNetPrice, false)} • VAT{" "}
+                  {formatTaxRate(item.taxRate)}
                 </p>
               </div>
-              <div className="hidden md:block col-span-1 text-right text-sm text-gray-700">
-                {item.quantity}
+              <div className="hidden md:block col-span-1 text-right text-sm text-gray-700 font-medium">
+                {itemQuantity || item.quantity}
               </div>
-              <div className="hidden md:block col-span-2 text-right text-sm text-gray-700 font-mono">
+              <div className="hidden md:block col-span-2 text-right text-sm text-gray-700 font-mono font-semibold">
                 {formatAmount(item.unitNetPrice, false)}
               </div>
-              <div className="hidden md:block col-span-1 text-center text-xs text-gray-500">
+              <div className="hidden md:block col-span-1 text-center text-xs text-gray-500 font-medium">
                 {formatTaxRate(item.taxRate || 0)}
               </div>
               <div className="col-span-3 text-right font-bold text-gray-900 text-sm font-mono">
@@ -343,30 +371,34 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
         </div>
 
         {/* Totals */}
-        <div className="px-8 py-6 w-full">
-          <div className="w-full space-y-2">
+        <div className="px-8 py-8 w-full bg-gray-50/50">
+          <div className="w-full space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500 font-medium">Net Amount</span>
-              <span className="text-gray-700 font-mono">
+              <span className="text-gray-600 font-semibold">Net Amount</span>
+              <span className="text-gray-800 font-mono font-semibold">
                 {formatAmount(totalNetAmount ?? 0, false)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500 font-medium">
+              <span className="text-gray-600 font-semibold">
                 VAT ({(totalVATAmount ?? 0) > 0 ? "23%" : "0%"})
               </span>
-              <span className="text-gray-700 font-mono">
+              <span className="text-gray-800 font-mono font-semibold">
                 {formatAmount(totalVATAmount ?? 0, false)}
               </span>
             </div>
-            <div className="border-t border-gray-200 pt-3 mt-3 flex justify-between">
-              <span className="text-base font-bold text-gray-900">Total</span>
-              <span className="text-xl font-black text-gray-900 font-mono">
-                {formatAmount(totalGrossAmount ?? 0)}{" "}
+            <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-baseline">
+              <span className="text-lg font-black text-gray-900">
+                Total Due
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-gray-900 font-mono">
+                  {formatAmount(totalGrossAmount ?? 0, false)}
+                </span>
                 <span className="text-xs font-bold text-gray-500 uppercase">
                   {currency ?? "PLN"}
                 </span>
-              </span>
+              </div>
             </div>
           </div>
         </div>

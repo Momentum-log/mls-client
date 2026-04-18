@@ -31,6 +31,14 @@ interface InvoiceDrawerProps {
   shipmentId?: string;
   /** Callback when "Update Shipment" is clicked */
   onUpdateShipment?: () => void;
+  /** Optional recipient name from user profile (for invoice population) */
+  recipientName?: string;
+  /** Optional recipient address from user profile (for invoice population) */
+  recipientAddress?: any;
+  /** Optional item quantity from shipment (for invoice population) */
+  itemQuantity?: number;
+  /** Optional service description (auto-generated from shipment data) */
+  serviceDescription?: string;
 }
 
 /**
@@ -56,6 +64,10 @@ export const InvoiceDrawer: React.FC<InvoiceDrawerProps> = ({
   invoice,
   shipmentId,
   onUpdateShipment,
+  recipientName,
+  recipientAddress,
+  itemQuantity,
+  serviceDescription,
 }) => {
   const router = useRouter();
 
@@ -113,6 +125,10 @@ export const InvoiceDrawer: React.FC<InvoiceDrawerProps> = ({
                 shipmentId={shipmentId}
                 condensed
                 onUpdateShipment={onUpdateShipment}
+                recipientName={recipientName}
+                recipientAddress={recipientAddress}
+                itemQuantity={itemQuantity}
+                serviceDescription={serviceDescription}
               />
             </div>
 

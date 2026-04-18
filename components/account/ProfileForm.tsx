@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
+import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,13 @@ const ProfileForm = () => {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pendingValues, setPendingValues] = useState<any>(null);
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    if (searchParams.get("focusAddress") === "1") {
+      setIsEditing(true);
+    }
+  }, [searchParams]);
 
   const formik = useFormik({
     initialValues: {
