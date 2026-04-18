@@ -219,11 +219,26 @@ export default function AddressForm({
               size="lg"
               className="min-w-[180px] shadow-xl shadow-brand-blue/20 bg-brand-blue text-white disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!user?.is_verified}
+              onClick={() => {
+                const errors = Object.keys(formik.errors);
+                if (errors.length > 0) {
+                  // Explicitly touch all fields so they show errors 
+                  formik.setTouched(
+                    errors.reduce((acc, key) => ({ ...acc, [key]: true }), {})
+                  );
+                }
+              }}
             >
               Continue <FiArrowRight className="ml-2" />
             </Button>
           </div>
         </div>
+
+        {Object.keys(formik.errors).length > 0 && formik.submitCount > 0 && (
+          <div className="p-4 bg-red-50 text-red-500 rounded-xl text-xs font-bold mt-4">
+            Please fix the following validation errors: {Object.keys(formik.errors).join(", ")}
+          </div>
+        )}
       </form>
     </FormikProvider>
   );

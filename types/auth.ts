@@ -5,6 +5,7 @@ export interface User {
   name: string;
   phone?: string | null;
   address?: any | null;
+  defaultCustomsType?: "S" | "I";
   is_verified: boolean;
   is_phone_verified: boolean;
   createdAt: string;

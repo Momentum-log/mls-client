@@ -12,6 +12,7 @@ import logoLandscape from "@/public/images/logo-landscape.svg";
 import {
   FiHome,
   FiPackage,
+  FiFileText,
   FiSettings,
   FiLogOut,
   FiPlusCircle,
@@ -24,6 +25,7 @@ const navItems = [
   { name: "New Shipment", href: "/app/shipments/new", icon: FiPlusCircle },
   { name: "Track Shipment", href: "/app/track", icon: FiSearch },
   { name: "My Shipments", href: "/app/shipments", icon: FiPackage },
+  { name: "Invoices", href: "/app/invoices", icon: FiFileText },
   { name: "Account", href: "/app/account", icon: FiSettings },
 ];
 
@@ -40,7 +42,7 @@ export function SidebarNav({ onClose, className }: SidebarNavProps) {
     <div
       className={cn(
         "flex flex-col h-full bg-white border-r border-gray-200 shadow-xl md:shadow-none",
-        className
+        className,
       )}
     >
       <div className="p-6 border-b border-gray-100 flex items-center justify-between">
@@ -90,7 +92,7 @@ export function SidebarNav({ onClose, className }: SidebarNavProps) {
                 "flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                 isActive
                   ? "bg-brand-blue text-white"
-                  : "text-gray-700 hover:bg-gray-50 hover:text-brand-blue"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-brand-blue",
               )}
             >
               <item.icon className="w-5 h-5" />

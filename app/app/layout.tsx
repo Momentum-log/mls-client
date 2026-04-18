@@ -33,9 +33,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           const { getCurrentUser } = await import("@/api/auth");
           const response = await getCurrentUser();
           updateUser(response.data.user);
-        } catch (error: any) {
+        } catch (error: unknown) {
           // If it's a network error, the server might be down
-          if (error.message === "Network Error") {
+          if (error instanceof Error && error.message === "Network Error") {
             console.error(
               "Backend API is unreachable. Please ensure the server is running on port 8000.",
             );
