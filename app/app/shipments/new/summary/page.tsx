@@ -109,27 +109,25 @@ export default function SummaryPage() {
           },
         },
         rate: selectedRate,
-        customs:
-          customs ||
-          {
-            customsType: "S",
-            currency: packages[0].currency,
-            categoryOfItem: "91",
-            grossWeight: Number(packages[0].weight),
-            firstName: sender.name,
-            secondaryName: recipient.name,
-            customsItem: [
-              {
-                item: {
-                  nameEn: packages[0].description || "Package",
-                  quantity: 1,
-                  weight: Number(packages[0].weight),
-                  value: Number(packages[0].value),
-                  tariffCode: "",
-                },
+        customs: customs || {
+          customsType: "S",
+          currency: packages[0].currency,
+          categoryOfItem: "91",
+          grossWeight: Number(packages[0].weight),
+          firstName: sender.name,
+          secondaryName: recipient.name,
+          customsItem: [
+            {
+              item: {
+                nameEn: packages[0].description || "Package",
+                quantity: 1,
+                weight: Number(packages[0].weight),
+                value: Number(packages[0].value),
+                tariffCode: "",
               },
-            ],
-          },
+            },
+          ],
+        },
       });
 
       console.log(

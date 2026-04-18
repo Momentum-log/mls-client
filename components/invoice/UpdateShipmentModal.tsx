@@ -176,16 +176,14 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
     const payload = getEstimatePayload(
       {
         city: pickupAddress.city || "",
-        countryCode:
-          pickupAddress.countryCode || pickupAddress.country || "",
+        countryCode: pickupAddress.countryCode || pickupAddress.country || "",
         stateOrProvinceCode: pickupAddress.stateOrProvinceCode || "",
         postalCode: pickupAddress.postalCode,
         streetLines: pickupAddress.streetLines || [pickupAddress.street || ""],
       },
       {
         city: dropoffAddress.city || "",
-        countryCode:
-          dropoffAddress.countryCode || dropoffAddress.country || "",
+        countryCode: dropoffAddress.countryCode || dropoffAddress.country || "",
         stateOrProvinceCode: dropoffAddress.stateOrProvinceCode || "",
         postalCode: dropoffAddress.postalCode,
         streetLines: dropoffAddress.streetLines || [
@@ -283,8 +281,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
         city: dropoffAddress.city || "",
         stateOrProvinceCode: dropoffAddress.stateOrProvinceCode || "",
         postalCode: dropoffAddress.postalCode || "",
-        countryCode:
-          dropoffAddress.countryCode || dropoffAddress.country || "",
+        countryCode: dropoffAddress.countryCode || dropoffAddress.country || "",
         residential: false,
         contact: {
           personName:
