@@ -5,6 +5,29 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.41.2] - 2026-04-18 - Payment Success API Integration Refactor
+
+- Added: **Payments Types Layer** (`types/payments.ts`)
+  - Added payment-specific request/response interfaces for payment verification, invoice fetch payload, and invoice email payload.
+  - Added normalized payment invoice model typing used by payment UI hooks.
+
+- Changed: **Payments API Layer** (`api/payments/index.ts`)
+  - Added `getPaymentInvoice(invoiceId)` to fetch invoice data through the shared `apiClient`.
+  - Added `downloadPaymentInvoicePdf(invoiceId)` for PDF retrieval as Blob.
+  - Added `sendPaymentInvoiceEmail({ invoiceId, email })` for receipt delivery.
+  - Added internal response normalization for consistent UI invoice model usage.
+
+- Added: **Payments Hooks Layer** (`hooks/payments/use-payments.ts`, `hooks/payments/index.ts`)
+  - Added `usePaymentInvoice` query hook for payment-success invoice retrieval.
+  - Added `useDownloadPaymentInvoicePdf` mutation hook for PDF downloads.
+  - Added `useSendPaymentInvoiceEmail` mutation hook for sending receipts.
+  - Added `useVerifyPayment` mutation hook for payment verification flows.
+
+- Changed: **Payment Success Page Integration** (`app/app/shipments/payment-success/page.tsx`)
+  - Replaced direct invoice/integration logic with payment-dedicated hooks.
+  - Removed in-page API response transformation and direct data mapping logic.
+  - Updated icon imports and lint-safe text escaping for JSX content.
+
 ## [1.41.1] - 2026-04-18 - Shipment Guard Flow Refinement
 
 - Changed: **Middleware Guard Behavior** (`proxy.ts`)

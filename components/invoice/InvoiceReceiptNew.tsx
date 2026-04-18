@@ -38,6 +38,10 @@ interface InvoiceReceiptProps {
   onViewDetails?: () => void;
   /** Optional CSS classes */
   className?: string;
+  /** Optional loading state for download button */
+  isDownloading?: boolean;
+  /** Optional loading state for email button */
+  isSendingEmail?: boolean;
 }
 
 /**
@@ -58,6 +62,8 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
   onEmail,
   onViewDetails,
   className = "",
+  isDownloading = false,
+  isSendingEmail = false,
 }) => {
   const buyerAddress = buildAddressString(
     invoice.buyerStreet,
@@ -207,22 +213,24 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
           {onDownload && (
             <Button
               onClick={onDownload}
+              disabled={isDownloading}
               variant="default"
               size="sm"
               className="flex-1"
             >
-              Download Invoice
+              {isDownloading ? "Downloading..." : "Download Invoice"}
             </Button>
           )}
 
           {onEmail && (
             <Button
               onClick={onEmail}
+              disabled={isSendingEmail}
               variant="outline"
               size="sm"
               className="flex-1"
             >
-              Email Receipt
+              {isSendingEmail ? "Sending..." : "Email Receipt"}
             </Button>
           )}
 
