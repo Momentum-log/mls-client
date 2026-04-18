@@ -22,7 +22,7 @@ const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
   showFull = false,
 }) => {
   const router = useRouter();
-  const { timeline, shipment } = trackingResponse;
+  const { timeline, shipment: rawShipment } = trackingResponse;
 
   if (!timeline || timeline.length === 0) {
     return (
@@ -35,9 +35,20 @@ const TrackingTimelineView: React.FC<TrackingTimelineProps> = ({
     );
   }
 
+  if (!rawShipment) {
+    return (
+      <div className="py-12 text-center text-gray-400">
+        <FiPackage className="w-12 h-12 mx-auto mb-4 opacity-20" />
+        <p>Shipment information unavailable.</p>
+      </div>
+    );
+  }
+
+  const shipment = rawShipment;
+
   // Sort events by date descending (Newest first)
   const sortedEvents = [...timeline].sort(
-    (a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+    (a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime(),
   );
 
   const totalEvents = sortedEvents.length;

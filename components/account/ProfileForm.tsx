@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
+import { useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,7 @@ const profileSchema = z.object({
       country: z.string().optional(),
     })
     .optional(),
+  defaultCustomsType: z.enum(["S", "I"]).optional(),
 });
 
 /**
@@ -39,6 +41,13 @@ const ProfileForm = () => {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [pendingValues, setPendingValues] = useState<any>(null);
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    if (searchParams.get("focusAddress") === "1") {
+      setIsEditing(true);
+    }
+  }, [searchParams]);
 
   const formik = useFormik({
     initialValues: {
@@ -51,6 +60,7 @@ const ProfileForm = () => {
         zip: user?.address?.zip || "",
         country: user?.address?.country || "Poland",
       },
+      defaultCustomsType: user?.defaultCustomsType || "S",
     },
     enableReinitialize: !isEditing,
     validationSchema: toFormikValidationSchema(profileSchema),
@@ -279,6 +289,30 @@ const ProfileForm = () => {
                 disabled={!isEditing || formik.isSubmitting}
               />
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-4 border-t border-gray-50">
+          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+            Customs Preferences
+          </h4>
+          <div className="space-y-2">
+            <Label htmlFor="defaultCustomsType">Default Customs Entity</Label>
+            <select
+              id="defaultCustomsType"
+              name="defaultCustomsType"
+              value={formik.values.defaultCustomsType}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              disabled={!isEditing || formik.isSubmitting}
+              className="w-full text-sm font-semibold h-12 rounded-xl bg-gray-50 border-gray-200 outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent px-4 py-2 transition-all text-gray-900 disabled:opacity-50"
+            >
+              <option value="S">Business (Simplified)</option>
+              <option value="I">Individual</option>
+            </select>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+              Used automatically when creating international shipments
+            </p>
           </div>
         </div>
 

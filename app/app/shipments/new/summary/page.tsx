@@ -20,14 +20,21 @@ import {
   getPayload,
   checkIfInternational,
 } from "@/app/(marketing)/shipping-estimate/utils";
+import { deepTransformData } from "@/utils/data-transform";
 
 export default function SummaryPage() {
   const router = useRouter();
-  const { sender, recipient, packages, selectedRate, setStep, reset } =
+  const { sender, recipient, packages, customs, selectedRate, setStep, reset } =
     useShipmentStore();
   const { user } = useAuthStore();
   const { addToast: toast } = useToast();
   const [loading, setLoading] = useState(false);
+
+  // Transform selectedRate for UI display only
+  const displaySelectedRate = React.useMemo(
+    () => (selectedRate ? deepTransformData(selectedRate) : null),
+    [selectedRate],
+  );
 
   useEffect(() => {
     setStep(4); // 4 index for final step
@@ -38,18 +45,31 @@ export default function SummaryPage() {
   }, [setStep, sender, recipient, packages, selectedRate, router]);
 
   const handleBook = async () => {
+    if (!sender || !recipient || packages.length === 0 || !selectedRate) {
+      toast({
+        title: "Missing Shipment Data",
+        message: "Please complete shipment details before booking.",
+        type: "error",
+      });
+      router.push("/app/shipments/new/origin");
+      return;
+    }
+
     setLoading(true);
     try {
       // Determine if shipment is international
       const isInternational = checkIfInternational(
         sender?.country,
-        recipient?.country
+        recipient?.country,
       );
 
       // Construct proper payload matching API requirements
       // Use strict helper to build payload
       const payload = getPayload(isInternational, {
-        carrierName: selectedRate.carrier || "FedEx", // Fallback if missing
+        carrierSlug:
+          selectedRate.carrierSlug ||
+          selectedRate.carrier?.toLowerCase().replace(/\s+/g, "-") ||
+          "fedex", // Use slug
         pickupAddress: {
           streetLines: [sender?.street],
           city: sender?.city,
@@ -89,29 +109,45 @@ export default function SummaryPage() {
           },
         },
         rate: selectedRate,
-        customs: {
-          declaredValue: packages[0].value,
-          contentsDescription: packages[0].description,
+        customs: customs || {
+          customsType: "S",
           currency: packages[0].currency,
+          categoryOfItem: "91",
+          grossWeight: Number(packages[0].weight),
+          firstName: sender.name,
+          secondaryName: recipient.name,
+          customsItem: [
+            {
+              item: {
+                nameEn: packages[0].description || "Package",
+                quantity: 1,
+                weight: Number(packages[0].weight),
+                value: Number(packages[0].value),
+                tariffCode: "",
+              },
+            },
+          ],
         },
       });
 
       console.log(
         "Submitting Shipment Payload:",
-        JSON.stringify(payload, null, 2)
+        JSON.stringify(payload, null, 2),
       );
 
       const data = await createShipment(payload);
-      const { checkoutUrl, sessionId } = data; // Ensure backend returns sessionId if needed manually
+      const { checkoutUrl } = data;
 
       toast({
         title: "Shipment Created!",
-        message: "Redirecting to payment...",
+        message: "Redirecting to invoice...",
         type: "success",
         duration: 3000,
       });
 
-      if (checkoutUrl) {
+      if (data.invoice?.id) {
+        router.push(`/app/invoices/${data.invoice.id}`);
+      } else if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
         router.push("/app/dashboard");
@@ -197,10 +233,11 @@ export default function SummaryPage() {
                 <FiTruck /> Service
               </div>
               <p className="font-semibold text-gray-900">
-                {selectedRate?.carrier} {selectedRate?.serviceName}
+                {displaySelectedRate?.carrier}{" "}
+                {displaySelectedRate?.serviceName}
               </p>
               <p className="text-sm text-gray-600">
-                {selectedRate?.deliveryDescription}
+                {displaySelectedRate?.deliveryDescription}
               </p>
             </div>
           </div>

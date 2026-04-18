@@ -78,7 +78,7 @@ const TrackingDetails: React.FC<TrackingDetailsProps> = ({ shipment }) => {
         </div>
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
           <p className="font-medium text-gray-900 text-lg">
-            {shipment.customs?.contentsDescription || "Package"}
+            {shipment.customs?.categoryOfItem || "Package"}
           </p>
           <p className="text-xs text-gray-400 mt-2 uppercase tracking-wide font-bold">
             Created: {formatTrackingDate(shipment.createdAt)}

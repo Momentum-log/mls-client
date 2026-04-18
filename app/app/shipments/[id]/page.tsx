@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useGetShipment } from "@/hooks/shipments/use-shipments";
 import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
-import { useContinueToPay } from "@/hooks/shipments/use-continue-payment";
+import { useAuth } from "@/hooks/useAuth";
 import { deepTransformData } from "@/utils/data-transform";
 import TrackingOverview from "@/components/tracking/TrackingOverview";
 import TrackingDetails from "@/components/tracking/TrackingDetails";
 import TrackingTimelineView from "@/components/tracking/TrackingTimelineView";
 import { TrackingResponse } from "@/types/shipping";
+import { InvoiceDrawer, UpdateShipmentModal } from "@/components/invoice";
+import { CreateShipmentResponse } from "@/types/invoice";
 import Button from "@/components/ui/button";
-import { FiBox, FiInfo, FiCopy, FiDownload } from "react-icons/fi";
+import { FiBox, FiInfo, FiCopy, FiDownload, FiFileText } from "react-icons/fi";
 
 /**
  * ShipmentDetailsPage Component
@@ -20,12 +23,34 @@ import { FiBox, FiInfo, FiCopy, FiDownload } from "react-icons/fi";
  */
 export default function ShipmentDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params?.id as string;
 
   // Fetch shipment and tracking data
   const { data: rawData, isLoading, error } = useGetShipment(id);
   const { duplicateShipment } = useDuplicateShipment();
-  const { continueToPay, isLoading: isPaymentLoading } = useContinueToPay();
+  const { user } = useAuth();
+
+  // Invoice drawer & update modal state
+  const [isInvoiceDrawerOpen, setIsInvoiceDrawerOpen] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
+  /**
+   * Handles successful update from the UpdateShipmentModal.
+   * Stores new IDs and could trigger a page refresh.
+   */
+  const handleUpdateSuccess = useCallback(
+    (data: CreateShipmentResponse) => {
+      if (data?.shipmentId) {
+        localStorage.setItem("lastShipmentId", data.shipmentId);
+      }
+      // Redirect to the updated invoice page
+      if (data?.invoice?.id) {
+        router.push(`/app/invoices/${data.invoice.id}`);
+      }
+    },
+    [router],
+  );
 
   // Transform and map data
   const { shipment, trackingResponse } = useMemo(() => {
@@ -38,7 +63,7 @@ export default function ShipmentDetailsPage() {
     if (cleanedData.labelUrl) {
       cleanedData.labelUrl = cleanedData.labelUrl.replace(
         "mls.com",
-        "fedex.com"
+        "fedex.com",
       );
     }
 
@@ -54,14 +79,21 @@ export default function ShipmentDetailsPage() {
       };
     }
 
-    // Reconstruct TrackingResponse for the sub-components
-    const tr: TrackingResponse = {
-      trackingNumber: cleanedData.tracking.trackingNumber,
-      carrier: cleanedData.carrier?.name || "MLS",
-      status: cleanedData.tracking.status,
-      timeline: cleanedData.tracking.timeline,
-      shipment: cleanedData,
-    };
+    // Reconstruct TrackingResponse for the sub-components if tracking data exists
+    const trackingData = cleanedData.tracking;
+    const tr: TrackingResponse | null = trackingData
+      ? {
+          trackingNumber:
+            trackingData.trackingNumber ||
+            cleanedData.customTrackingNumber ||
+            cleanedData.carrierTrackingNumber ||
+            "",
+          carrier: cleanedData.carrier?.name || "MLS",
+          status: trackingData.status || cleanedData.shipmentStatus,
+          timeline: trackingData.timeline || [],
+          shipment: cleanedData,
+        }
+      : null;
 
     return {
       shipment: cleanedData,
@@ -185,20 +217,10 @@ export default function ShipmentDetailsPage() {
                       }`}
                     >
                       {shipment.shipmentStatus === "CREATED"
-                        ? "This shipment has been created, but the payment has not been completed yet."
+                        ? "This shipment was created but is unpaid. Use the invoice section to continue payment and renewal actions."
                         : "Tracking information is unavailable for this shipment. Please contact support if you believe this is an error."}
                     </p>
                   </div>
-                  {shipment.shipmentStatus === "CREATED" && (
-                    <Button
-                      onClick={() => continueToPay(shipment.id)}
-                      isLoading={isPaymentLoading}
-                      disabled={isPaymentLoading}
-                      className="shrink-0 w-full md:w-auto"
-                    >
-                      Complete Payment
-                    </Button>
-                  )}
                 </div>
               )}
 
@@ -287,6 +309,18 @@ export default function ShipmentDetailsPage() {
             </div>
           </div>
 
+          {/* Invoice Section */}
+          {rawData?.invoice && (
+            <Button
+              variant="outline"
+              className="w-full rounded-2xl"
+              onClick={() => setIsInvoiceDrawerOpen(true)}
+            >
+              <FiFileText className="mr-2" />
+              View Invoice
+            </Button>
+          )}
+
           <div className="bg-brand-blue/5 p-8 rounded-3xl border border-brand-blue/10">
             <h4 className="font-black text-brand-blue mb-2 text-lg">
               Support Center
@@ -301,6 +335,39 @@ export default function ShipmentDetailsPage() {
           </div>
         </div>
       </div>
+      {/* Invoice Drawer */}
+      {rawData?.invoice && (
+        <InvoiceDrawer
+          isOpen={isInvoiceDrawerOpen}
+          onClose={() => setIsInvoiceDrawerOpen(false)}
+          invoice={deepTransformData(rawData.invoice)}
+          shipmentId={shipment?.id}
+          onUpdateShipment={() => {
+            setIsInvoiceDrawerOpen(false);
+            setIsUpdateModalOpen(true);
+          }}
+          recipientName={user?.name}
+          recipientAddress={user?.address}
+          itemQuantity={1}
+          serviceDescription={
+            rawData?.serviceName
+              ? `Logistics Service - ${rawData.serviceName}`
+              : "Logistics Service"
+          }
+        />
+      )}
+
+      {/* Update Shipment Modal */}
+      {rawData?.invoice && shipment && (
+        <UpdateShipmentModal
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          shipment={rawData}
+          shipmentId={shipment.id}
+          invoiceId={rawData.invoice.invoiceId}
+          onUpdateSuccess={handleUpdateSuccess}
+        />
+      )}
     </div>
   );
 }

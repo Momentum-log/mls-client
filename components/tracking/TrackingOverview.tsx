@@ -14,7 +14,11 @@ interface TrackingOverviewProps {
 const TrackingOverview: React.FC<TrackingOverviewProps> = ({
   trackingResponse,
 }) => {
-  const { shipment, status } = trackingResponse;
+  const { shipment: rawShipment, status } = trackingResponse;
+
+  if (!rawShipment) return null;
+
+  const shipment = rawShipment;
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-6">

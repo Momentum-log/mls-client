@@ -2,10 +2,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:pointer-events-none font-satoshi font-semibold cursor-pointer",
+  "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed font-satoshi font-semibold cursor-pointer",
   {
     variants: {
       variant: {
+        default:
+          "bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-opacity-80 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2",
         primary:
           "bg-brand-blue text-white active:bg-opacity-80 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 hover:bg-brand-yellow hover:text-brand-blue hover:ring-2 hover:ring-brand-yellow hover:ring-offset-2",
         secondary:
@@ -32,11 +34,12 @@ const buttonVariants = cva(
       size: "md",
       rounded: "ios",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
 }
@@ -68,4 +71,5 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
+export { Button };
 export default Button;

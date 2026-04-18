@@ -34,6 +34,7 @@ interface SelectProps {
   label?: string;
   disabled?: boolean;
   searchable?: boolean;
+  allowCustom?: boolean;
 }
 
 export const Select: React.FC<SelectProps> = ({
@@ -45,6 +46,7 @@ export const Select: React.FC<SelectProps> = ({
   label,
   disabled,
   searchable = false,
+  allowCustom = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,8 +103,13 @@ export const Select: React.FC<SelectProps> = ({
           {selectedOption?.icon && (
             <span className="text-lg shrink-0">{selectedOption.icon}</span>
           )}
-          <span className={cn("truncate", !selectedOption && "text-gray-500")}>
-            {selectedOption ? selectedOption.label : placeholder}
+          <span
+            className={cn(
+              "truncate",
+              !selectedOption && !value && "text-gray-500",
+            )}
+          >
+            {selectedOption ? selectedOption.label : value || placeholder}
           </span>
         </div>
         <FaChevronDown
@@ -166,11 +173,29 @@ export const Select: React.FC<SelectProps> = ({
                     <span className="truncate">{option.label}</span>
                   </div>
                 ))
-              ) : (
+              ) : !allowCustom ? (
                 <div className="px-3 py-8 text-center text-sm text-gray-400">
                   No options found
                 </div>
-              )}
+              ) : null}
+              {allowCustom &&
+                searchTerm.trim() !== "" &&
+                !options.some(
+                  (opt) =>
+                    opt.label.toLowerCase() === searchTerm.trim().toLowerCase(),
+                ) && (
+                  <div
+                    onClick={() => {
+                      onChange(searchTerm.trim());
+                      setIsOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-gray-700"
+                  >
+                    <span className="truncate">
+                      Use &quot;{searchTerm.trim()}&quot;
+                    </span>
+                  </div>
+                )}
             </div>
           </motion.div>
         )}
@@ -178,3 +203,63 @@ export const Select: React.FC<SelectProps> = ({
     </div>
   );
 };
+
+/**
+ * Subcomponent exports for compound component pattern compatibility.
+ * These components are simplified wrappers that work with the main Select component.
+ * Note: The main Select handles all logic; these are primarily for structural compatibility.
+ */
+
+export interface SelectTriggerProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
+  ({ children, className }, ref) => (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  )
+);
+
+SelectTrigger.displayName = 'SelectTrigger';
+
+export interface SelectContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
+  ({ children, className }, ref) => (
+    <div ref={ref} className={className}>
+      {children}
+    </div>
+  )
+);
+
+SelectContent.displayName = 'SelectContent';
+
+export interface SelectItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  value: string;
+  children: React.ReactNode;
+}
+
+export const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
+  ({ value, children, ...props }, ref) => (
+    <div ref={ref} data-value={value} {...props}>
+      {children}
+    </div>
+  )
+);
+
+SelectItem.displayName = 'SelectItem';
+
+export interface SelectValueProps {
+  placeholder?: string;
+  children?: React.ReactNode;
+}
+
+export const SelectValue: React.FC<SelectValueProps> = ({ placeholder, children }) => (
+  <span>{children || placeholder}</span>
+);

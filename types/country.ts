@@ -6,25 +6,13 @@
 /** Supported currency codes */
 export type SupportedCurrency = "PLN" | "EUR";
 
-/** IPinfo.io API response structure */
-export interface IPInfoResponse {
-  ip: string;
-  asn?: string;
-  as_name?: string;
-  as_domain?: string;
-  country_code: string;
-  country: string;
-  continent_code?: string;
-  continent?: string;
-}
-
 /** Country store state */
 export interface CountryState {
   /** ISO 3166-1 alpha-2 country code (e.g., 'PL', 'DE') */
   countryCode: string;
   /** Display currency based on country */
   currency: SupportedCurrency;
-  /** Whether country has been detected via IP */
+  /** Whether country has been detected via Browser location */
   isDetected: boolean;
   /** Whether user manually overrode the detected country */
   isManualOverride: boolean;
@@ -36,7 +24,7 @@ export interface CountryState {
 export interface CountryActions {
   /** Set country manually (triggers manual override flag) */
   setCountry: (code: string) => void;
-  /** Detect country via IP geolocation */
+  /** Detect country via Browser geolocation */
   detectCountry: () => Promise<void>;
   /** Reset to auto-detect mode */
   reset: () => void;

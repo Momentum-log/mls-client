@@ -2,7 +2,7 @@
 
 import React from "react";
 import Button from "@/components/ui/button";
-import { FiCheck, FiTruck, FiClock } from "react-icons/fi";
+import { FiTruck, FiClock } from "react-icons/fi";
 import { Rate } from "@/types/shipping";
 import { formatCurrency } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
@@ -49,7 +49,7 @@ export default function ServiceSelection({
           No Services Available
         </h3>
         <p className="text-sm text-gray-500 max-w-xs mx-auto mt-2 font-medium">
-          We couldn't find any shipping services for this route and weight.
+          We couldn&apos;t find any shipping services for this route and weight.
           Please check your address details.
         </p>
         <Button

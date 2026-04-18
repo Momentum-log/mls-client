@@ -47,12 +47,12 @@ const PACKAGE_PRESETS = [
   },
 ];
 
-const packageSchema = z.object({
+const createPackageSchema = (isInternational: boolean) => z.object({
   length: z.coerce.number().positive("Must be > 0"),
   width: z.coerce.number().positive("Must be > 0"),
   height: z.coerce.number().positive("Must be > 0"),
   weight: z.coerce.number().positive("Must be > 0"),
-  value: z.coerce.number().min(0, "Value cannot be negative"),
+  value: isInternational ? z.coerce.number().positive("Declared value is required for international shipments") : z.coerce.number().min(0, "Value cannot be negative"),
   description: z.string().min(1, "Description is required"),
 });
 
@@ -61,6 +61,9 @@ interface PackageFormProps {
   onSubmit: (pkg: Package) => void;
   onSync?: (pkg: Package) => void; // For real-time store updates
   onBack: () => void;
+  submitLabel?: string;
+  isInternational?: boolean;
+  currency?: string;
 }
 
 export default function PackageForm({
@@ -68,6 +71,9 @@ export default function PackageForm({
   onSubmit,
   onSync,
   onBack,
+  submitLabel = "Calculate Rates",
+  isInternational = false,
+  currency = "EUR",
 }: PackageFormProps) {
   // Detect matching preset or default to first preset/custom
   const findPresetId = (val: Package | null) => {
@@ -100,12 +106,13 @@ export default function PackageForm({
       weight: PACKAGE_PRESETS[0].weight,
       description: "",
       value: 0,
-      currency: "USD",
+      currency: currency,
     },
     enableReinitialize: false,
     validate: (values) => {
+      const schema = createPackageSchema(isInternational);
       try {
-        packageSchema.parse(values);
+        schema.parse(values);
         return {};
       } catch (error: any) {
         if (error instanceof z.ZodError) {
@@ -125,8 +132,9 @@ export default function PackageForm({
       }
     },
     onSubmit: (values) => {
-      const parsedValues = packageSchema.parse(values);
-      onSubmit({ ...values, ...parsedValues } as Package);
+      const schema = createPackageSchema(isInternational);
+      const parsedValues = schema.parse(values);
+      onSubmit({ ...values, ...parsedValues, currency } as Package);
     },
   });
 
@@ -257,7 +265,7 @@ export default function PackageForm({
 
             <div className="space-y-2">
               <label className="text-xs font-black uppercase tracking-tight text-gray-700">
-                Declared Value (USD)
+                Declared Value ({currency})
               </label>
               <div className="relative">
                 <input
@@ -270,7 +278,7 @@ export default function PackageForm({
                   placeholder="0.00"
                 />
                 <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 uppercase tracking-widest">
-                  USD
+                  {currency}
                 </span>
               </div>
               {formik.touched.value && formik.errors.value && (
@@ -317,7 +325,7 @@ export default function PackageForm({
           size="lg"
           className="min-w-[180px] shadow-xl shadow-brand-blue/20"
         >
-          Calculate Rates <FiArrowRight className="ml-2" />
+          {submitLabel} <FiArrowRight className="ml-2" />
         </Button>
       </div>
     </form>

@@ -98,7 +98,7 @@ export default function TrackShipmentPage() {
         cleanedResponse.shipment?.shipmentStatus === "FAILED"
       ) {
         setError(
-          "Tracking information could not be found because the shipment failed. Please contact support."
+          "Tracking information could not be found because the shipment failed. Please contact support.",
         );
         setTrackingResponse(null);
         setIsLoading(false);
@@ -111,7 +111,7 @@ export default function TrackShipmentPage() {
     } catch (err: any) {
       console.error("Tracking error:", err);
       setError(
-        err.response?.data?.message || "Shipment not found or access denied."
+        err.response?.data?.message || "Shipment not found or access denied.",
       );
       addToast({
         message: "Could not find shipment details.",
@@ -213,7 +213,9 @@ export default function TrackShipmentPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <div className="flex flex-col gap-6">
                 <TrackingOverview trackingResponse={trackingResponse} />
-                <TrackingDetails shipment={trackingResponse.shipment} />
+                {trackingResponse.shipment && (
+                  <TrackingDetails shipment={trackingResponse.shipment} />
+                )}
               </div>
             </div>
 

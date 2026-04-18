@@ -1,12 +1,31 @@
 import React, { useState } from "react";
 import Button from "@/components/ui/button";
 import apiClient from "@/api";
-// import { ShippingEstimate, ShippingRate } from "@/types/shipping";
+import {
+  Rate,
+  ShippingEstimateResponse,
+  ShipmentMutationPayload,
+} from "@/types/shipping";
 import { useCountryStore } from "@/store/country-store";
+import { toDisplayCarrierName } from "@/utils/carrier-branding";
+
+interface ShipmentFormData {
+  pickup: Record<string, unknown>;
+  dropoff: Record<string, unknown>;
+  package: ShipmentMutationPayload["package"];
+}
+
+interface CreateShipmentApiResponse {
+  invoice?: {
+    id?: string;
+    invoiceId?: string;
+  };
+  checkoutUrl?: string;
+}
 
 interface RateSelectionProps {
-  estimate: any;
-  shipmentData: any; // Contains pickup, dropoff, package
+  estimate: ShippingEstimateResponse;
+  shipmentData: ShipmentFormData;
 }
 
 const RateSelection: React.FC<RateSelectionProps> = ({
@@ -51,13 +70,31 @@ const RateSelection: React.FC<RateSelectionProps> = ({
         userCountryCode: countryCode || undefined,
       };
 
-      const response = await apiClient.post("/shipments", payload);
-      const { checkoutUrl } = response.data;
+      const response = await apiClient.post<CreateShipmentApiResponse>(
+        "/shipments",
+        payload,
+      );
+      const data = response.data;
 
-      // Redirect to payment
-      window.location.href = checkoutUrl;
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to create shipment");
+      // Redirect to invoice or payment
+      const invoiceId = data.invoice?.invoiceId || data.invoice?.id;
+      if (invoiceId) {
+        window.location.href = `/app/invoices/${invoiceId}`;
+      } else if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
+    } catch (err: unknown) {
+      const errorMessage =
+        err &&
+        typeof err === "object" &&
+        "response" in err &&
+        (err as { response?: { data?: { error?: string } } }).response?.data
+          ?.error
+          ? (err as { response?: { data?: { error?: string } } }).response?.data
+              ?.error
+          : "Failed to create shipment";
+
+      setError(errorMessage || "Failed to create shipment");
       setLoading(false);
     }
   };
@@ -70,7 +107,7 @@ const RateSelection: React.FC<RateSelectionProps> = ({
         <p>No rates available for this route.</p>
       ) : (
         <div className="space-y-3">
-          {estimate.rates.map((rate: any, index: number) => (
+          {estimate.rates.map((rate: Rate, index: number) => (
             <div
               key={index}
               className={`p-4 border rounded-xl cursor-pointer transition-all ${
@@ -83,7 +120,8 @@ const RateSelection: React.FC<RateSelectionProps> = ({
               <div className="flex justify-between items-center">
                 <div>
                   <p className="font-bold text-gray-900">
-                    {rate.carrier} - {rate.serviceName}
+                    {toDisplayCarrierName(rate.carrier)} -{" "}
+                    {toDisplayCarrierName(rate.serviceName)}
                   </p>
                   <p className="text-sm text-gray-500">
                     {rate.deliveryDescription || "Standard Delivery"}
@@ -93,7 +131,8 @@ const RateSelection: React.FC<RateSelectionProps> = ({
                   <p className="font-bold text-lg text-brand-blue">
                     {rate.actualPrice} {rate.currency}
                   </p>
-                  {rate.carrierPrice < rate.actualPrice && (
+                  {(rate.carrierPrice ?? rate.actualPrice) <
+                    rate.actualPrice && (
                     <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
                       Secure
                     </span>
