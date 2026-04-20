@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  getShippingQuote,
   getShippingEstimate,
   getShipmentHistory,
   getShipmentStats,
@@ -29,6 +30,20 @@ export const useGetShippingEstimate = (options?: {
 }) => {
   return useMutation<ShippingEstimateResponse, Error, ShippingEstimatePayload>({
     mutationFn: getShippingEstimate,
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+  });
+};
+
+/**
+ * Hook to get marketing quote rates.
+ */
+export const useGetShippingQuote = (options?: {
+  onSuccess?: (data: ShippingEstimateResponse) => void;
+  onError?: (error: Error) => void;
+}) => {
+  return useMutation<ShippingEstimateResponse, Error, ShippingEstimatePayload>({
+    mutationFn: getShippingQuote,
     onSuccess: options?.onSuccess,
     onError: options?.onError,
   });

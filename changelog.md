@@ -5,6 +5,22 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.41.4] - 2026-04-20 - Shipping Quote Endpoint and Hero CTA Update
+
+- Changed: **Shipping Quote API Integration** (`api/shipments/index.ts`, `hooks/shipments/use-shipments.ts`, `app/(marketing)/shipping-estimate/page.tsx`)
+  - Kept `/shipments/get-shipping-estimate` for existing shipment creation and service-selection estimate flows.
+  - Added a separate quote integration for marketing flow via `/shipments/get-shipping-quote`.
+  - Added `useGetShippingQuote` hook and moved only the marketing shipping estimate page to the new quote endpoint.
+
+- Changed: **Homepage Hero CTA Hierarchy** (`components/home/hero.tsx`)
+  - Swapped CTA priority so **Get a Quote** is now the primary action.
+  - Primary CTA now routes to `/shipping-estimate`.
+  - Secondary CTA is now **Get Started** and routes to `/register`.
+
+- Fixed: **Marketing Shipping Estimate Stability** (`app/(marketing)/shipping-estimate/page.tsx`)
+  - Removed explicit `any` usage from Formik validation error mapping and replaced it with typed `FormikErrors` construction.
+  - Fixed URL sync feedback loop by only calling `router.replace` when query params actually changed.
+
 ## [1.41.3] - 2026-04-18 - Remove PDF/Invoice Email Flows
 
 - Changed: **Payments Types** (`types/payments.ts`)
