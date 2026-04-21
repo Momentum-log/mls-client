@@ -5,6 +5,66 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.42.0] - Address Verification Implementation (Client-Side)
+
+- Added: **Address Verification Types** (`types/auth.ts`, `types/address-verification.ts`)
+  - New `AddressRequestStatus` type for tracking request states (PENDING | APPROVED | REJECTED)
+  - New address metadata fields on User: `addressVerifiedAt`, `currentAddressRequestId`, `addressRequestStatus`, `addressRejectionFeedback`
+  - New address verification API types: `AddressUpdateRequestPayload`, `AddressStatusResponse`, `AddressProofFilePayload`
+
+- Added: **Address Verification API Integration** (`api/auth/index.ts`)
+  - `submitAddressUpdateRequest()` - Submit address with proof file for admin review
+  - `getAddressStatus()` - Fetch current active address and latest request status
+  - Payload normalization for backend response shape variations
+
+- Added: **Address Verification Hooks** (`hooks/auth/use-address-verification.ts`)
+  - `useAddressVerificationStatus()` - Query hook with automatic polling when request is PENDING
+  - `useSubmitAddressUpdateRequest()` - Mutation hook for submitting address update requests
+
+- Added: **Address Verification UI Component** (`components/account/AddressVerificationSection.tsx`)
+  - Display current active address with status badge (Approved/Pending/Rejected/Not Submitted)
+  - Modal form for submitting address updates with proof file
+  - Drag-and-drop file upload with validation (PDF, PNG, JPG, max 10MB)
+  - Base64 encoding of proof files for backend transmission
+  - Real-time form validation for address fields (street, city, postal code, country)
+  - Error handling with field-level feedback
+  - Auto-open via search params (`?openAddressVerification=1`)
+  - Display of admin feedback for rejected requests
+
+- Added: **Account Page Integration** (`app/app/account/page.tsx`)
+  - New "Address Verification" card section with address update submission UI
+  - Positioned after "Personal Information" section for logical flow
+
+- Changed: **Verification Helper Logic** (`utils/verification-helpers.ts`)
+  - Added `hasApprovedAddress()` to check backend approval status via `addressVerifiedAt` and `addressRequestStatus` metadata
+  - Updated `getVerificationStatus()` to use approved address check instead of just completeness check
+  - Enables shipment creation guard based on actual admin-approved status
+
+- Changed: **Shipment Creation Guard** (`app/app/shipments/new/page.tsx`)
+  - Added detection of `ADDRESS_REQUIRED` error from backend during shipment creation
+  - When ADDRESS_REQUIRED is caught, shows verification modal with specific guidance
+  - Routes "Update Address" CTA to new address verification form (`?openAddressVerification=1`)
+  - Prevents infinite loops by managing modal state separately from verification status
+
+- Fixed: **Infinite Loop in Address Verification** (`components/account/AddressVerificationSection.tsx`)
+  - Separated form initialization (runs once on mount) from status update polling
+  - Narrowed effect dependencies to specific data fields to prevent re-triggers during polling
+  - Only updates user store when address status metadata changes (not on every refetch)
+
+- Fixed: **Address Status Placeholder Handling** (`api/auth/index.ts`, `components/account/AddressVerificationSection.tsx`)
+  - Normalized backend placeholder active address (`country: Poland` with empty street/city/zip) to be treated as no approved address.
+  - Prevented "Current Active Address" from rendering country-only placeholder values while request status is pending.
+  - Added manual `Check Status` action and removed automatic periodic polling from address status query.
+
+- Fixed: **Address Status Effect + Refetch Control** (`components/account/AddressVerificationSection.tsx`, `hooks/auth/use-address-verification.ts`)
+  - Stabilized `useEffect` dependency shape to resolve runtime warning about dependency array size changes.
+  - Disabled automatic query refetch triggers (window focus, reconnect, interval, retries) so status refresh is user-driven.
+
+- Changed: **Country Detection Strategy** (`store/country-store.ts`)
+  - Removed external reverse-geocoding call to BigDataCloud.
+  - Removed browser geolocation dependency for country detection.
+  - Country is now detected from browser locale metadata only, with `EU` fallback when region is unavailable.
+
 ## [1.41.4] - 2026-04-20 - Shipping Quote Endpoint and Hero CTA Update
 
 - Changed: **Shipping Quote API Integration** (`api/shipments/index.ts`, `hooks/shipments/use-shipments.ts`, `app/(marketing)/shipping-estimate/page.tsx`)

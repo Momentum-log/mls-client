@@ -78,6 +78,8 @@ export default function NewShipmentPage() {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
     useState(false);
+  const [isAddressRequiredModalOpen, setIsAddressRequiredModalOpen] =
+    useState(false);
   const { addToast } = useToast();
 
   const { permission, requestPermission } = useLocationPermission();
@@ -150,14 +152,18 @@ export default function NewShipmentPage() {
     guardParam === "both";
 
   const shouldShowVerificationModal =
-    isVerificationRequired || verificationRequiredParam;
+    isVerificationRequired ||
+    verificationRequiredParam ||
+    isAddressRequiredModalOpen;
 
   const handleVerifyEmail = () => {
     router.push("/app/account?openVerifyEmail=1&next=/app/shipments/new");
   };
 
   const handleUpdateAddress = () => {
-    router.push("/app/account?focusAddress=1&next=/app/shipments/new");
+    router.push(
+      "/app/account?openAddressVerification=1&next=/app/shipments/new",
+    );
   };
 
   useEffect(() => {
@@ -496,10 +502,30 @@ export default function NewShipmentPage() {
       },
       onError: (error: unknown) => {
         let msg = "Unable to create shipment. Please try again.";
+        let isAddressRequired = false;
+
         if (error && typeof error === "object" && "response" in error) {
-          const res = (error as { response?: { data?: { error?: string } } })
-            .response;
+          const res = (
+            error as {
+              response?: {
+                data?: {
+                  error?: string;
+                  details?: string;
+                };
+              };
+            }
+          ).response;
+
           if (res?.data?.error) msg = res.data.error;
+          isAddressRequired = res?.data?.error === "ADDRESS_REQUIRED";
+
+          if (isAddressRequired && res.data?.details) {
+            msg = res.data.details;
+          }
+        }
+
+        if (isAddressRequired) {
+          setIsAddressRequiredModalOpen(true);
         }
 
         addToast({
@@ -531,9 +557,16 @@ export default function NewShipmentPage() {
       <AccountVerificationModal
         isOpen={shouldShowVerificationModal}
         requiresEmailVerification={requiresEmailVerification}
-        requiresAddressUpdate={requiresAddressUpdate}
+        requiresAddressUpdate={
+          requiresAddressUpdate || isAddressRequiredModalOpen
+        }
         onVerifyEmail={handleVerifyEmail}
         onUpdateAddress={handleUpdateAddress}
+        message={
+          isAddressRequiredModalOpen
+            ? "An approved address is required before you can create a shipment. Submit an address update request with proof to continue."
+            : undefined
+        }
       />
 
       <div

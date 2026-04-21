@@ -18,15 +18,6 @@ import EmailChangeModal from "./EmailChangeModal";
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().min(1, "Phone is required"),
-  address: z
-    .object({
-      street: z.string().optional(),
-      city: z.string().optional(),
-      state: z.string().optional(),
-      zip: z.string().optional(),
-      country: z.string().optional(),
-    })
-    .optional(),
   defaultCustomsType: z.enum(["S", "I"]).optional(),
 });
 
@@ -53,13 +44,6 @@ const ProfileForm = () => {
     initialValues: {
       name: user?.name || "",
       phone: user?.phone || "",
-      address: {
-        street: user?.address?.street || "",
-        city: user?.address?.city || "",
-        state: user?.address?.state || "",
-        zip: user?.address?.zip || "",
-        country: user?.address?.country || "Poland",
-      },
       defaultCustomsType: user?.defaultCustomsType || "S",
     },
     enableReinitialize: !isEditing,
@@ -247,49 +231,6 @@ const ProfileForm = () => {
           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
             Email is used for account recovery and notifications
           </p>
-        </div>
-
-        <div className="space-y-4 pt-4 border-t border-gray-50">
-          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-            Default Address
-          </h4>
-
-          <div className="space-y-2">
-            <Label htmlFor="address.street">Street Address</Label>
-            <Input
-              id="address.street"
-              name="address.street"
-              value={formik.values.address.street}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              disabled={!isEditing || formik.isSubmitting}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="address.city">City</Label>
-              <Input
-                id="address.city"
-                name="address.city"
-                value={formik.values.address.city}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                disabled={!isEditing || formik.isSubmitting}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address.zip">Postal Code</Label>
-              <Input
-                id="address.zip"
-                name="address.zip"
-                value={formik.values.address.zip}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                disabled={!isEditing || formik.isSubmitting}
-              />
-            </div>
-          </div>
         </div>
 
         <div className="space-y-4 pt-4 border-t border-gray-50">
