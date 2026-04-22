@@ -11,7 +11,6 @@ import React, { useState } from "react";
 import { Invoice } from "@/types/invoice";
 import {
   formatInvoiceNumber,
-  formatInvoiceAmount,
   formatDate,
   getFullAddress,
   isPaymentLinkExpired,
@@ -19,6 +18,7 @@ import {
 } from "@/utils/invoice-helper";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { cn } from "@/utils/cn";
+import { formatCurrency } from "@/utils/currency-formatter";
 
 /**
  * Props for InvoiceDetailModal component
@@ -83,6 +83,7 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
   if (!isOpen) return null;
 
   const paymentLink = invoice.paymentLinks?.[0];
+  const currency = invoice.currency === "EUR" ? "EUR" : "PLN";
   const isExpired = paymentLink
     ? isPaymentLinkExpired(paymentLink.expiresAt)
     : false;
@@ -248,13 +249,13 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                               {item.quantity}
                             </td>
                             <td className="px-4 py-3 text-right">
-                              {formatInvoiceAmount(item.unitNetPrice)}
+                              {formatCurrency(item.unitNetPrice, currency)}
                             </td>
                             <td className="px-4 py-3 text-right">
                               {item.taxRate}%
                             </td>
                             <td className="px-4 py-3 text-right font-medium">
-                              {formatInvoiceAmount(item.grossValue)}
+                              {formatCurrency(item.grossValue, currency)}
                             </td>
                           </tr>
                         ))}
@@ -268,20 +269,20 @@ export const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                   <div className="mb-2 flex justify-between text-sm">
                     <span className="text-gray-600">Net Amount</span>
                     <span className="font-medium text-gray-900">
-                      {formatInvoiceAmount(invoice.totalNetAmount)}
+                      {formatCurrency(invoice.totalNetAmount, currency)}
                     </span>
                   </div>
                   <div className="mb-3 flex justify-between text-sm">
                     <span className="text-gray-600">VAT (23%)</span>
                     <span className="font-medium text-gray-900">
-                      {formatInvoiceAmount(invoice.totalVATAmount)}
+                      {formatCurrency(invoice.totalVATAmount, currency)}
                     </span>
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between">
                       <span className="font-semibold text-gray-900">Total</span>
                       <span className="text-lg font-bold text-gray-900">
-                        {formatInvoiceAmount(invoice.totalGrossAmount)}
+                        {formatCurrency(invoice.totalGrossAmount, currency)}
                       </span>
                     </div>
                   </div>

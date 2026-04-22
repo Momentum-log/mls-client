@@ -5,6 +5,33 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.42.2] - 2026-04-22 - Invoice UI Data Population and Currency Formatting
+
+- Fixed: **Invoice Receipt Population** (`app/app/invoices/[id]/page.tsx`, `components/invoice/InvoiceReceiptView.tsx`)
+  - Passed current customer profile data into the invoice page so the buyer/customer section is filled from the active account.
+  - Populated service description and item quantity from the shipment payload when invoice line items are missing.
+  - Synthesized a fallback service row so service, description, quantity, net price, VAT, and gross render consistently.
+
+- Fixed: **Currency Display** (`components/invoice/InvoiceReceiptView.tsx`, `components/invoice/InvoiceReceiptNew.tsx`, `components/invoice/InvoiceDetailModal.tsx`)
+  - Rendered amounts with the invoice currency symbol instead of appending a plain currency code.
+  - Kept PLN/EUR formatting consistent across receipt, modal, and payment-success invoice views.
+
+- Fixed: **Invoice Address Formatting** (`utils/invoice-helpers.ts`)
+  - Made address formatting tolerant of profile addresses that do not include building or apartment numbers.
+
+## [1.42.1] - 2026-04-22 - Shipment Flow and Rate Fetch Stability
+
+- Fixed: **Shipment Step Progression** (`app/app/shipments/new/page.tsx`)
+  - Routed domestic package submissions directly to service selection.
+  - Kept customs step conditional for international shipments only.
+  - Updated service back-navigation to return to package for domestic flows and customs for international flows.
+  - Corrected timeline and section visibility so the next step stays open instead of collapsing into a dead end.
+
+- Fixed: **Rate Estimate Request Loop** (`app/app/shipments/new/page.tsx`)
+  - Replaced the one-shot fetch guard with a payload signature check.
+  - Prevented repeated `/shipments/get-shipping-estimate` calls after each successful response.
+  - Preserved automatic fetching when shipment inputs actually change.
+
 ## [1.42.0] - Address Verification Implementation (Client-Side)
 
 - Added: **Address Verification Types** (`types/auth.ts`, `types/address-verification.ts`)

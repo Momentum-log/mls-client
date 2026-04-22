@@ -12,10 +12,10 @@
 import React from "react";
 import { Invoice } from "@/types/invoice";
 import {
-  formatAmount,
   formatInvoiceDate,
   buildAddressString,
 } from "@/utils/invoice-helpers";
+import { formatCurrency } from "@/utils/currency-formatter";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,7 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
   className = "",
   isRequestingShipmentInvoice = false,
 }) => {
+  const currency = invoice.currency === "EUR" ? "EUR" : "PLN";
   const buyerAddress = buildAddressString(
     invoice.buyerStreet,
     invoice.buyerBuildingNumber,
@@ -112,7 +113,7 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
           <div className="text-right md:text-right">
             <p className="text-xs text-muted-foreground mb-1">Total Paid</p>
             <p className="text-2xl font-bold text-foreground mb-4">
-              {formatAmount(invoice.totalGrossAmount)}
+              {formatCurrency(invoice.totalGrossAmount, currency)}
             </p>
 
             <p className="text-xs text-muted-foreground mb-1">Payment Status</p>
@@ -156,19 +157,19 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
           <div className="flex justify-between">
             <span className="text-muted-foreground">Amount (Net):</span>
             <span className="font-mono">
-              {formatAmount(invoice.totalNetAmount, false)} PLN
+              {formatCurrency(invoice.totalNetAmount, currency)}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">VAT (23%):</span>
             <span className="font-mono">
-              {formatAmount(invoice.totalVATAmount, false)} PLN
+              {formatCurrency(invoice.totalVATAmount, currency)}
             </span>
           </div>
           <div className="flex justify-between font-bold border-t border-muted pt-1 mt-1">
             <span>Total Paid:</span>
             <span className="font-mono">
-              {formatAmount(invoice.totalGrossAmount)} PLN
+              {formatCurrency(invoice.totalGrossAmount, currency)}
             </span>
           </div>
         </div>

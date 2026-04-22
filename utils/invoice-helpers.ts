@@ -97,13 +97,13 @@ export const formatTaxRate = (taxRate: number): string => {
  */
 export const buildAddressString = (
   street: string,
-  buildingNumber: string,
+  buildingNumber?: string,
   city: string,
   postalCode: string,
   apartmentNumber?: string,
 ): string => {
   const addressParts = [
-    `${street} ${buildingNumber}`,
+    [street, buildingNumber].filter(Boolean).join(" "),
     apartmentNumber && `apt ${apartmentNumber}`,
     `${postalCode} ${city}`,
   ].filter(Boolean);

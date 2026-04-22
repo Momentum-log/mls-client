@@ -87,7 +87,7 @@ export default function NewShipmentPage() {
 
   // Create memoized transformed rates for UI display only
   const transformedRates = useMemo(() => deepTransformData(rates), [rates]);
-  const hasFetchedRatesRef = useRef(false);
+  const lastFetchedEstimateSignatureRef = useRef<string | null>(null);
   const [isFetchingRates, setIsFetchingRates] = useState(false);
 
   // Transform selectedRate for UI display only
@@ -108,12 +108,10 @@ export default function NewShipmentPage() {
     useGetShippingEstimate({
       onSuccess: (data) => {
         setIsFetchingRates(false);
-        hasFetchedRatesRef.current = false;
         console.log("Fetched rates on load:", data);
         setRates(data.rates);
       },
       onError: () => {
-        hasFetchedRatesRef.current = false;
         setIsFetchingRates(false);
         addToast({
           title: "Calculation Failed",
@@ -184,7 +182,7 @@ export default function NewShipmentPage() {
   useEffect(() => {
     console.log("🔥 effect entered", {
       expandedSection,
-      hasFetched: hasFetchedRatesRef.current,
+      lastFetchedSignature: lastFetchedEstimateSignatureRef.current,
       isCalculatingRates,
       sender: !!sender,
       recipient: !!recipient,
@@ -193,7 +191,6 @@ export default function NewShipmentPage() {
 
     if (
       expandedSection !== "service" ||
-      hasFetchedRatesRef.current || // ← hard guard: only ever fire once per mount
       isCalculatingRates ||
       !sender ||
       !recipient ||
@@ -235,7 +232,21 @@ export default function NewShipmentPage() {
       customs || undefined,
     );
 
-    hasFetchedRatesRef.current = true;
+    const estimateSignature = JSON.stringify({
+      sender,
+      recipient,
+      package: packages[0],
+      countryCode: countryCode || null,
+      customs: customs || null,
+      isInternational,
+    });
+
+    if (lastFetchedEstimateSignatureRef.current === estimateSignature) {
+      console.log("Skipping duplicate rate fetch for unchanged shipment data");
+      return;
+    }
+
+    lastFetchedEstimateSignatureRef.current = estimateSignature;
     setIsFetchingRates(true);
     getRates(payload);
   }, [
@@ -312,8 +323,12 @@ export default function NewShipmentPage() {
     if (id === "pickup") return true;
     if (id === "dropoff") return completedSteps.includes("pickup");
     if (id === "package") return completedSteps.includes("dropoff");
-    if (id === "customs") return completedSteps.includes("package");
-    if (id === "service") return completedSteps.includes("customs");
+    if (id === "customs") return isInternational && completedSteps.includes("package");
+    if (id === "service") {
+      return isInternational
+        ? completedSteps.includes("customs")
+        : completedSteps.includes("package");
+    }
     return false;
   };
 
@@ -356,11 +371,8 @@ export default function NewShipmentPage() {
     markSectionCompleted("package");
     setRates([]); // Clear previous rates to trigger re-fetch in useEffect
 
-    if (isInternational) {
-      setExpandedSection("customs");
-    } else {
-      setExpandedSection("service");
-    }
+    const nextSection = isInternational ? "customs" : "service";
+    setExpandedSection(nextSection);
 
     addToast({
       title: "Success",
@@ -368,7 +380,7 @@ export default function NewShipmentPage() {
       type: "success",
     });
     document
-      .getElementById("customs")
+      .getElementById(nextSection)
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
@@ -386,9 +398,6 @@ export default function NewShipmentPage() {
     document
       .getElementById("service")
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    hasFetchedRatesRef.current = false;
-    setRates([]);
   };
 
   const handleServiceSelect = (rate: Rate) => {
@@ -721,7 +730,7 @@ export default function NewShipmentPage() {
                 onSubmit={handlePackageSubmit}
                 onSync={updatePackage}
                 onBack={() => setExpandedSection("dropoff")}
-                submitLabel="Customs Details"
+                submitLabel={isInternational ? "Customs Details" : "Get Rates"}
                 isInternational={Boolean(isInternational)}
                 currency={activeCurrency}
               />
@@ -796,7 +805,9 @@ export default function NewShipmentPage() {
                 selectedRateId={selectedRate?.serviceType || null}
                 onSelect={handleServiceSelect}
                 isLoading={isFetchingRates}
-                onBack={() => setExpandedSection("customs")}
+                onBack={() =>
+                  setExpandedSection(isInternational ? "customs" : "package")
+                }
               />
             </StackedSection>
           )}

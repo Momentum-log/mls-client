@@ -348,11 +348,11 @@ export default function ShipmentDetailsPage() {
           }}
           recipientName={user?.name}
           recipientAddress={user?.address}
-          itemQuantity={1}
+          itemQuantity={rawData?.packages?.length || 1}
           serviceDescription={
             rawData?.serviceName
-              ? `Logistics Service - ${rawData.serviceName}`
-              : "Logistics Service"
+              ? `MLS Logistics from ${rawData.pickupAddress?.city || "pickup"} to ${rawData.dropoffAddress?.city || "destination"}`
+              : "MLS Logistics"
           }
         />
       )}
