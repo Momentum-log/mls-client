@@ -11,10 +11,7 @@
 
 import React from "react";
 import { Invoice } from "@/types/invoice";
-import {
-  formatInvoiceDate,
-  buildAddressString,
-} from "@/utils/invoice-helpers";
+import { formatInvoiceDate, buildAddressString } from "@/utils/invoice-helpers";
 import { formatCurrency } from "@/utils/currency-formatter";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { Card } from "@/components/ui/card";

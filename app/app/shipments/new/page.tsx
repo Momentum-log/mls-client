@@ -323,7 +323,8 @@ export default function NewShipmentPage() {
     if (id === "pickup") return true;
     if (id === "dropoff") return completedSteps.includes("pickup");
     if (id === "package") return completedSteps.includes("dropoff");
-    if (id === "customs") return isInternational && completedSteps.includes("package");
+    if (id === "customs")
+      return isInternational && completedSteps.includes("package");
     if (id === "service") {
       return isInternational
         ? completedSteps.includes("customs")

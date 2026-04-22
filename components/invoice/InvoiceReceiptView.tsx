@@ -149,12 +149,18 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   const normalizedCurrency = currency === "EUR" ? "EUR" : "PLN";
 
   const buyerName =
-    recipientName || getString("buyerName") || getString("customerName") || "Customer";
+    recipientName ||
+    getString("buyerName") ||
+    getString("customerName") ||
+    "Customer";
   const buyerStreet = recipientAddress?.street || getString("buyerStreet");
   const buyerCity = recipientAddress?.city || getString("buyerCity");
   const buyerPostalCode =
-    recipientAddress?.postalCode || recipientAddress?.zip || getString("buyerPostalCode");
-  const buyerCountry = recipientAddress?.country || getString("buyerCountryCode");
+    recipientAddress?.postalCode ||
+    recipientAddress?.zip ||
+    getString("buyerPostalCode");
+  const buyerCountry =
+    recipientAddress?.country || getString("buyerCountryCode");
 
   const buyerAddress = [buyerStreet, buyerCity, buyerPostalCode, buyerCountry]
     .filter(Boolean)
@@ -192,8 +198,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
             serviceName: "Logistics",
             unitOfMeasure: "shipment",
             quantity: Math.max(1, itemQuantity || 1),
-            unitNetPrice:
-              totalNetAmount / Math.max(1, itemQuantity || 1),
+            unitNetPrice: totalNetAmount / Math.max(1, itemQuantity || 1),
             netValue: totalNetAmount,
             taxRate: totalVATAmount > 0 ? 23 : 0,
             vatAmount: totalVATAmount,
