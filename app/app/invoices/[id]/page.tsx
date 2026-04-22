@@ -16,7 +16,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 // import { PdfGenerationStatus } from "@/types/invoice";
 import { InvoiceReceiptView } from "@/components/invoice/InvoiceReceiptView";
@@ -66,7 +66,7 @@ export default function InvoiceDetailPage() {
   const serviceDescription = shipment
     ? `MLS Logistics from ${pickupLabel || "pickup"} to ${dropoffLabel || "destination"}`
     : "Logistics";
-  const itemQuantity = shipment?.packages?.length || 1;
+  const itemQuantity = shipment?.customs?.categoryOfItem?.length || 1;
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
