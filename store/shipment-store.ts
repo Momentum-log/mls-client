@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { secureStorage } from "@/utils/secure-storage";
+import { CustomsData, Rate } from "@/types/shipping";
 
 /**
  * Address interface representing a physical location and contact metadata.
@@ -44,7 +45,11 @@ interface ShipmentState {
   sender: Address | null;
   recipient: Address | null;
   packages: Package[];
-  selectedRate: any | null; // Improved type in future iteration
+  customs: CustomsData | null;
+  selectedRate: Rate | null;
+
+  // Invoice Data
+  invoiceId: string | null; // UUID of generated invoice for this shipment
 
   // Actions
   /**
@@ -80,7 +85,22 @@ interface ShipmentState {
   /**
    * Sets the selected shipping rate/service.
    */
-  setSelectedRate: (rate: any) => void;
+  setSelectedRate: (rate: Rate) => void;
+
+  /**
+   * Updates customs details
+   */
+  setCustoms: (customs: CustomsData | null) => void;
+
+  /**
+   * Sets the invoice ID for this shipment (generated after payment method selection)
+   */
+  setInvoiceId: (invoiceId: string | null) => void;
+
+  /**
+   * Clears the invoice ID (e.g., when editing shipment)
+   */
+  clearInvoiceId: () => void;
 
   /**
    * Updates the current step index (legacy compatibility).
@@ -115,7 +135,9 @@ const initialState = {
   sender: null,
   recipient: null,
   packages: [],
+  customs: null,
   selectedRate: null,
+  invoiceId: null,
 };
 
 export const useShipmentStore = create<ShipmentState>()((set) => ({
@@ -124,6 +146,7 @@ export const useShipmentStore = create<ShipmentState>()((set) => ({
   setSender: (sender) => set({ sender }),
   setRecipient: (recipient) => set({ recipient }),
   setPackages: (packages) => set({ packages }),
+  setCustoms: (customs) => set({ customs }),
   addPackage: (pkg) =>
     set((state) => {
       const index = state.packages.findIndex((p) => p.id === pkg.id);
@@ -149,6 +172,8 @@ export const useShipmentStore = create<ShipmentState>()((set) => ({
       return { packages: [...state.packages, pkg] };
     }),
   setSelectedRate: (rate) => set({ selectedRate: rate }),
+  setInvoiceId: (invoiceId) => set({ invoiceId }),
+  clearInvoiceId: () => set({ invoiceId: null }),
   setStep: (step) => set({ currentStep: step }),
   setExpandedSection: (sectionId) => set({ expandedSection: sectionId }),
   markSectionCompleted: (sectionId) =>

@@ -1,31 +1,20 @@
 import { ShippingEstimateResponse } from "@/types/shipping";
-
-// Core replacements
-// Core replacements
-const replaceFedExText = (text: string): string => {
-  if (!text) return text;
-
-  let result = text;
-
-  // 1. Precise Logic:
-  // "fedex" (lowercase) -> "mls"
-  // "FedEx" / "FEDEX" / "Fedex" (mixed/caps) -> "MLS"
-
-  // We use lookahead/behind or just precise string replacement order.
-  // Replacing lowercase specific first might be safer if we want to preserve it,
-  // but since 'FedEx' usually appears as a substring, global replace with function is best.
-
-  result = result.replace(/fedex/g, "mls"); // Exact lowercase match
-  result = result.replace(/FedEx/g, "MLS"); // Standard
-  result = result.replace(/FEDEX/g, "MLS"); // ALL CAPS
-  result = result.replace(/Fedex/g, "MLS"); // Title case
-
-  return result;
-};
+import {
+  CreateShipmentPayload,
+  CustomsData,
+  InternationalShipmentPayload,
+  LocalShipmentPayload,
+  ShipmentMutationPayload,
+  ShippingEstimatePayload,
+} from "@/types/shipping";
+import {
+  deepBrandCarrierDisplay,
+  toDisplayCarrierName,
+} from "@/utils/carrier-branding";
 
 // Formatting/humanizing helper
 const humanizeServiceTerms = (text: string): string => {
-  let result = replaceFedExText(text);
+  let result = toDisplayCarrierName(text);
 
   // 2. Specific Service Name Simplifications
   // Note: regexes must match the *already replaced* text (i.e., looking for "MLS")
@@ -57,26 +46,31 @@ const humanizeServiceTerms = (text: string): string => {
 };
 
 // Deep recursive cleaner
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const deepClean = (obj: any): any => {
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+};
+
+const deepClean = <T>(obj: T): T => {
   if (typeof obj === "string") {
-    return humanizeServiceTerms(obj);
+    return humanizeServiceTerms(obj) as T;
   }
+
   if (Array.isArray(obj)) {
-    return obj.map((item) => deepClean(item));
+    return obj.map((item) => deepClean(item)) as T;
   }
-  if (obj && typeof obj === "object") {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newObj: any = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        // We do NOT change keys, only values
-        newObj[key] = deepClean(obj[key]);
-      }
-    }
-    return newObj;
+
+  if (!isRecord(obj)) {
+    return obj;
   }
-  return obj;
+
+  const branded = deepBrandCarrierDisplay(obj);
+  const transformed: Record<string, unknown> = {};
+
+  Object.entries(branded).forEach(([key, value]) => {
+    transformed[key] = deepClean(value);
+  });
+
+  return transformed as T;
 };
 
 // Entry point
@@ -84,17 +78,29 @@ export const transformShippingData = (
   data: ShippingEstimateResponse,
 ): ShippingEstimateResponse => {
   // We deep clean the entire structure
-  return deepClean(data) as ShippingEstimateResponse;
+  return deepClean(data);
 };
 
 // --- Payload Helper ---
 
-import {
-  CreateShipmentPayload,
-  LocalShipmentPayload,
-  InternationalShipmentPayload,
-  ShippingEstimatePayload,
-} from "@/types/shipping";
+interface EstimateLocationInput {
+  countryCode: string;
+  stateOrProvinceCode?: string;
+  city: string;
+  postalCode?: string;
+  streetLines?: string[];
+  phoneNumber?: string;
+  email?: string;
+}
+
+interface EstimatePackageInput {
+  weight: ShippingEstimatePayload["package"]["weight"];
+  dimensions: ShippingEstimatePayload["package"]["dimensions"];
+}
+
+type CreatePayloadInput = Omit<ShipmentMutationPayload, "customs"> & {
+  customs?: CustomsData;
+};
 
 /**
  * Checks if a shipment is international based on country codes.
@@ -113,16 +119,18 @@ export const checkIfInternational = (
  */
 export const getPayload = (
   isInternational: boolean,
-  data: any, // Contains carrierSlug and other shipment data
+  data: CreatePayloadInput,
 ): CreateShipmentPayload => {
   if (isInternational) {
+    if (!data.customs) {
+      throw new Error(
+        "Customs data is required for international shipment payloads.",
+      );
+    }
+
     const payload: InternationalShipmentPayload = {
       ...data,
-      customs: {
-        declaredValue: data.customs?.declaredValue || 0,
-        contentsDescription: data.customs?.contentsDescription || "",
-        currency: data.customs?.currency || "USD",
-      },
+      customs: data.customs,
     };
     return payload;
   } else {
@@ -147,11 +155,12 @@ export const getPayload = (
  * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency
  */
 export const getEstimatePayload = (
-  pickup: any,
-  dropoff: any,
-  pkg: any,
+  pickup: EstimateLocationInput,
+  dropoff: EstimateLocationInput,
+  pkg: EstimatePackageInput,
   guestId: string,
   userCountryCode?: string,
+  customs?: CustomsData,
 ): ShippingEstimatePayload => {
   return {
     pickup: {
@@ -188,6 +197,7 @@ export const getEstimatePayload = (
     },
     guestId,
     ...(userCountryCode && { userCountryCode }),
+    ...(customs && { customs }),
     email: pickup.email,
     phone: pickup.phoneNumber,
   };

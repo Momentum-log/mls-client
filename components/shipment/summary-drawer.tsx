@@ -2,7 +2,14 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiCheck, FiTruck, FiMapPin, FiPackage } from "react-icons/fi";
+import {
+  FiX,
+  FiCheck,
+  FiTruck,
+  FiMapPin,
+  FiPackage,
+  FiCreditCard,
+} from "react-icons/fi";
 import { Address, Package } from "@/store/shipment-store";
 import { Rate } from "@/types/shipping";
 import Button from "@/components/ui/button";
@@ -16,7 +23,7 @@ interface SummaryDrawerProps {
   recipient: Address | null;
   pkg: Package | null;
   rate: Rate | null;
-  onFinalize: () => void;
+  onFinalize: (paymentMethod: "stripe" | "payu") => void;
   isLoading?: boolean;
 }
 
@@ -34,6 +41,17 @@ export default function SummaryDrawer({
   onFinalize,
   isLoading,
 }: SummaryDrawerProps) {
+  const isPolishUser = sender?.country?.toUpperCase() === "PL";
+  const [paymentMethod, setPaymentMethod] = React.useState<"stripe" | "payu">(
+    "stripe",
+  );
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setPaymentMethod(isPolishUser ? "payu" : "stripe");
+    }
+  }, [isPolishUser, isOpen]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -187,6 +205,85 @@ export default function SummaryDrawer({
                   </div>
                 </div>
               </div>
+
+              {/* Payment Method Selector */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <FiCreditCard className="text-brand-blue" />
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                    Payment Method
+                  </h4>
+                </div>
+                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-3">
+                  <label
+                    className={`flex p-4 border rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === "stripe"
+                        ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
+                        : "border-gray-200 hover:border-brand-blue/50"
+                    }`}
+                  >
+                    <div className="flex items-center h-5">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="stripe"
+                        className="w-4 h-4 text-brand-blue border-gray-300 focus:ring-brand-blue"
+                        checked={paymentMethod === "stripe"}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as "stripe" | "payu")
+                        }
+                      />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <span className="block text-sm font-bold text-gray-900">
+                        Stripe
+                      </span>
+                      <span className="block text-xs text-gray-500 mt-1">
+                        Visa, Mastercard, Google Pay, Apple Pay
+                      </span>
+                    </div>
+                    {!isPolishUser && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-800 self-start">
+                        Recommended
+                      </span>
+                    )}
+                  </label>
+
+                  <label
+                    className={`flex p-4 border rounded-xl cursor-pointer transition-all ${
+                      paymentMethod === "payu"
+                        ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
+                        : "border-gray-200 hover:border-brand-blue/50"
+                    }`}
+                  >
+                    <div className="flex items-center h-5">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="payu"
+                        className="w-4 h-4 text-brand-blue border-gray-300 focus:ring-brand-blue"
+                        checked={paymentMethod === "payu"}
+                        onChange={(e) =>
+                          setPaymentMethod(e.target.value as "stripe" | "payu")
+                        }
+                      />
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <span className="block text-sm font-bold text-gray-900">
+                        PayU
+                      </span>
+                      <span className="block text-xs text-gray-500 mt-1">
+                        BLIK, Bank transfer, Polish cards
+                      </span>
+                    </div>
+                    {isPolishUser && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-800 self-start">
+                        Recommended
+                      </span>
+                    )}
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Footer */}
@@ -195,7 +292,7 @@ export default function SummaryDrawer({
                 variant="primary"
                 size="lg"
                 className="w-full h-14 rounded-2xl text-lg font-black shadow-xl shadow-brand-blue/20"
-                onClick={onFinalize}
+                onClick={() => onFinalize(paymentMethod)}
                 isLoading={isLoading}
                 disabled={isLoading}
               >

@@ -24,9 +24,7 @@
   "paths": {
     "/auth/register-user": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "description": "\n### Register New User\n**Frontend Usage Guide:**\nCreates a new user account. Upon success, the user is automatically logged in (or you might need to redirect them to login, depending on implementation - check response).\n\n**Data handling:**\n- **Email**: Must be unique.\n- **Password**: Enforce strong password complexity on the frontend (min 8 chars, mixed case, numbers).\n- **Format**: Returns the user profile. Does **NOT** return tokens (user must login separately) OR returns tokens (check response schema). *Correction: This implementation currently returns only the user object, so User must call Login after Register.*\n",
         "summary": "Register User",
         "requestBody": {
@@ -47,15 +45,16 @@
                     "type": "string",
                     "minLength": 1
                   },
+                  "phone": {
+                    "type": "string",
+                    "minLength": 11,
+                    "pattern": "^\\+?[1-9]\\d{1,14}$"
+                  },
                   "guestUserId": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "email",
-                  "password",
-                  "name"
-                ],
+                "required": ["email", "password", "name", "phone"],
                 "description": "Registration details"
               }
             }
@@ -115,9 +114,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "user"
-                  ]
+                  "required": ["user"]
                 }
               }
             }
@@ -149,10 +146,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -184,10 +178,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -219,10 +210,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -232,9 +220,7 @@
     },
     "/auth/login-user": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "description": "\n### User Login\n**Frontend Usage Guide:**\nAuthenticates a user and issues JWT tokens.\n\n**Token Management (CRITICAL):**\n1. **Access Token** (`accessToken`): Short-lived (e.g., 15 mins). Use this in the `Authorization: Bearer <token>` header for all requests.\n2. **Refresh Token** (`refreshToken`): Long-lived (e.g., 7 days). Store this securely (e.g., HTTPOnly cookie or secure storage). \n\n**Auto-Refresh Logic:**\n- Frontend should intercept 401 errors.\n- If 401 received, call `/auth/refresh` with the `refreshToken`.\n- If refresh success, retry the original failed request with the new `accessToken`.\n- If refresh fails, log the user out.\n",
         "summary": "Login User",
         "requestBody": {
@@ -243,18 +229,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
+                  "identifier": {
                     "type": "string",
-                    "format": "email"
+                    "minLength": 1,
+                    "description": "Email or Phone Number"
                   },
                   "password": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ]
+                "required": ["identifier", "password"]
               }
             }
           }
@@ -321,11 +305,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "accessToken",
-                    "refreshToken",
-                    "user"
-                  ]
+                  "required": ["accessToken", "refreshToken", "user"]
                 }
               }
             }
@@ -357,10 +337,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -392,10 +369,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -427,10 +401,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -440,9 +411,7 @@
     },
     "/auth/refresh-token": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "description": "\n### Refresh Access Token\n**Frontend Usage Guide:**\nCall this endpoint to get a new `accessToken` when the current one expires.\n\n**Rotation Policy:**\n- This endpoint implements **Refresh Token Rotation**.\n- A **NEW** `refreshToken` is returned. You **MUST** replace the old one with this new one.\n- The old refresh token becomes invalid immediately.\n",
         "summary": "Refresh Token",
         "requestBody": {
@@ -455,9 +424,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "refreshToken"
-                ],
+                "required": ["refreshToken"],
                 "description": "Valid Refresh Token"
               }
             }
@@ -479,10 +446,7 @@
                       "description": "New Rotated Refresh Token"
                     }
                   },
-                  "required": [
-                    "accessToken",
-                    "refreshToken"
-                  ]
+                  "required": ["accessToken", "refreshToken"]
                 }
               }
             }
@@ -514,10 +478,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -549,10 +510,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -584,10 +542,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -597,9 +552,7 @@
     },
     "/auth/logout-user": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "description": "Logout user by revoking the specific refresh token.",
         "summary": "Logout",
         "requestBody": {
@@ -613,9 +566,7 @@
                     "description": "Refresh Token to revoke"
                   }
                 },
-                "required": [
-                  "refreshToken"
-                ]
+                "required": ["refreshToken"]
               }
             }
           }
@@ -632,9 +583,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -666,10 +615,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -701,10 +647,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -736,10 +679,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -749,9 +689,7 @@
     },
     "/auth/get-current-user": {
       "get": {
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "description": "Get current logged-in user profile. Useful for app initialization to check if user is still logged in.",
         "summary": "Get Me",
         "security": [
@@ -813,9 +751,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "user"
-                  ]
+                  "required": ["user"]
                 }
               }
             }
@@ -847,10 +783,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -882,10 +815,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -895,9 +825,7 @@
     },
     "/auth/update-user-profile": {
       "patch": {
-        "tags": [
-          "User"
-        ],
+        "tags": ["User"],
         "description": "Update user profile details",
         "summary": "Update Profile",
         "security": [
@@ -916,7 +844,9 @@
                     "minLength": 1
                   },
                   "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 11,
+                    "pattern": "^\\+?[1-9]\\d{1,14}$"
                   },
                   "address": {
                     "type": "object",
@@ -998,9 +928,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "user"
-                  ]
+                  "required": ["user"]
                 }
               }
             }
@@ -1032,10 +960,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1067,10 +992,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1102,10 +1024,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1115,9 +1034,7 @@
     },
     "/auth/initiate-email-change": {
       "post": {
-        "tags": [
-          "Email"
-        ],
+        "tags": ["Email"],
         "description": "Initiate email change process. Sends a verification code to the new email address.",
         "summary": "Initiate Email Change",
         "security": [
@@ -1136,9 +1053,7 @@
                     "format": "email"
                   }
                 },
-                "required": [
-                  "newEmail"
-                ],
+                "required": ["newEmail"],
                 "description": "New Email Address"
               }
             }
@@ -1156,9 +1071,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -1190,10 +1103,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1225,10 +1135,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1260,10 +1167,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1295,10 +1199,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1308,9 +1209,7 @@
     },
     "/auth/confirm-email-change": {
       "post": {
-        "tags": [
-          "Email"
-        ],
+        "tags": ["Email"],
         "description": "Confirm pending email change using the verification code sent to the new email.",
         "summary": "Confirm Email Change",
         "security": [
@@ -1329,9 +1228,7 @@
                     "minLength": 1
                   }
                 },
-                "required": [
-                  "code"
-                ],
+                "required": ["code"],
                 "description": "Verification Code"
               }
             }
@@ -1349,9 +1246,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -1383,10 +1278,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1418,10 +1310,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1453,10 +1342,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1466,9 +1352,7 @@
     },
     "/auth/send-verification-code": {
       "post": {
-        "tags": [
-          "Email"
-        ],
+        "tags": ["Email"],
         "description": "Send validation email to the currently logged in user to verify their account.",
         "summary": "Send Verification Code",
         "security": [
@@ -1488,9 +1372,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -1522,10 +1404,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1557,10 +1436,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1570,9 +1446,7 @@
     },
     "/auth/verify-email": {
       "post": {
-        "tags": [
-          "Email"
-        ],
+        "tags": ["Email"],
         "description": "Verify the user's email address using the code sent to them.",
         "summary": "Verify Email",
         "security": [
@@ -1592,9 +1466,7 @@
                     "maxLength": 6
                   }
                 },
-                "required": [
-                  "code"
-                ],
+                "required": ["code"],
                 "description": "Verification Code"
               }
             }
@@ -1612,9 +1484,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -1646,10 +1516,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1681,10 +1548,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1694,9 +1558,7 @@
     },
     "/auth/verify-email-temporary": {
       "post": {
-        "tags": [
-          "Email"
-        ],
+        "tags": ["Email"],
         "description": "Temporary endpoint to manually verify email without code (Maintenance Mode).",
         "summary": "Manual Verify Email (Temp)",
         "security": [
@@ -1715,9 +1577,7 @@
                     "format": "email"
                   }
                 },
-                "required": [
-                  "email"
-                ],
+                "required": ["email"],
                 "description": "User Email"
               }
             }
@@ -1735,9 +1595,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -1769,10 +1627,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1804,10 +1659,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1839,10 +1691,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1852,9 +1701,7 @@
     },
     "/auth/forgot-password": {
       "post": {
-        "tags": [
-          "Password"
-        ],
+        "tags": ["Password"],
         "description": "Initiate password reset process. Sends a reset code to the user's email.",
         "summary": "Forgot Password",
         "requestBody": {
@@ -1868,9 +1715,7 @@
                     "format": "email"
                   }
                 },
-                "required": [
-                  "email"
-                ],
+                "required": ["email"],
                 "description": "User Email"
               }
             }
@@ -1888,9 +1733,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -1922,10 +1765,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1957,10 +1797,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -1970,9 +1807,7 @@
     },
     "/auth/reset-password": {
       "post": {
-        "tags": [
-          "Password"
-        ],
+        "tags": ["Password"],
         "description": "Reset password using the code received via email.",
         "summary": "Reset Password",
         "requestBody": {
@@ -1991,10 +1826,7 @@
                     "minLength": 6
                   }
                 },
-                "required": [
-                  "code",
-                  "newPassword"
-                ],
+                "required": ["code", "newPassword"],
                 "description": "New Password & Code"
               }
             }
@@ -2012,9 +1844,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -2046,10 +1876,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -2081,10 +1908,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -2094,9 +1918,7 @@
     },
     "/auth/change-password": {
       "post": {
-        "tags": [
-          "Password"
-        ],
+        "tags": ["Password"],
         "description": "Change password for logged-in user.",
         "summary": "Change Password",
         "security": [
@@ -2118,10 +1940,7 @@
                     "minLength": 6
                   }
                 },
-                "required": [
-                  "oldPassword",
-                  "newPassword"
-                ],
+                "required": ["oldPassword", "newPassword"],
                 "description": "Old & New Password"
               }
             }
@@ -2139,9 +1958,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "message"
-                  ]
+                  "required": ["message"]
                 }
               }
             }
@@ -2173,10 +1990,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -2208,10 +2022,277 @@
                       ]
                     }
                   },
-                  "required": [
-                    "error",
-                    "code"
-                  ]
+                  "required": ["error", "code"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/send-phone-otp": {
+      "post": {
+        "tags": ["Phone"],
+        "description": "Send a 6-digit OTP to the user's phone for verification.",
+        "summary": "Send Phone OTP",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OTP sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Phone already verified or missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "nullable": true
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error", "code"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "nullable": true
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error", "code"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "nullable": true
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error", "code"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify-phone-otp": {
+      "post": {
+        "tags": ["Phone"],
+        "description": "Verify the user's phone number using the OTP sent via SMS.",
+        "summary": "Verify Phone OTP",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 6,
+                    "maxLength": 6,
+                    "description": "6-digit OTP code"
+                  }
+                },
+                "required": ["code"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phone verified successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["message"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "nullable": true
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error", "code"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "nullable": true
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error", "code"]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "number"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "nullable": true
+                        },
+                        {
+                          "nullable": true
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error", "code"]
                 }
               }
             }
@@ -2254,10 +2335,7 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "shipmentId",
-                    "checkoutUrl"
-                  ]
+                  "required": ["shipmentId", "checkoutUrl"]
                 }
               }
             }
@@ -2292,11 +2370,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "carrierName": {
+                  "carrierSlug": {
                     "type": "string",
-                    "enum": [
-                      "FedEx"
-                    ]
+                    "example": "fedex"
                   },
                   "pickupAddress": {
                     "type": "object",
@@ -2338,10 +2414,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "personName",
-                          "phoneNumber"
-                        ]
+                        "required": ["personName", "phoneNumber"]
                       }
                     },
                     "required": [
@@ -2393,10 +2466,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "personName",
-                          "phoneNumber"
-                        ]
+                        "required": ["personName", "phoneNumber"]
                       }
                     },
                     "required": [
@@ -2419,16 +2489,10 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": [
-                              "KG",
-                              "LB"
-                            ]
+                            "enum": ["KG", "LB"]
                           }
                         },
-                        "required": [
-                          "value",
-                          "units"
-                        ]
+                        "required": ["value", "units"]
                       },
                       "dimensions": {
                         "type": "object",
@@ -2444,23 +2508,13 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": [
-                              "CM",
-                              "IN"
-                            ]
+                            "enum": ["CM", "IN"]
                           }
                         },
-                        "required": [
-                          "length",
-                          "width",
-                          "height",
-                          "units"
-                        ]
+                        "required": ["length", "width", "height", "units"]
                       }
                     },
-                    "required": [
-                      "weight"
-                    ]
+                    "required": ["weight"]
                   },
                   "rate": {
                     "type": "object",
@@ -2497,7 +2551,7 @@
                   }
                 },
                 "required": [
-                  "carrierName",
+                  "carrierSlug",
                   "pickupAddress",
                   "dropoffAddress",
                   "package",
@@ -2604,11 +2658,7 @@
                       "nullable": true
                     }
                   },
-                  "required": [
-                    "id",
-                    "customTrackingNumber",
-                    "shipmentStatus"
-                  ]
+                  "required": ["id", "customTrackingNumber", "shipmentStatus"]
                 }
               }
             }
@@ -2704,17 +2754,258 @@
                       "type": "string"
                     }
                   },
-                  "required": [
-                    "totalSpent",
-                    "totalShipments",
-                    "currency"
-                  ]
+                  "required": ["totalSpent", "totalShipments", "currency"]
                 }
               }
             }
           },
           "401": {
             "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/shipments/get-shipping-quote": {
+      "post": {
+        "description": "\n### Get Shipping Quote (Lightweight)\n**Frontend Usage Guide:**\nCalculates fast shipping rates for a given package and route using minimal data.\nRecommended for Landing Pages or Calculator widgets. Customs data is bypassed.\n",
+        "summary": "Get Shipping Quote",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pickup": {
+                    "type": "object",
+                    "properties": {
+                      "streetLines": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "stateOrProvinceCode": {
+                        "type": "string"
+                      },
+                      "postalCode": {
+                        "type": "string"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2
+                      },
+                      "residential": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "streetLines",
+                      "city",
+                      "postalCode",
+                      "countryCode",
+                      "residential"
+                    ]
+                  },
+                  "dropoff": {
+                    "type": "object",
+                    "properties": {
+                      "streetLines": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "city": {
+                        "type": "string"
+                      },
+                      "stateOrProvinceCode": {
+                        "type": "string"
+                      },
+                      "postalCode": {
+                        "type": "string"
+                      },
+                      "countryCode": {
+                        "type": "string",
+                        "minLength": 2,
+                        "maxLength": 2
+                      },
+                      "residential": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "streetLines",
+                      "city",
+                      "postalCode",
+                      "countryCode",
+                      "residential"
+                    ]
+                  },
+                  "package": {
+                    "type": "object",
+                    "properties": {
+                      "weight": {
+                        "type": "object",
+                        "properties": {
+                          "value": {
+                            "type": "number"
+                          },
+                          "units": {
+                            "type": "string",
+                            "enum": ["KG", "LB"]
+                          }
+                        },
+                        "required": ["value", "units"]
+                      },
+                      "dimensions": {
+                        "type": "object",
+                        "properties": {
+                          "length": {
+                            "type": "number"
+                          },
+                          "width": {
+                            "type": "number"
+                          },
+                          "height": {
+                            "type": "number"
+                          },
+                          "units": {
+                            "type": "string",
+                            "enum": ["CM", "IN"]
+                          }
+                        },
+                        "required": ["length", "width", "height", "units"]
+                      }
+                    },
+                    "required": ["weight"]
+                  },
+                  "guestId": {
+                    "type": "string"
+                  },
+                  "userCountryCode": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                },
+                "required": ["pickup", "dropoff", "package"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shipping quote retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "estimateId": {
+                      "type": "string"
+                    },
+                    "rates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "carrier": {
+                            "type": "string"
+                          },
+                          "carrierSlug": {
+                            "type": "string"
+                          },
+                          "serviceType": {
+                            "type": "string"
+                          },
+                          "serviceName": {
+                            "type": "string"
+                          },
+                          "carrierPrice": {
+                            "type": "number"
+                          },
+                          "actualPrice": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string"
+                          },
+                          "deliveryDate": {
+                            "type": "string",
+                            "description": "Estimated delivery date (YYYY-MM-DD)"
+                          },
+                          "deliveryDescription": {
+                            "type": "string",
+                            "description": "Estimated duration description (e.g. '1-2 Business Days')"
+                          },
+                          "warnings": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Important info/warnings"
+                          }
+                        },
+                        "required": [
+                          "carrier",
+                          "carrierSlug",
+                          "serviceType",
+                          "serviceName",
+                          "carrierPrice",
+                          "actualPrice",
+                          "currency"
+                        ]
+                      },
+                      "description": "List of available shipping rates"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "carrier": {
+                            "type": "string"
+                          },
+                          "hasError": {
+                            "type": "boolean"
+                          },
+                          "errorCode": {
+                            "type": "number"
+                          },
+                          "details": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["carrier", "hasError"]
+                      },
+                      "description": "List of errors per carrier"
+                    },
+                    "guestId": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": ["estimateId", "rates"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Shipping API Error"
           }
         }
       }
@@ -2810,16 +3101,10 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": [
-                              "KG",
-                              "LB"
-                            ]
+                            "enum": ["KG", "LB"]
                           }
                         },
-                        "required": [
-                          "value",
-                          "units"
-                        ]
+                        "required": ["value", "units"]
                       },
                       "dimensions": {
                         "type": "object",
@@ -2835,23 +3120,13 @@
                           },
                           "units": {
                             "type": "string",
-                            "enum": [
-                              "CM",
-                              "IN"
-                            ]
+                            "enum": ["CM", "IN"]
                           }
                         },
-                        "required": [
-                          "length",
-                          "width",
-                          "height",
-                          "units"
-                        ]
+                        "required": ["length", "width", "height", "units"]
                       }
                     },
-                    "required": [
-                      "weight"
-                    ]
+                    "required": ["weight"]
                   },
                   "guestId": {
                     "type": "string"
@@ -2860,13 +3135,368 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 2
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "customs": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "customsType": {
+                            "type": "string",
+                            "enum": ["S"]
+                          },
+                          "costsOfShipment": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "enum": ["PLN", "EUR"]
+                          },
+                          "vatRegistrationNumber": {
+                            "type": "string"
+                          },
+                          "categoryOfItem": {
+                            "type": "string",
+                            "enum": ["9", "11", "21", "31", "32", "91"]
+                          },
+                          "grossWeight": {
+                            "type": "number"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "maxLength": 30
+                          },
+                          "secondaryName": {
+                            "type": "string",
+                            "maxLength": 30
+                          },
+                          "countryOfOrigin": {
+                            "type": "string",
+                            "enum": ["PL"]
+                          },
+                          "additionalInfo": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "customsItem": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "item": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "nameEn": {
+                                          "type": "string"
+                                        },
+                                        "namePl": {
+                                          "type": "string"
+                                        },
+                                        "quantity": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "weight": {
+                                          "type": "number",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "value": {
+                                          "type": "number",
+                                          "minimum": 0
+                                        },
+                                        "tariffCode": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "nameEn",
+                                        "quantity",
+                                        "weight",
+                                        "value",
+                                        "tariffCode"
+                                      ]
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "nameEn": {
+                                            "type": "string"
+                                          },
+                                          "namePl": {
+                                            "type": "string"
+                                          },
+                                          "quantity": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "exclusiveMinimum": true
+                                          },
+                                          "weight": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "exclusiveMinimum": true
+                                          },
+                                          "value": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          },
+                                          "tariffCode": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "nameEn",
+                                          "quantity",
+                                          "weight",
+                                          "value",
+                                          "tariffCode"
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": ["item"]
+                            }
+                          },
+                          "customAgreements": {
+                            "type": "object",
+                            "properties": {
+                              "notExceedValue": {
+                                "type": "boolean"
+                              },
+                              "notProhibitedGoods": {
+                                "type": "boolean",
+                                "enum": [true]
+                              },
+                              "notRestrictedGoods": {
+                                "type": "boolean",
+                                "enum": [true]
+                              },
+                              "invoiceContent": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "notExceedValue",
+                              "notProhibitedGoods",
+                              "notRestrictedGoods",
+                              "invoiceContent"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "customsType",
+                          "currency",
+                          "categoryOfItem",
+                          "grossWeight",
+                          "firstName",
+                          "secondaryName",
+                          "customsItem"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "customsType": {
+                            "type": "string",
+                            "enum": ["I"]
+                          },
+                          "costsOfShipment": {
+                            "type": "number"
+                          },
+                          "currency": {
+                            "type": "string",
+                            "enum": ["PLN", "EUR"]
+                          },
+                          "vatRegistrationNumber": {
+                            "type": "string"
+                          },
+                          "categoryOfItem": {
+                            "type": "string",
+                            "enum": ["9", "11", "21", "32"]
+                          },
+                          "grossWeight": {
+                            "type": "number"
+                          },
+                          "firstName": {
+                            "type": "string",
+                            "maxLength": 30
+                          },
+                          "secondaryName": {
+                            "type": "string",
+                            "maxLength": 30
+                          },
+                          "countryOfOrigin": {
+                            "type": "string",
+                            "enum": ["PL"]
+                          },
+                          "additionalInfo": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "customsItem": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "item": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "nameEn": {
+                                          "type": "string"
+                                        },
+                                        "namePl": {
+                                          "type": "string"
+                                        },
+                                        "quantity": {
+                                          "type": "integer",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "weight": {
+                                          "type": "number",
+                                          "minimum": 0,
+                                          "exclusiveMinimum": true
+                                        },
+                                        "value": {
+                                          "type": "number",
+                                          "minimum": 0
+                                        },
+                                        "tariffCode": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "nameEn",
+                                        "quantity",
+                                        "weight",
+                                        "value",
+                                        "tariffCode"
+                                      ]
+                                    },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "nameEn": {
+                                            "type": "string"
+                                          },
+                                          "namePl": {
+                                            "type": "string"
+                                          },
+                                          "quantity": {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "exclusiveMinimum": true
+                                          },
+                                          "weight": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "exclusiveMinimum": true
+                                          },
+                                          "value": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          },
+                                          "tariffCode": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [
+                                          "nameEn",
+                                          "quantity",
+                                          "weight",
+                                          "value",
+                                          "tariffCode"
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": ["item"]
+                            }
+                          },
+                          "nipNr": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "eoriNr": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "eoriNrReceiver": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "vatRegistrationNumberReceiver": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "invoiceNr": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "invoiceDate": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "invoice": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "customAgreements": {
+                            "type": "object",
+                            "properties": {
+                              "notProhibitedGoods": {
+                                "type": "boolean",
+                                "enum": [true]
+                              },
+                              "notRestrictedGoods": {
+                                "type": "boolean",
+                                "enum": [true]
+                              }
+                            },
+                            "required": [
+                              "notProhibitedGoods",
+                              "notRestrictedGoods"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "customsType",
+                          "currency",
+                          "categoryOfItem",
+                          "grossWeight",
+                          "firstName",
+                          "secondaryName",
+                          "customsItem",
+                          "nipNr",
+                          "invoiceNr",
+                          "invoiceDate",
+                          "invoice"
+                        ]
+                      }
+                    ]
                   }
                 },
-                "required": [
-                  "pickup",
-                  "dropoff",
-                  "package"
-                ]
+                "required": ["pickup", "dropoff", "package"]
               }
             }
           }
@@ -2888,11 +3518,10 @@
                         "type": "object",
                         "properties": {
                           "carrier": {
-                            "type": "string",
-                            "enum": [
-                              "FedEx",
-                              "DHL"
-                            ]
+                            "type": "string"
+                          },
+                          "carrierSlug": {
+                            "type": "string"
                           },
                           "serviceType": {
                             "type": "string"
@@ -2927,6 +3556,7 @@
                         },
                         "required": [
                           "carrier",
+                          "carrierSlug",
                           "serviceType",
                           "serviceName",
                           "carrierPrice",
@@ -2954,10 +3584,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "carrier",
-                          "hasError"
-                        ]
+                        "required": ["carrier", "hasError"]
                       },
                       "description": "List of errors per carrier"
                     },
@@ -2966,10 +3593,7 @@
                       "nullable": true
                     }
                   },
-                  "required": [
-                    "estimateId",
-                    "rates"
-                  ]
+                  "required": ["estimateId", "rates"]
                 }
               }
             }
@@ -2985,14 +3609,33 @@
     },
     "/payments/verify-payment": {
       "get": {
-        "description": "\n### Verify Payment Status\n**Frontend Usage Guide:**\nAfter a user completes a payment on the Stripe Checkout page, they are redirected back to your application (success URL). The frontend **must** call this endpoint immediately to verify the payment and retrieve the final shipment details.\n\n**How it works:**\n1. Frontend extracts `session_id` from the URL query parameters.\n2. Frontend calls `GET /payments/verify?session_id={session_id}`.\n3. Backend verifies the session with Stripe.\n4. If valid, Backend finalizes the shipment (generates label, updates status).\n5. Returns the final `trackingNumber` and `labelUrl`.\n\n**Response Handling:**\n- **SUCCESS**: Display the success page, show the tracking number, and provide a button to download the label.\n- **FAILED**: Show an error message and prompt the user to try payment again.\n",
+        "description": "\n### Verify Payment Status\n**Frontend Usage Guide:**\nAfter a user completes a payment on Stripe or PayU, they are redirected back to your application.\nThe frontend **must** call this endpoint immediately to verify the payment and retrieve the final shipment details.\n\n**How it works:**\n1. **Stripe**: Frontend extracts `session_id` from the URL query parameters.\n   Call `GET /payments/verify-payment?session_id={session_id}`.\n2. **PayU**: Frontend extracts `order_id` from the URL query parameters.\n   Call `GET /payments/verify-payment?gateway=payu&order_id={order_id}`.\n3. Backend verifies the session with the appropriate gateway.\n4. If valid, backend finalizes the shipment (generates label, updates status).\n5. Returns the final `trackingNumber` and `labelUrl`.\n\n**Response Handling:**\n- **SUCCESS**: Display the success page, show the tracking number, and provide a button to download the label.\n- **PENDING** (PayU only): Payment is still being processed. Prompt the user to wait or retry.\n- **FAILED**: Show an error message and prompt the user to try payment again.\n",
         "summary": "Verify Payment",
         "parameters": [
           {
             "name": "session_id",
             "in": "query",
-            "required": true,
-            "description": " The Stripe Checkout Session ID returned in the URL query params.",
+            "required": false,
+            "description": "The Stripe Checkout Session ID (required for Stripe payments).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gateway",
+            "in": "query",
+            "required": false,
+            "description": "Payment gateway identifier (e.g., 'payu').",
+            "schema": {
+              "type": "string",
+              "enum": ["stripe", "payu"]
+            }
+          },
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "description": "The PayU Order ID (required for PayU payments).",
             "schema": {
               "type": "string"
             }
@@ -3008,15 +3651,12 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": [
-                        "SUCCESS",
-                        "FAILED"
-                      ],
+                      "enum": ["SUCCESS", "FAILED", "PENDING"],
                       "description": "Overall verification status"
                     },
                     "paymentStatus": {
                       "type": "string",
-                      "description": "Status from Stripe (e.g. 'paid', 'unpaid')"
+                      "description": "Status from gateway (e.g. 'paid', 'COMPLETED', 'PENDING')"
                     },
                     "shipmentStatus": {
                       "type": "string",
@@ -3033,13 +3673,13 @@
                     "message": {
                       "type": "string",
                       "description": "Error or status message"
+                    },
+                    "paymentGateway": {
+                      "type": "string",
+                      "description": "Which gateway was used ('stripe' or 'payu')"
                     }
                   },
-                  "required": [
-                    "status",
-                    "paymentStatus",
-                    "shipmentStatus"
-                  ]
+                  "required": ["status", "paymentStatus", "shipmentStatus"]
                 }
               }
             }
@@ -3049,7 +3689,7 @@
     },
     "/payments/stripe-webhook": {
       "post": {
-        "description": "\n### Stripe Webhook Endpoint\n**⚠️ SERVER-TO-SERVER ONLY**\nThis endpoint is designed to be called **only** by Stripe's servers. Frontend applications should **never** call this endpoint directly.\n\n**Functionality:**\n- Listens for `checkout.session.completed` events.\n- When payment is confirmed asynchronously, this webhook ensures the shipment is finalized even if the user closes their browser before redirection.\n- Updates shipment status to `CREATED` and generates labels in the background.\n\n**Frontend Relevance:**\n- While you don't call this, it guarantees that if a user pays but loses connection, their shipment is still processed.\n- You can rely on polling `/payments/verify` or checking shipment status history to see updates triggered by this webhook.\n",
+        "description": "\n### Stripe Webhook Endpoint\n**⚠️ SERVER-TO-SERVER ONLY**\nThis endpoint is designed to be called **only** by Stripe's servers.\n",
         "summary": "Stripe Webhook",
         "responses": {
           "200": {
@@ -3058,26 +3698,406 @@
         }
       }
     },
-    "/carriers/get-carriers": {
+    "/payments/payu-webhook": {
+      "post": {
+        "description": "\n### PayU Webhook Endpoint\n**⚠️ SERVER-TO-SERVER ONLY**\nThis endpoint is designed to be called **only** by PayU's servers.\nPayU sends notifications when order status changes (COMPLETED, CANCELED, REJECTED, etc).\nThe endpoint verifies the `OpenPayu-Signature` header for authenticity.\n",
+        "summary": "PayU Webhook",
+        "responses": {
+          "200": {
+            "description": "Webhook received and processed"
+          }
+        }
+      }
+    },
+    "/locations/countries": {
       "get": {
-        "description": "\n### List Active Carriers\n**Frontend Usage Guide:**\nRetrieves a list of all supported shipping carriers (e.g., FedEx) along with their configured commission rates.\nUse this to populate carrier selection dropdowns or display available shipping options.\n",
-        "summary": "List Carriers",
+        "tags": ["Location Services"],
+        "description": "Get a list of all available countries.",
+        "summary": "Get Countries",
+        "responses": {
+          "200": {
+            "description": "List of countries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "isoCode": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["name", "isoCode"]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/locations/countries/{countryCode}/states": {
+      "get": {
+        "tags": ["Location Services"],
+        "description": "Get a list of states for a specific country.",
+        "summary": "Get States by Country",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "ISO Country Code (e.g. US)"
+            },
+            "required": true,
+            "description": "ISO Country Code (e.g. US)",
+            "name": "countryCode",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of states",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "isoCode": {
+                        "type": "string"
+                      },
+                      "countryCode": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["name", "isoCode", "countryCode"]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/locations/countries/{countryCode}/states/{stateCode}/cities": {
+      "get": {
+        "tags": ["Location Services"],
+        "description": "Get a list of cities for a specific state in a country.",
+        "summary": "Get Cities by State",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "ISO Country Code (e.g. US)"
+            },
+            "required": true,
+            "description": "ISO Country Code (e.g. US)",
+            "name": "countryCode",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "ISO State Code (e.g. CT)"
+            },
+            "required": true,
+            "description": "ISO State Code (e.g. CT)",
+            "name": "stateCode",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of cities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "countryCode": {
+                        "type": "string"
+                      },
+                      "stateCode": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["name", "countryCode", "stateCode"]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/locations/autocomplete": {
+      "get": {
+        "tags": ["Location Services"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "X-MLS-Key": []
+          }
+        ],
+        "description": "Get Google Places autocomplete suggestions.",
+        "summary": "Google Autocomplete",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Search text input"
+            },
+            "required": true,
+            "description": "Search text input",
+            "name": "input",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Unique session token for billing optimization"
+            },
+            "required": false,
+            "description": "Unique session token for billing optimization",
+            "name": "sessiontoken",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suggestions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "placeId": {
+                        "type": "string"
+                      },
+                      "mainText": {
+                        "type": "string"
+                      },
+                      "secondaryText": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "placeId",
+                      "mainText",
+                      "secondaryText"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "502": {
+            "description": "Google API Error"
+          }
+        }
+      }
+    },
+    "/locations/place-details": {
+      "get": {
+        "tags": ["Location Services"],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "X-MLS-Key": []
+          }
+        ],
+        "description": "Get full address details for a specific Google Place ID.",
+        "summary": "Google Place Details",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Google Place ID"
+            },
+            "required": true,
+            "description": "Google Place ID",
+            "name": "placeId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Unique session token used during autocomplete"
+            },
+            "required": false,
+            "description": "Unique session token used during autocomplete",
+            "name": "sessiontoken",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mapped address components",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "street": {
+                      "type": "string"
+                    },
+                    "city": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "type": "string"
+                    },
+                    "stateCode": {
+                      "type": "string",
+                      "description": "ISO State/Province Code (e.g. NY)"
+                    },
+                    "country": {
+                      "type": "string"
+                    },
+                    "countryCode": {
+                      "type": "string",
+                      "description": "ISO Country Code (e.g. US)"
+                    },
+                    "zip": {
+                      "type": "string"
+                    },
+                    "formattedAddress": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "street",
+                    "city",
+                    "state",
+                    "stateCode",
+                    "country",
+                    "countryCode",
+                    "zip",
+                    "formattedAddress"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "502": {
+            "description": "Google API Error"
+          }
+        }
+      }
+    },
+    "/invoices/generate": {
+      "post": {
+        "summary": "Generate or update invoice for shipment",
+        "tags": ["Invoices"],
+        "description": "Create a new invoice or update an existing one. If invoiceId is provided, updates existing; otherwise creates new. Invoice currency is automatically determined by user's country code: PLN for Poland (PL), EUR for all other countries.",
         "security": [
           {
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "shipmentId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Shipment ID to invoice"
+                  },
+                  "invoiceId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Invoice ID to update (optional, omit to create new)"
+                  },
+                  "deliveryMethod": {
+                    "type": "string",
+                    "enum": ["download", "email", "both"],
+                    "description": "Delivery method for invoice"
+                  },
+                  "paymentGateway": {
+                    "type": "string",
+                    "enum": ["STRIPE", "PAYU"],
+                    "default": "STRIPE"
+                  }
+                },
+                "required": ["shipmentId", "deliveryMethod"]
+              }
+            }
+          }
+        },
         "responses": {
+          "201": {
+            "description": "Invoice created successfully with currency determined by user's country code"
+          },
           "200": {
-            "description": "List of carriers retrieved"
+            "description": "Invoice updated successfully"
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Shipment not found"
           }
         }
       }
     },
-    "/carriers/update-carrier-commission/{carrierId}": {
-      "put": {
-        "description": "\n### Update Carrier Commission\n**⚠️ ADMIN ONLY**\nUpdates the commission percentage added to the base carrier rates.\n\n**Calculation Logic:**\nThe system calculates the final user price as:\n`User Price = Carrier Rate + (Carrier Rate * Commission Percentage)`\n\n**Validation:**\n- `commissionPercentage`: Must be between 0 (0%) and 1 (100%).\n",
-        "summary": "Update Carrier Rates",
+    "/invoices": {
+      "get": {
+        "summary": "List current user's invoices",
+        "tags": ["Invoices"],
         "security": [
           {
             "bearerAuth": []
@@ -3085,7 +4105,433 @@
         ],
         "parameters": [
           {
-            "name": "carrierId",
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "PAID", "EXPIRED"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of invoices"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/invoices/{invoiceId}": {
+      "get": {
+        "summary": "Get invoice details (public, no auth required)",
+        "tags": ["Invoices"],
+        "description": "Retrieve invoice details. Public endpoint - no authentication required. Returns error with shipment data if invoice is expired. Response includes currency field (EUR for non-Poland users, PLN for Poland).",
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice details including currency (EUR for non-Poland users, PLN for Poland)"
+          },
+          "404": {
+            "description": "Invoice not found"
+          },
+          "410": {
+            "description": "Invoice expired"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Soft delete invoice",
+        "tags": ["Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice deleted"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Invoice not found"
+          }
+        }
+      }
+    },
+    "/invoices/{invoiceId}/pdf": {
+      "get": {
+        "summary": "Download invoice PDF (public, no auth required)",
+        "tags": ["Invoices"],
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF file",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "description": "Invoice not found"
+          },
+          "410": {
+            "description": "Invoice expired"
+          }
+        }
+      }
+    },
+    "/invoices/{invoiceId}/restore": {
+      "post": {
+        "summary": "Restore soft-deleted invoice",
+        "tags": ["Invoices"],
+        "description": "Restore a soft-deleted invoice (within 30 days)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice restored"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Invoice not found"
+          },
+          "410": {
+            "description": "Cannot restore - deleted more than 30 days ago"
+          }
+        }
+      }
+    },
+    "/invoices/{invoiceId}/confirm": {
+      "post": {
+        "summary": "Confirm invoice and generate payment link",
+        "tags": ["Invoices"],
+        "description": "Generate payment link after user selects payment method",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "paymentMethod": {
+                    "type": "string",
+                    "enum": ["STRIPE", "PAYU"]
+                  }
+                },
+                "required": ["paymentMethod"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment link generated"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Invoice not found"
+          },
+          "410": {
+            "description": "Invoice expired"
+          }
+        }
+      }
+    },
+    "/invoices/{invoiceId}/regenerate-link": {
+      "post": {
+        "summary": "Regenerate payment link for expired invoice",
+        "tags": ["Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "invoiceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment link regenerated"
+          },
+          "400": {
+            "description": "Invoice not expired"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Invoice not found"
+          }
+        }
+      }
+    },
+    "/admin/invoices": {
+      "get": {
+        "summary": "Admin list all invoices",
+        "tags": ["Admin - Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all invoices"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          }
+        }
+      }
+    },
+
+    "/admin/invoices/expiration-settings/global": {
+      "post": {
+        "summary": "Set global invoice expiration hours",
+        "tags": ["Admin - Invoice Settings"],
+        "description": "Set default invoice expiration for all users",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expirationHours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 168,
+                    "description": "Hours (1-168)"
+                  }
+                },
+                "required": ["expirationHours"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Global setting updated"
+          },
+          "400": {
+            "description": "Invalid hours"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          }
+        }
+      }
+    },
+    "/admin/invoices/expiration-settings/user/{userId}": {
+      "post": {
+        "summary": "Set user invoice expiration override",
+        "tags": ["Admin - Invoice Settings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expirationHours": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 168
+                  }
+                },
+                "required": ["expirationHours"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User setting updated"
+          },
+          "400": {
+            "description": "Invalid hours"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/admin/invoices/expiration-settings": {
+      "get": {
+        "summary": "Get all expiration settings",
+        "tags": ["Admin - Invoice Settings"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expiration settings"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          }
+        }
+      }
+    },
+    "/admin/invoices/{id}": {
+      "delete": {
+        "summary": "Hard delete invoice (permanent)",
+        "tags": ["Admin - Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3099,14 +4545,154 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "commissionPercentage": {
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invoice permanently deleted"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          },
+          "404": {
+            "description": "Invoice not found"
+          }
+        }
+      }
+    },
+    "/admin/invoices/{id}/expiration": {
+      "put": {
+        "summary": "Update invoice expiration date",
+        "tags": ["Admin - Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": ["expiresAt"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invoice expiration updated"
+          },
+          "400": {
+            "description": "Invalid date"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          },
+          "404": {
+            "description": "Invoice not found"
+          }
+        }
+      }
+    },
+    "/admin/invoices/{id}/audit-log": {
+      "get": {
+        "summary": "Get invoice audit trail",
+        "tags": ["Admin - Invoices"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit log retrieved"
+          },
+          "401": {
+            "description": "Admin authentication required"
+          },
+          "404": {
+            "description": "Invoice not found"
+          }
+        }
+      }
+    },
+    "/tax/estimate": {
+      "post": {
+        "summary": "Estimate tax",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "originCountry": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "destinationCountry": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "customerType": {
+                    "type": "string",
+                    "enum": ["B2B", "B2C"]
+                  },
+                  "weight": {
                     "type": "number",
                     "minimum": 0,
-                    "maximum": 1
+                    "exclusiveMinimum": true
+                  },
+                  "value": {
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  },
+                  "vatId": {
+                    "type": "string"
                   }
                 },
                 "required": [
-                  "commissionPercentage"
+                  "originCountry",
+                  "destinationCountry",
+                  "customerType",
+                  "weight",
+                  "value"
                 ]
               }
             }
@@ -3114,7 +4700,246 @@
         },
         "responses": {
           "200": {
-            "description": "Carrier rates updated successfully"
+            "description": "Tax estimate"
+          },
+          "400": {
+            "description": "Invalid payload"
+          }
+        }
+      }
+    },
+    "/tax/validate": {
+      "post": {
+        "summary": "Validate tax applicability",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "originCountry": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "destinationCountry": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "customerType": {
+                    "type": "string",
+                    "enum": ["B2B", "B2C"]
+                  },
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  },
+                  "value": {
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  },
+                  "vatId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "originCountry",
+                  "destinationCountry",
+                  "customerType",
+                  "weight",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tax validation result"
+          },
+          "400": {
+            "description": "Invalid payload"
+          }
+        }
+      }
+    },
+    "/tax/calculate": {
+      "post": {
+        "summary": "Calculate tax",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "originCountry": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "destinationCountry": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 2
+                  },
+                  "customerType": {
+                    "type": "string",
+                    "enum": ["B2B", "B2C"]
+                  },
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  },
+                  "value": {
+                    "type": "number",
+                    "minimum": 0,
+                    "exclusiveMinimum": true
+                  },
+                  "vatId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "originCountry",
+                  "destinationCountry",
+                  "customerType",
+                  "weight",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tax calculation"
+          },
+          "400": {
+            "description": "Invalid payload"
+          }
+        }
+      }
+    },
+    "/tax/rules": {
+      "get": {
+        "summary": "List active tax rules",
+        "responses": {
+          "200": {
+            "description": "Tax rules list"
+          }
+        }
+      }
+    },
+    "/admin/invoices/{id}/mark-paid": {
+      "post": {
+        "summary": "Admin manually mark invoice as paid",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice marked paid"
+          },
+          "400": {
+            "description": "Invalid invoice state"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/tax/rules": {
+      "get": {
+        "summary": "Admin list tax rules",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tax rules list"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/refund-requests/{id}/approve": {
+      "post": {
+        "summary": "Admin approve refund request",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refund approved"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/admin/refund-requests": {
+      "get": {
+        "summary": "Admin list refund requests",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Refund request list"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
           }
         }
       }

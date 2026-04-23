@@ -1,10 +1,26 @@
+export interface UserAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  postalCode?: string;
+  country?: string;
+}
+
+export type AddressRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export interface User {
   id: string;
   userCode: string;
   email: string;
   name: string;
   phone?: string | null;
-  address?: any | null;
+  address?: UserAddress | null;
+  addressVerifiedAt?: string | null;
+  currentAddressRequestId?: string | null;
+  addressRequestStatus?: AddressRequestStatus | null;
+  addressRejectionFeedback?: string | null;
+  defaultCustomsType?: "S" | "I";
   is_verified: boolean;
   is_phone_verified: boolean;
   createdAt: string;

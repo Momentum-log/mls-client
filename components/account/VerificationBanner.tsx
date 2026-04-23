@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/button";
 import { sendVerificationCode } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +8,7 @@ import VerifyEmailModal from "./VerifyEmailModal";
 import VerifyPhoneModal from "./VerifyPhoneModal";
 import { useAuthStore } from "@/store/auth-store";
 import { useSendPhoneOTP } from "@/hooks/auth/use-auth";
+import { useSearchParams } from "next/navigation";
 
 /**
  * A persistent banner for unverified accounts.
@@ -18,12 +19,11 @@ const VerificationBanner = () => {
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const { user } = useAuthStore();
   const { addToast } = useToast();
+  const searchParams = useSearchParams();
+  const hasAutoTriggeredRef = useRef(false);
 
   const { mutateAsync: sendPhoneOTP, isPending: isSendingPhone } =
     useSendPhoneOTP();
-
-  // Only show banner if email is not verified (phone verification is optional)
-  if (!user || user.is_verified) return null;
 
   const handleVerifyEmail = async () => {
     setIsSendingEmail(true);
@@ -81,6 +81,23 @@ const VerificationBanner = () => {
       });
     }
   };
+
+  useEffect(() => {
+    const shouldAutoOpen = searchParams.get("openVerifyEmail") === "1";
+
+    if (
+      shouldAutoOpen &&
+      user &&
+      !user.is_verified &&
+      !hasAutoTriggeredRef.current
+    ) {
+      hasAutoTriggeredRef.current = true;
+      void handleVerifyEmail();
+    }
+  }, [searchParams, user]);
+
+  // Only show banner if email is not verified (phone verification is optional)
+  if (!user || user.is_verified) return null;
 
   return (
     <>

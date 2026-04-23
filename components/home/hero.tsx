@@ -44,14 +44,14 @@ const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 mb-16">
-            <Link href="/register">
+            <Link href="/shipping-estimate">
               <Button variant="primary" size="lg" className="min-w-[200px]">
-                Get Started →
+                Get a Quote →
               </Button>
             </Link>
-            <Link href="/about">
+            <Link href="/register">
               <Button variant="outline" size="lg" className="min-w-[200px]">
-                Learn more
+                Get Started
               </Button>
             </Link>
           </div>

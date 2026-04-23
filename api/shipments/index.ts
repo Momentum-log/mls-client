@@ -1,10 +1,12 @@
-import { AxiosResponse } from "axios";
 import apiClient from "..";
 import {
+  ContinueToPayResponse,
   GetShipmentResponse,
+  ShipmentMutationPayload,
   ShippingEstimatePayload,
   TrackingResponse,
 } from "@/types/shipping";
+import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
  * Calculates shipping rates for a given package and route.
@@ -14,7 +16,20 @@ import {
 export const getShippingEstimate = async (payload: ShippingEstimatePayload) => {
   const response = await apiClient.post(
     "/shipments/get-shipping-estimate",
-    payload
+    payload,
+  );
+  return response.data;
+};
+
+/**
+ * Gets quote rates for the marketing shipping estimate flow.
+ * @param payload - Pickup, dropoff, and package details.
+ * @returns List of available quote rates.
+ */
+export const getShippingQuote = async (payload: ShippingEstimatePayload) => {
+  const response = await apiClient.post(
+    "/shipments/get-shipping-quote",
+    payload,
   );
   return response.data;
 };
@@ -25,7 +40,7 @@ export const getShippingEstimate = async (payload: ShippingEstimatePayload) => {
  */
 export const getShipment = async (id: string) => {
   const response = await apiClient.get<GetShipmentResponse>(
-    `/shipments/get-shipment/${id}`
+    `/shipments/get-shipment/${id}`,
   );
   return response.data;
 };
@@ -35,9 +50,11 @@ export const getShipment = async (id: string) => {
  * @param payload - Carrier, addresses, package, and selected rate.
  * @returns Shipment ID and Stripe checkout URL.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createShipment = async (payload: any) => {
-  const response = await apiClient.post("/shipments/create-shipment", payload);
+export const createShipment = async (payload: ShipmentMutationPayload) => {
+  const response = await apiClient.post<CreateShipmentResponse>(
+    "/shipments/create-shipment",
+    payload,
+  );
   return response.data;
 };
 
@@ -47,7 +64,7 @@ export const createShipment = async (payload: any) => {
  */
 export const trackShipment = async (trackingNumber: string) => {
   const response = await apiClient.get<TrackingResponse>(
-    `/shipments/track-shipment/${trackingNumber}`
+    `/shipments/track-shipment/${trackingNumber}`,
   );
   return response.data;
 };
@@ -74,9 +91,8 @@ export const getShipmentStats = async () => {
  * @returns Object containing the checkout URL.
  */
 export const continueToPay = async (id: string) => {
-  const response = await apiClient.post<{
-    shipmentId: string;
-    checkoutUrl: string;
-  }>(`/shipments/${id}/pay`);
+  const response = await apiClient.post<ContinueToPayResponse>(
+    `/shipments/${id}/pay`,
+  );
   return response.data;
 };

@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useEffect, Suspense, useState } from "react";
-import { FormikProvider, useFormik } from "formik";
+import { FormikErrors, FormikProvider, useFormik } from "formik";
 import { z } from "zod";
-import { toFormikValidationSchema } from "zod-formik-adapter";
 import Container from "@/components/shared/container";
 import Button from "@/components/ui/button";
 import {
   FaBoxOpen,
-  FaCalculator,
   FaCircleExclamation,
   FaShip,
   FaLocationDot,
@@ -17,7 +15,7 @@ import {
 import ShippingHero from "@/components/shipping/shipping-hero";
 import AddressFields from "@/components/shared/address-fields";
 import { shippingFormSchema, ShippingFormValues } from "./schema";
-import { useGetShippingEstimate } from "@/hooks/shipments/use-shipments";
+import { useGetShippingQuote } from "@/hooks/shipments/use-shipments";
 import { useToast } from "@/hooks/use-toast";
 import { transformShippingData, getEstimatePayload } from "./utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
@@ -120,7 +118,7 @@ function ShippingEstimateContent() {
   const searchParams = useSearchParams();
   const { addToast } = useToast();
   const { countryCode: userCountryCode } = useCountryStore();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
     useState(false);
 
@@ -128,7 +126,7 @@ function ShippingEstimateContent() {
     mutate: estimateMutation,
     isPending: isEstimating,
     data: rawEstimateData,
-  } = useGetShippingEstimate();
+  } = useGetShippingQuote();
 
   const estimateData = rawEstimateData
     ? transformShippingData(rawEstimateData)
@@ -164,18 +162,24 @@ function ShippingEstimateContent() {
       try {
         shippingFormSchema.parse(values);
         return {};
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (error instanceof z.ZodError) {
-          const nestedErrors: any = {};
+          const nestedErrors: FormikErrors<ShippingFormValues> = {};
           error.issues.forEach((issue) => {
-            let current = nestedErrors;
+            let current: Record<string, unknown> = nestedErrors as Record<
+              string,
+              unknown
+            >;
             for (let i = 0; i < issue.path.length; i++) {
-              const part = issue.path[i];
+              const part = String(issue.path[i]);
               if (i === issue.path.length - 1) {
                 current[part] = issue.message;
               } else {
-                current[part] = current[part] || {};
-                current = current[part];
+                const next = current[part];
+                if (!next || typeof next !== "object" || Array.isArray(next)) {
+                  current[part] = {};
+                }
+                current = current[part] as Record<string, unknown>;
               }
             }
           });
@@ -249,7 +253,8 @@ function ShippingEstimateContent() {
 
   // Sync URL parameters
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const currentQuery = searchParams.toString();
+    const params = new URLSearchParams(currentQuery);
     const { pickup, dropoff } = formik.values;
 
     if (pickup.countryCode) params.set("pickupCountry", pickup.countryCode);
@@ -269,8 +274,19 @@ function ShippingEstimateContent() {
     if (dropoff.postalCode) params.set("dropoffZip", dropoff.postalCode);
     if (dropoff.street) params.set("dropoffStreet", dropoff.street);
 
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [formik.values.pickup, formik.values.dropoff]);
+    const nextQuery = params.toString();
+
+    // Avoid navigation loops by only replacing when query values actually changed.
+    if (nextQuery !== currentQuery) {
+      router.replace(`?${nextQuery}`, { scroll: false });
+    }
+  }, [
+    formik.values.pickup,
+    formik.values.dropoff,
+    formik.values,
+    searchParams,
+    router,
+  ]);
 
   return (
     <main className="bg-white min-h-screen">
@@ -477,9 +493,9 @@ function ShippingEstimateContent() {
                       </div>
                       <h4 className="font-bold text-xl mb-3">No Rates Found</h4>
                       <p className="text-white/70 text-sm leading-relaxed mb-6">
-                        We couldn't retrieve shipping rates for this address.
-                        This usually happens if the address is incomplete or
-                        unrecognized by our carriers.
+                        We couldn&apos;t retrieve shipping rates for this
+                        address. This usually happens if the address is
+                        incomplete or unrecognized by our carriers.
                       </p>
                       {estimateData?.errors &&
                         estimateData.errors.length > 0 && (
@@ -487,11 +503,13 @@ function ShippingEstimateContent() {
                             <p className="text-[10px] uppercase font-bold text-white/40 mb-2">
                               Carrier Feedback
                             </p>
-                            {estimateData.errors.map((err: any, i: number) => (
-                              <p key={i} className="text-xs text-white/80">
-                                • {err.details}
-                              </p>
-                            ))}
+                            {estimateData.errors.map(
+                              (err: { details: string }, i: number) => (
+                                <p key={i} className="text-xs text-white/80">
+                                  • {err.details}
+                                </p>
+                              ),
+                            )}
                           </div>
                         )}
                       <Button

@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  getShippingQuote,
   getShippingEstimate,
   getShipmentHistory,
   getShipmentStats,
@@ -8,6 +9,7 @@ import {
   getShipment,
 } from "@/api/shipments";
 import {
+  ShipmentMutationPayload,
   ShippingEstimatePayload,
   ShippingEstimateResponse,
   Shipment,
@@ -16,14 +18,34 @@ import {
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
+import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
  * Hook to get shipping estimates (rates).
 
  */
-export const useGetShippingEstimate = () => {
+export const useGetShippingEstimate = (options?: {
+  onSuccess?: (data: ShippingEstimateResponse) => void;
+  onError?: (error: Error) => void;
+}) => {
   return useMutation<ShippingEstimateResponse, Error, ShippingEstimatePayload>({
     mutationFn: getShippingEstimate,
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+  });
+};
+
+/**
+ * Hook to get marketing quote rates.
+ */
+export const useGetShippingQuote = (options?: {
+  onSuccess?: (data: ShippingEstimateResponse) => void;
+  onError?: (error: Error) => void;
+}) => {
+  return useMutation<ShippingEstimateResponse, Error, ShippingEstimatePayload>({
+    mutationFn: getShippingQuote,
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
   });
 };
 
@@ -31,7 +53,7 @@ export const useGetShippingEstimate = () => {
  * Hook to create a new shipment.
  */
 export const useCreateShipment = () => {
-  return useMutation<any, Error, any>({
+  return useMutation<CreateShipmentResponse, Error, ShipmentMutationPayload>({
     mutationFn: createShipment,
   });
 };
@@ -103,7 +125,7 @@ export const useShipmentStats = () => {
     // Filter and sort for recent shipments
     const sortedShipments = [...shipments].sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 
     shipments.forEach((shipment) => {

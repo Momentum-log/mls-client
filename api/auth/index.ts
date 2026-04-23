@@ -1,4 +1,8 @@
 import { LoginData, RegisterData, VerifyPhoneData } from "@/types/auth";
+import {
+  AddressStatusResponse,
+  AddressUpdateRequestPayload,
+} from "@/types/address-verification";
 import apiClient from "..";
 
 /**
@@ -110,4 +114,62 @@ export const forgotPassword = (email: string) => {
  */
 export const resetPassword = (data: { code: string; newPassword: string }) => {
   return apiClient.post("/auth/reset-password", data);
+};
+
+/**
+ * Submits an address update request with proof document for admin review.
+ */
+export const submitAddressUpdateRequest = (
+  data: AddressUpdateRequestPayload,
+) => {
+  return apiClient.post("/auth/address/update-request", data);
+};
+
+/**
+ * Gets current active address and latest address request status.
+ */
+export const getAddressStatus = async () => {
+  const response = await apiClient.get<AddressStatusResponse>(
+    "/auth/address/status",
+  );
+
+  const data = response.data as AddressStatusResponse & {
+    status?: string;
+    request?: AddressStatusResponse["latestRequest"];
+    latestAddressRequest?: AddressStatusResponse["latestRequest"];
+    active?: AddressStatusResponse["activeAddress"];
+    activeAddressVerifiedAt?: string | null;
+    latestRequest?:
+      | (AddressStatusResponse["latestRequest"] & {
+          adminFeedback?: string | null;
+        })
+      | null;
+  };
+
+  const normalizedActiveAddress = data.activeAddress ?? data.active ?? null;
+  const hasMeaningfulActiveAddress = !!(
+    normalizedActiveAddress?.street?.trim() ||
+    normalizedActiveAddress?.city?.trim() ||
+    normalizedActiveAddress?.postalCode?.trim() ||
+    normalizedActiveAddress?.zip?.trim()
+  );
+
+  const normalizedLatestRequest =
+    data.latestRequest ?? data.latestAddressRequest ?? data.request ?? null;
+
+  return {
+    activeAddress: hasMeaningfulActiveAddress ? normalizedActiveAddress : null,
+    addressVerifiedAt:
+      data.addressVerifiedAt ?? data.activeAddressVerifiedAt ?? null,
+    latestRequest: normalizedLatestRequest
+      ? {
+          ...normalizedLatestRequest,
+          feedback:
+            normalizedLatestRequest.feedback ??
+            (normalizedLatestRequest as { adminFeedback?: string | null })
+              .adminFeedback ??
+            null,
+        }
+      : null,
+  } as AddressStatusResponse;
 };
