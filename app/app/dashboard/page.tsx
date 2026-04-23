@@ -9,7 +9,7 @@ import {
   FiDollarSign,
   FiChevronRight,
 } from "react-icons/fi";
-import { FaFileCirclePlus, FaArrowRight } from "react-icons/fa6";
+import { FaFileCirclePlus, FaArrowRight, FaEuroSign } from "react-icons/fa6";
 import { useShipmentStats } from "@/hooks/shipments/use-shipments";
 
 export default function DashboardPage() {
@@ -97,7 +97,7 @@ export default function DashboardPage() {
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-4">
               <div className="p-2 bg-brand-blue/10 rounded-lg">
-                <FiDollarSign className="w-6 h-6 text-brand-blue" />
+                <FaEuroSign className="w-6 h-6 text-brand-blue" />
               </div>
             </div>
             <h3 className="text-4xl font-bold mb-1">
