@@ -529,8 +529,8 @@ export default function NewShipmentPage() {
           if (res?.data?.error) msg = res.data.error;
           isAddressRequired = res?.data?.error === "ADDRESS_REQUIRED";
 
-          if (isAddressRequired && res.data?.details) {
-            msg = res.data.details;
+          if (isAddressRequired && res?.data?.details) {
+            msg = res?.data.details as string;
           }
         }
 

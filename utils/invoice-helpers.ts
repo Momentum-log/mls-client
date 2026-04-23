@@ -97,9 +97,9 @@ export const formatTaxRate = (taxRate: number): string => {
  */
 export const buildAddressString = (
   street: string,
-  buildingNumber?: string,
   city: string,
   postalCode: string,
+  buildingNumber?: string,
   apartmentNumber?: string,
 ): string => {
   const addressParts = [
