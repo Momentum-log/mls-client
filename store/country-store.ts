@@ -2,7 +2,7 @@
  * Country detection and currency state store.
  * Uses Zustand with sessionStorage persistence.
  *
- * Detects user's country via Browser Geolocation API (navigator.geolocation)
+ * Detects user's country via browser locale information (no external API calls)
  * and sets currency:
  * - Poland (PL) → PLN
  * - All other countries → EUR
@@ -20,6 +20,49 @@ const initialState: CountryState = {
   isDetected: false,
   isManualOverride: false,
   isLoading: false,
+};
+
+/**
+ * Attempts to extract a 2-letter region code from a locale string.
+ * Examples: en-PL -> PL, pl_PL -> PL.
+ */
+const extractRegionFromLocale = (locale: string): string | null => {
+  if (!locale) return null;
+
+  try {
+    const region = new Intl.Locale(locale).region;
+    if (region && /^[A-Za-z]{2}$/.test(region)) {
+      return region.toUpperCase();
+    }
+  } catch {
+    // Fallback parsing below for environments without Intl.Locale support.
+  }
+
+  const match = locale.match(/[-_](\w{2})(?:[-_]|$)/);
+  if (!match?.[1]) return null;
+
+  const candidate = match[1].toUpperCase();
+  return /^[A-Z]{2}$/.test(candidate) ? candidate : null;
+};
+
+/**
+ * Detects country code from browser locale settings.
+ */
+const detectCountryCodeFromBrowser = (): string | null => {
+  const locales = [
+    ...(navigator.languages || []),
+    navigator.language,
+    Intl.DateTimeFormat().resolvedOptions().locale,
+  ].filter(Boolean);
+
+  for (const locale of locales) {
+    const code = extractRegionFromLocale(String(locale));
+    if (code) {
+      return code;
+    }
+  }
+
+  return null;
 };
 
 /**
@@ -49,7 +92,7 @@ export const useCountryStore = create<CountryStore>()(
       },
 
       /**
-       * Detect country via Browser Geolocation API.
+       * Detect country via browser locale metadata.
        * Only runs if not already detected or manually overridden.
        */
       detectCountry: async () => {
@@ -62,76 +105,18 @@ export const useCountryStore = create<CountryStore>()(
 
         set({ isLoading: true });
 
-        if (!("geolocation" in navigator)) {
-          console.warn("Geolocation not supported. Falling back.");
-          set({
-            countryCode: "EU",
-            currency: "EUR",
-            isDetected: true,
-            isManualOverride: false,
-            isLoading: false,
-          });
-          return;
-        }
+        const detectedCode = detectCountryCodeFromBrowser();
+        const normalizedCode = detectedCode || "EU";
+        const currency: SupportedCurrency =
+          getCurrencyForCountry(normalizedCode);
 
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            try {
-              const { latitude, longitude } = position.coords;
-
-              const response = await fetch(
-                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
-              );
-              const data = await response.json();
-
-              if (data && data.countryCode) {
-                const normalizedCode = data.countryCode.toUpperCase();
-                const currency: SupportedCurrency =
-                  getCurrencyForCountry(normalizedCode);
-
-                set({
-                  countryCode: normalizedCode,
-                  currency,
-                  isDetected: true,
-                  isManualOverride: false,
-                  isLoading: false,
-                });
-              } else {
-                console.warn(
-                  "Reverse geocoding failed (no country code). Data:",
-                  data,
-                );
-                set({
-                  countryCode: "EU",
-                  currency: "EUR",
-                  isDetected: true,
-                  isManualOverride: false,
-                  isLoading: false,
-                });
-              }
-            } catch (error) {
-              console.error("Reverse geocoding error:", error);
-              set({
-                countryCode: "EU",
-                currency: "EUR",
-                isDetected: true,
-                isManualOverride: false,
-                isLoading: false,
-              });
-            }
-          },
-          (error) => {
-            console.warn("Browser Geolocation denied/error:", error.message);
-            set({
-              countryCode: "EU",
-              currency: "EUR",
-              isDetected: true,
-              isManualOverride: false,
-              isLoading: false,
-            });
-          },
-          { timeout: 5000 },
-        );
+        set({
+          countryCode: normalizedCode,
+          currency,
+          isDetected: true,
+          isManualOverride: false,
+          isLoading: false,
+        });
       },
 
       /**

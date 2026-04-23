@@ -22,6 +22,19 @@ export const getShippingEstimate = async (payload: ShippingEstimatePayload) => {
 };
 
 /**
+ * Gets quote rates for the marketing shipping estimate flow.
+ * @param payload - Pickup, dropoff, and package details.
+ * @returns List of available quote rates.
+ */
+export const getShippingQuote = async (payload: ShippingEstimatePayload) => {
+  const response = await apiClient.post(
+    "/shipments/get-shipping-quote",
+    payload,
+  );
+  return response.data;
+};
+
+/**
  * Retrieves details for a specific shipment.
  * @param id - Shipment ID.
  */

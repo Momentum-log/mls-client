@@ -39,6 +39,28 @@ export const hasCompleteAddress = (user: User | null): boolean => {
 };
 
 /**
+ * Checks if a user's address is approved for shipment creation.
+ */
+export const hasApprovedAddress = (user: User | null): boolean => {
+  if (!user) return false;
+
+  const status = user.addressRequestStatus;
+  const hasVerifiedTimestamp = Boolean(user.addressVerifiedAt);
+
+  // Prefer explicit backend approval metadata when available.
+  if (status) {
+    return status === "APPROVED";
+  }
+
+  if (hasVerifiedTimestamp) {
+    return true;
+  }
+
+  // Backward-compatible fallback for users without new metadata.
+  return hasCompleteAddress(user);
+};
+
+/**
  * Gets the complete verification status of a user.
  *
  * @param user - The user object to check
@@ -48,7 +70,7 @@ export const getVerificationStatus = (
   user: User | null,
 ): VerificationStatus => {
   const emailVerified = isEmailVerified(user);
-  const addressComplete = hasCompleteAddress(user);
+  const addressComplete = hasApprovedAddress(user);
 
   return {
     emailVerified,

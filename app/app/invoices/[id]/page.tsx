@@ -16,7 +16,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 // import { PdfGenerationStatus } from "@/types/invoice";
 import { InvoiceReceiptView } from "@/components/invoice/InvoiceReceiptView";
@@ -26,6 +26,7 @@ import { FiArrowLeft, FiRefreshCw, FiTruck } from "react-icons/fi";
 import Button from "@/components/ui/button";
 import { useGetInvoice } from "@/hooks/invoices/use-invoices-api";
 import { FaCircleInfo } from "react-icons/fa6";
+import { useAuthStore } from "@/store/auth-store";
 
 /**
  * InvoiceDetailPage Component
@@ -37,6 +38,7 @@ export default function InvoiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addToast } = useToast();
+  const { user } = useAuthStore();
   const invoiceId = params?.id as string;
 
   // Fetch invoice using React Query hook
@@ -50,6 +52,21 @@ export default function InvoiceDetailPage() {
   // Extract invoice and shipment from response
   const invoice = invoiceResponse?.data?.details;
   const shipment = invoiceResponse?.data?.shipment;
+
+  const pickupLabel = shipment
+    ? [shipment.pickupAddress?.streetLines?.[0], shipment.pickupAddress?.city]
+        .filter(Boolean)
+        .join(", ")
+    : "";
+  const dropoffLabel = shipment
+    ? [shipment.dropoffAddress?.streetLines?.[0], shipment.dropoffAddress?.city]
+        .filter(Boolean)
+        .join(", ")
+    : "";
+  const serviceDescription = shipment
+    ? `MLS Logistics from ${pickupLabel || "pickup"} to ${dropoffLabel || "destination"}`
+    : "Logistics";
+  const itemQuantity = shipment?.customs?.categoryOfItem?.length || 1;
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
 
@@ -178,6 +195,10 @@ export default function InvoiceDetailPage() {
         // pdfGenerationStatus={pdfGenerationStatus}
         // pdfDownloadUrl={pdfDownloadUrl as string | null}
         shipmentId={shipment?.id}
+        recipientName={user?.name}
+        recipientAddress={user?.address ?? null}
+        itemQuantity={itemQuantity}
+        serviceDescription={serviceDescription}
       />
 
       {/* Update Shipment Modal */}

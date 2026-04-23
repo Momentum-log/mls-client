@@ -25,7 +25,6 @@ import {
 import { InvoiceStatusBadge } from "@/components/invoice/InvoiceStatusBadge";
 import { ExpirationCountdown } from "@/components/invoice/ExpirationCountdown";
 import {
-  formatAmount,
   formatInvoiceDate,
   formatTaxRate,
   buildAddressString,
@@ -33,6 +32,7 @@ import {
   canPayInvoice,
   isInvoicePaid,
 } from "@/utils/invoice-helpers";
+import { formatCurrency } from "@/utils/currency-formatter";
 import { toDisplayCarrierName } from "@/utils/carrier-branding";
 import { useToast } from "@/hooks/use-toast";
 import Button from "@/components/ui/button";
@@ -145,15 +145,26 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   const sellerPostalCode = getString("sellerPostalCode");
   const sellerNIP = getString("sellerNIP");
 
-  const buyerName = recipientName || getString("buyerName");
+  const currency = getString("currency", "PLN");
+  const normalizedCurrency = currency === "EUR" ? "EUR" : "PLN";
+
+  const buyerName =
+    recipientName ||
+    getString("buyerName") ||
+    getString("customerName") ||
+    "Customer";
   const buyerStreet = recipientAddress?.street || getString("buyerStreet");
-  const buyerBuildingNumber =
-    recipientAddress?.buildingNumber || getString("buyerBuildingNumber");
   const buyerCity = recipientAddress?.city || getString("buyerCity");
   const buyerPostalCode =
-    recipientAddress?.postalCode || getString("buyerPostalCode");
-  const buyerApartmentNumber =
-    recipientAddress?.apartmentNumber || getString("buyerApartmentNumber");
+    recipientAddress?.postalCode ||
+    recipientAddress?.zip ||
+    getString("buyerPostalCode");
+  const buyerCountry =
+    recipientAddress?.country || getString("buyerCountryCode");
+
+  const buyerAddress = [buyerStreet, buyerCity, buyerPostalCode, buyerCountry]
+    .filter(Boolean)
+    .join(", ");
 
   const totalNetAmount =
     getNumberish(rawInvoice.totalNetAmount) ||
@@ -173,11 +184,30 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
     getNumberish(rawBreakdown?.totalAmount) ||
     getNumberish(rawBreakdown?.total) ||
     totalNetAmount + totalVATAmount;
-
-  const currency = getString("currency", "PLN");
   const lineItems = Array.isArray(rawInvoice.lineItems)
     ? (rawInvoice.lineItems as InvoiceLineItem[])
     : [];
+  const displayLineItems =
+    lineItems.length > 0
+      ? lineItems
+      : [
+          {
+            lineItemId: invoiceId || "fallback-line-item",
+            invoiceId,
+            lineNumber: 1,
+            serviceName: "Logistics",
+            unitOfMeasure: "shipment",
+            quantity: Math.max(1, itemQuantity || 1),
+            unitNetPrice: totalNetAmount / Math.max(1, itemQuantity || 1),
+            netValue: totalNetAmount,
+            taxRate: totalVATAmount > 0 ? 23 : 0,
+            vatAmount: totalVATAmount,
+            grossValue: totalGrossAmount,
+            gtuCode: "GTU_13",
+            shipmentOriginCountry: getString("sellerCountryCode", "PL"),
+            createdAt: createdAt || new Date().toISOString(),
+          },
+        ];
 
   const paymentLinks = Array.isArray(rawInvoice.paymentLinks)
     ? (rawInvoice.paymentLinks as InvoicePaymentLink[])
@@ -302,18 +332,11 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
               <p className="font-bold text-gray-900 text-sm mb-2">
                 {buyerName || "Customer"}
               </p>
-              {buyerStreet && (
+              {buyerAddress ? (
                 <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                  {buildAddressString(
-                    buyerStreet,
-                    buyerBuildingNumber,
-                    buyerCity,
-                    buyerPostalCode,
-                    buyerApartmentNumber,
-                  )}
+                  {buyerAddress}
                 </p>
-              )}
-              {!buyerStreet && (
+              ) : (
                 <p className="text-sm text-gray-400 italic">
                   Address not provided
                 </p>
@@ -338,7 +361,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
           </div>
 
           {/* Line Items */}
-          {(lineItems ?? []).map((item, index: number) => (
+          {displayLineItems.map((item, index: number) => (
             <div
               key={item.lineItemId || index}
               className="grid grid-cols-1 md:grid-cols-12 gap-2 py-5 border-b border-gray-50 last:border-0"
@@ -346,11 +369,14 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
               {/* Mobile: stacked */}
               <div className="col-span-5">
                 <p className="font-bold text-gray-900 text-sm">
+                  {item.serviceName || "Logistics"}
+                </p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
                   {serviceDescription || toDisplayCarrierName(item.serviceName)}
                 </p>
                 <p className="text-[10px] text-gray-400 font-medium md:hidden">
                   {itemQuantity || item.quantity} ×{" "}
-                  {formatAmount(item.unitNetPrice, false)} • VAT{" "}
+                  {formatCurrency(item.unitNetPrice, normalizedCurrency)} • VAT{" "}
                   {formatTaxRate(item.taxRate)}
                 </p>
               </div>
@@ -358,13 +384,13 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
                 {itemQuantity || item.quantity}
               </div>
               <div className="hidden md:block col-span-2 text-right text-sm text-gray-700 font-mono font-semibold">
-                {formatAmount(item.unitNetPrice, false)}
+                {formatCurrency(item.unitNetPrice, normalizedCurrency)}
               </div>
               <div className="hidden md:block col-span-1 text-center text-xs text-gray-500 font-medium">
                 {formatTaxRate(item.taxRate || 0)}
               </div>
               <div className="col-span-3 text-right font-bold text-gray-900 text-sm font-mono">
-                {formatAmount(item.grossValue, false)}
+                {formatCurrency(item.grossValue, normalizedCurrency)}
               </div>
             </div>
           ))}
@@ -376,7 +402,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
             <div className="flex justify-between text-sm">
               <span className="text-gray-600 font-semibold">Net Amount</span>
               <span className="text-gray-800 font-mono font-semibold">
-                {formatAmount(totalNetAmount ?? 0, false)}
+                {formatCurrency(totalNetAmount ?? 0, normalizedCurrency)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
@@ -384,7 +410,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
                 VAT ({(totalVATAmount ?? 0) > 0 ? "23%" : "0%"})
               </span>
               <span className="text-gray-800 font-mono font-semibold">
-                {formatAmount(totalVATAmount ?? 0, false)}
+                {formatCurrency(totalVATAmount ?? 0, normalizedCurrency)}
               </span>
             </div>
             <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-baseline">
@@ -393,10 +419,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-gray-900 font-mono">
-                  {formatAmount(totalGrossAmount ?? 0, false)}
-                </span>
-                <span className="text-xs font-bold text-gray-500 uppercase">
-                  {currency ?? "PLN"}
+                  {formatCurrency(totalGrossAmount ?? 0, normalizedCurrency)}
                 </span>
               </div>
             </div>
