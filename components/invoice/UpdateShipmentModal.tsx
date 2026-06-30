@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiTruck, FiCreditCard, FiCheck, FiLoader } from "react-icons/fi";
 import { CreateShipmentResponse, Invoice } from "@/types/invoice";
 import { CustomsData, Rate } from "@/types/shipping";
-import { useCountryStore } from "@/store/country-store";
+import useUserCountryCode from "@/hooks/use-user-country-code";
 import {
   useGetShippingEstimate,
   useCreateShipment,
@@ -119,7 +119,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
   invoiceId,
   onUpdateSuccess,
 }) => {
-  const { countryCode } = useCountryStore();
+  const { countryCode } = useUserCountryCode();
   const { addToast } = useToast();
 
   const [rates, setRates] = useState<Rate[]>([]);

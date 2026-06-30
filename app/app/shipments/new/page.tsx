@@ -29,7 +29,7 @@ import {
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, CustomsData, ShipmentMutationPayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
-import { useCountryStore } from "@/store/country-store";
+// import { useCountryStore } from "@/store/country-store";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
 import { deepTransformData } from "@/utils/data-transform";
 
@@ -37,6 +37,7 @@ import { useLocationPermission } from "@/hooks/use-location-permission";
 import { LocationPermissionOverlay } from "@/components/ui/location-permission-overlay";
 import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
 import { useVerification } from "@/hooks/shipments/useVerification";
+import useUserCountryCode from "@/hooks/use-user-country-code";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -47,6 +48,9 @@ const HEAVY_SHIPMENT_THRESHOLD = 70;
  */
 export default function NewShipmentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invoiceId = searchParams?.get("invoiceId") || undefined;
+
   const {
     completedSteps,
     expandedSection,
@@ -71,7 +75,7 @@ export default function NewShipmentPage() {
     recipient?.country &&
     sender.country !== recipient.country;
 
-  const { countryCode } = useCountryStore();
+  const { countryCode } = useUserCountryCode();
   const activeCurrency = countryCode === "PL" ? "PLN" : "EUR";
 
   const [rates, setRates] = useState<Rate[]>([]);
@@ -131,7 +135,6 @@ export default function NewShipmentPage() {
   // 2. If we arrive cleanly (reload, nav), we RESET the store.
   // 3. We remove duplication flag immediately so reload works as expected.
   // 4. We do NOT use cleanup on unmount because Strict Mode triggers it prematurely.
-  const searchParams = useSearchParams();
   const source = searchParams.get("source");
   const verificationRequiredParam =
     searchParams.get("verificationRequired") === "1";
@@ -165,6 +168,7 @@ export default function NewShipmentPage() {
   };
 
   useEffect(() => {
+    lastFetchedEstimateSignatureRef.current = null;
     if (source === "duplicate") {
       // Preservation Mode: Don't reset. Just clean the URL.
       router.replace("/app/shipments/new");
@@ -259,6 +263,7 @@ export default function NewShipmentPage() {
     countryCode,
     customs,
     addToast,
+    isInternational,
   ]);
 
   const steps: TimelineStep[] = useMemo(() => {
@@ -371,6 +376,7 @@ export default function NewShipmentPage() {
     addPackage(pkg);
     markSectionCompleted("package");
     setRates([]); // Clear previous rates to trigger re-fetch in useEffect
+    lastFetchedEstimateSignatureRef.current = null; // Reset estimate signature to force a re-fetch when transitioning to service selection
 
     const nextSection = isInternational ? "customs" : "service";
     setExpandedSection(nextSection);
@@ -389,6 +395,7 @@ export default function NewShipmentPage() {
     setCustoms(data);
     markSectionCompleted("customs");
     setRates([]); // Clear previous rates
+    lastFetchedEstimateSignatureRef.current = null; // Reset estimate signature to force a re-fetch when transitioning to service selection
     setExpandedSection("service");
 
     addToast({
@@ -476,8 +483,9 @@ export default function NewShipmentPage() {
       },
       rate: selectedRate,
       customs: customs ?? undefined,
-      userCountryCode: countryCode,
+      userCountryCode: sender.country,
       preferredPaymentOption: paymentMethod,
+      invoiceId: invoiceId,
     };
 
     performCreateShipment(payload, {

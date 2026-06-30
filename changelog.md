@@ -5,6 +5,137 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### [version code: 1.44.2] - 2026-06-13 - Reinstall corrupted Babel types dependency
+- Fixed: Resolved compilation error where Babel could not find the internal `createTypeAnnotationBasedOnTypeof.js` module by reinstalling `@babel/types`.
+
+### [version code: 1.44.1] - 2026-05-28 - Fix skipping rate estimation on domestic shipment creation
+- Fixed: Resolved the issue where transitioning straight to the Service Selection step (e.g., in domestic/local shipments where the Customs step is bypassed) failed to trigger the rate estimation API request.
+    - Reset the `lastFetchedEstimateSignatureRef.current` rate-estimation signature to `null` whenever rates are cleared (on component mount, inside `handlePackageSubmit`, and inside `handleCustomsSubmit`).
+    - This forces a fresh estimation API request when entering the Service Selection step, preventing the empty "No services available" screen on domestic shipments.
+
+### [version code: 1.44.0] - 2026-05-28 - Finalized Address-Based Country Override Integration
+- Added: Feature flags utility `utils/feature-flags.ts` for managing feature toggles via environment variables (`ENABLED`, `AUTO`, `DISABLED`).
+- Added: Address country helper `utils/address-country-helper.ts` implementing `getUserCountryCode` resolution with session-persistent diagnostic logs and custom `MissingAddressError`.
+- Added: Debug utilities `utils/address-help.ts` (`runAddressHelp()`) and `utils/auth-debug.ts` (`debugAuthStore()` and `validateUserAddressComplete()`).
+- Changed: React hook `hooks/use-user-country-code.ts` to consume the feature flags and address override resolution logic with browser and default fallbacks.
+- Changed: `components/invoice/UpdateShipmentModal.tsx` to utilize `useUserCountryCode` so invoice updates and fresh rate calculations respect the override.
+- Fixed: Resolved TypeScript duplication and type checks in `app/app/shipments/new/page.tsx` and related components.
+
+## [1.44.0] - 2026-05-26 - Shipment Creation API Payload Fixes
+
+- **Added:** Comprehensive PRD for Address-Based Country Override feature
+  - `docs/prd/prd-address-country-override.md` - Complete feature specification
+  - Defines three modes: DISABLED (default), ENABLED (strict), AUTO (recommended)
+  - Documents country resolution logic and user journey
+  - Includes test scenarios and rollout plan
+  - Related to payload fixes below
+
+- **Fixed:** userCountryCode now uses pickup address country instead of global user setting
+  - Changed from `countryCode` (global user country) to `sender.country` (shipment pickup country)
+  - Ensures correct currency/locale determination for shipments
+  - Example: Domestic Poland shipments now correctly use PL instead of US
+
+- **Fixed:** Missing invoiceId in create-shipment payload for invoice updates
+  - Added `useSearchParams` hook to extract `invoiceId` from URL params
+  - invoiceId is now included in payload when updating existing invoice
+  - Enables proper invoice updates without creating duplicates
+  - Example: `/app/shipments/new?invoiceId=inv-123` now includes invoiceId in payload
+
+- **Added:** Supporting PRD document for shipment creation fixes
+  - `docs/prd/prd-shipment-creation-fixes.md` - API payload specification
+  - Documents both userCountryCode and invoiceId fixes
+  - Includes before/after payload examples
+  - Provides test scenarios and rollout plan
+
+- **Changed:** `app/app/shipments/new/page.tsx` improvements
+  - Extract `invoiceId` from search params early in component
+  - Pass `invoiceId` to `ShipmentMutationPayload` when available
+  - Use pickup address country for userCountryCode instead of global setting
+
+
+
+- **Added:** New utility files for address-based country override feature
+  - `utils/feature-flags.ts` - Centralized feature flag management for `USE_ADDRESS_COUNTRY` environment variable
+  - `utils/address-country-helper.ts` - Country code resolution logic with comprehensive logging and recovery
+  - `hooks/use-user-country-code.ts` - React hook to get country code (user's address or fallback to default)
+  - `docs/address-based-country.md` - Feature documentation and configuration guide
+
+- **Fixed:** Shipping estimate form missing required backend validation fields
+  - Added Contact information fields (personName, phoneNumber, email) to pickup and dropoff addresses
+  - Added State/Province code field to address validation schema
+  - Form now pre-populates contact info from user profile (name, phone, email)
+  - Form pre-fills pickup address country from `user.address.country`
+
+- **Changed:** Shipping estimate form now uses wrapped API function
+  - Replaced direct `apiClient.post("/shipping/estimate")` with wrapped `getShippingEstimate()`
+  - Ensures proper address country override logic is applied
+  - Improves error handling with backend validation details
+
+- **Changed:** Updated shipment creation flow to use address country override
+  - Modified `app/app/shipments/new/page.tsx` to use new `useUserCountryCode()` hook
+  - Replaced deprecated `useCountryStore()` with feature-flag-aware hook
+  - Currency selection now based on user's verified address country when feature enabled
+
+- **Added:** Comprehensive fix documentation
+  - `docs/SHIPPING_ESTIMATE_FIX.md` - Complete troubleshooting guide with debugging steps and common errors
+
+- **Removed:** Debug file cleanup
+  - Deleted `type-check-full.txt`
+
+## [1.43.1] - 2026-05-10 - Address Debugging & Recovery Tools
+
+- Added: **Comprehensive Address Debugging Tools**
+  - Auth store debug utilities for inspection and validation
+  - Address validation hooks and components for forms
+  - Auth recovery mechanism to restore lost address data
+  - Enhanced logging with session storage persistence
+
+- Added: **Auth Debug Utilities** (`utils/auth-debug.ts`)
+  - `debugAuthStore()` - Full diagnostic report with auth state, user info, address details
+  - `getAuthStoreDebugInfo()` - Structured debug information object
+  - `validateUserAddressComplete()` - Address completeness validation
+  - `canProceedWithAddressOperation()` - Boolean validation check
+  - `getUserAddressOrThrow()` - Safe address retrieval with error handling
+
+- Added: **Auth Recovery System** (`utils/auth-recovery.ts`)
+  - `fixMissingAddress()` - Auto-recover from backups and restore to store
+  - `recoverMissingAddressFromBackup()` - Search localStorage for backup data
+  - `backupUserAddressData()` - Create backup of user address
+  - `validateAuthStoreConsistency()` - Detect sync issues
+  - `printAuthStoreHealth()` - Formatted health report
+
+- Added: **Address Validation Hook** (`hooks/shipments/useAddressValidation.ts`)
+  - Comprehensive address validation with error types and action suggestions
+  - Pre-flight checks before shipment operations
+  - Integration with auth recovery system
+
+- Added: **Address Validation UI Component** (`components/shipment/AddressValidationStatus.tsx`)
+  - Status display with validation feedback
+  - Three variants: full, compact, and debug
+  - Integration with useAddressValidation hook
+
+- Added: **Auth Store Enhancement** (`store/auth-store.ts`)
+  - `ensureAddress()` action to restore lost address data
+  - Prevents data loss during store updates
+
+- Added: **Comprehensive Documentation** (5 files)
+  - `docs/QUICK_START_ADDRESS_ERROR.md` - 30-second quick fix
+  - `docs/DEBUG_ADDRESS_NOT_FOUND.md` - Step-by-step troubleshooting
+  - `docs/DEBUGGING_TOOLS_REFERENCE.md` - Complete tool documentation
+  - `docs/IMPLEMENTATION_SUMMARY_ADDRESS_DEBUG.md` - Technical overview
+  - `docs/ADDRESS_DEBUG_TOOLS_INDEX.md` - Quick reference index
+
+- Added: **Address Resolution Logging** (enhanced `utils/address-country-helper.ts`)
+  - `logAddressResolution()` - Session-persistent logging
+  - `printAddressResolutionLogs()` - Formatted log display
+  - `getAddressResolutionDebugLogs()` - JSON export of logs
+  - `clearAddressResolutionDebugLogs()` - Clear logs
+
+- Changed: **One-Stop Diagnosis Utility** (`utils/address-help.ts`)
+  - `runAddressHelp()` - 6-step complete diagnostic
+  - Global window exposure: `window.__mlsAddressHelp` (dev only)
+  - Runs all debug tools and provides recommended actions
+
 ## [1.42.3] - 2026-04-23 - Dashboard Currency Display
 
 - Fixed: **Dashboard Currency Display** (`app/app/dashboard/page.tsx`)
