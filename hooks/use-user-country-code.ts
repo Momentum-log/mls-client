@@ -1,4 +1,3 @@
-import { useAuth } from "./useAuth";
 import { useCountryStore } from "@/store/country-store";
 import { getUserCountryCode } from "@/utils/address-country-helper";
 
@@ -6,26 +5,20 @@ import { getUserCountryCode } from "@/utils/address-country-helper";
  * Hook to get the appropriate country code for the current user.
  *
  * Integrates:
- * - User's verified address country (if feature enabled & address exists)
  * - Fallback to browser-detected country from useCountryStore
+ * - Fallback to pickup country code (passed as parameter) if browser country is not detected
  * - Default fallback to "US" if browser country is not detected
- * - Centralized feature flags & logging
  *
+ * @param {string} [fallbackCountryCode] - Optional fallback country code (e.g. pickup country)
  * @returns { countryCode: string }
  */
-const useUserCountryCode = () => {
-  const { user } = useAuth();
+const useUserCountryCode = (fallbackCountryCode?: string) => {
   const { countryCode: browserCountryCode } = useCountryStore();
 
-  let resolvedCountryCode = "US";
-
-  try {
-    resolvedCountryCode = getUserCountryCode(user, browserCountryCode || "US");
-  } catch {
-    // If strict mode throws MissingAddressError, return "US" (default fallback)
-    // Pages/modals will trigger their own blocking pre-flight checks if required.
-    resolvedCountryCode = "US";
-  }
+  const resolvedCountryCode = getUserCountryCode(
+    browserCountryCode || "US",
+    fallbackCountryCode,
+  );
 
   return { countryCode: resolvedCountryCode };
 };

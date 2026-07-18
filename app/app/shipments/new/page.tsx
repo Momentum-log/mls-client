@@ -75,14 +75,12 @@ export default function NewShipmentPage() {
     recipient?.country &&
     sender.country !== recipient.country;
 
-  const { countryCode } = useUserCountryCode();
+  const { countryCode } = useUserCountryCode(sender?.country);
   const activeCurrency = countryCode === "PL" ? "PLN" : "EUR";
 
   const [rates, setRates] = useState<Rate[]>([]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
-    useState(false);
-  const [isAddressRequiredModalOpen, setIsAddressRequiredModalOpen] =
     useState(false);
   const { addToast } = useToast();
 
@@ -146,25 +144,12 @@ export default function NewShipmentPage() {
     guardParam === "email" ||
     guardParam === "both";
 
-  const requiresAddressUpdate =
-    error?.type === "ADDRESS_INCOMPLETE" ||
-    error?.type === "BOTH" ||
-    guardParam === "address" ||
-    guardParam === "both";
-
   const shouldShowVerificationModal =
     isVerificationRequired ||
-    verificationRequiredParam ||
-    isAddressRequiredModalOpen;
+    verificationRequiredParam;
 
   const handleVerifyEmail = () => {
     router.push("/app/account?openVerifyEmail=1&next=/app/shipments/new");
-  };
-
-  const handleUpdateAddress = () => {
-    router.push(
-      "/app/account?openAddressVerification=1&next=/app/shipments/new",
-    );
   };
 
   useEffect(() => {
@@ -483,7 +468,7 @@ export default function NewShipmentPage() {
       },
       rate: selectedRate,
       customs: customs ?? undefined,
-      userCountryCode: sender.country,
+      userCountryCode: countryCode,
       preferredPaymentOption: paymentMethod,
       invoiceId: invoiceId,
     };
@@ -542,9 +527,7 @@ export default function NewShipmentPage() {
           }
         }
 
-        if (isAddressRequired) {
-          setIsAddressRequiredModalOpen(true);
-        }
+
 
         addToast({
           title: "Creation Failed",
@@ -575,16 +558,8 @@ export default function NewShipmentPage() {
       <AccountVerificationModal
         isOpen={shouldShowVerificationModal}
         requiresEmailVerification={requiresEmailVerification}
-        requiresAddressUpdate={
-          requiresAddressUpdate || isAddressRequiredModalOpen
-        }
+        requiresAddressUpdate={false}
         onVerifyEmail={handleVerifyEmail}
-        onUpdateAddress={handleUpdateAddress}
-        message={
-          isAddressRequiredModalOpen
-            ? "An approved address is required before you can create a shipment. Submit an address update request with proof to continue."
-            : undefined
-        }
       />
 
       <div

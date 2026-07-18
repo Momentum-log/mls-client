@@ -119,7 +119,13 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
   invoiceId,
   onUpdateSuccess,
 }) => {
-  const { countryCode } = useUserCountryCode();
+  const pickupCountry = shipment
+    ? (shipment.pickupAddress?.countryCode ||
+       shipment.pickupAddress?.country ||
+       shipment.sender?.countryCode ||
+       shipment.sender?.country)
+    : undefined;
+  const { countryCode } = useUserCountryCode(pickupCountry);
   const { addToast } = useToast();
 
   const [rates, setRates] = useState<Rate[]>([]);

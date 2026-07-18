@@ -4,10 +4,7 @@
  * @module utils/address-country-helper
  */
 
-import { User } from "@/types/auth";
-import {
-  getUseAddressCountryMode,
-} from "./feature-flags";
+
 
 /**
  * Error thrown when strict ENABLED mode is active but the user has no verified address.
@@ -114,85 +111,35 @@ export function printAddressResolutionLogs(): void {
   }
 }
 
-/**
- * Resolves the country code for an operation based on active USE_ADDRESS_COUNTRY mode,
- * user profile, and browser fallback.
- *
- * @param user - Authenticated user object or null
- * @param browserCountryCode - Fallback country code detected from browser/session
- * @returns The resolved country code (e.g., 'PL', 'US')
- * @throws MissingAddressError if in strict ENABLED mode and user has no approved/verified address
- */
 export function getUserCountryCode(
-  user: User | null,
-  browserCountryCode: string
+  browserCountryCode: string,
+  fallbackCountryCode?: string
 ): string {
-  const mode = getUseAddressCountryMode();
-  const userId = user?.id;
-  const addressCountry = user?.address?.country;
-  // User verified check: in some systems verification depends on status or approved verified fields
-  const hasApprovedAddress = user?.addressRequestStatus === "APPROVED" || !!user?.addressVerifiedAt || !!addressCountry;
-
-  let resolvedCountry = browserCountryCode;
-  let logLevel: AddressResolutionLog["level"] = "info";
-  let message = "";
-
-  try {
-    if (mode === "DISABLED") {
-      resolvedCountry = browserCountryCode;
-      message = "Address override disabled. Using browser country.";
-    } else if (mode === "ENABLED") {
-      if (!addressCountry || !hasApprovedAddress) {
-        logLevel = "error";
-        message = "Strict mode enabled but user has no verified address. Throwing MissingAddressError.";
-        logResolution(logLevel, message, {
-          userId,
-          mode,
-          addressCountry,
-          browserCountry: browserCountryCode,
-          resolvedCountry: "",
-        });
-        throw new MissingAddressError("Address verification required");
-      }
-      resolvedCountry = addressCountry;
-      message = "Strict mode enabled. Using verified address country.";
-    } else if (mode === "AUTO") {
-      if (addressCountry && hasApprovedAddress) {
-        resolvedCountry = addressCountry;
-        message = "Auto mode enabled. Using verified address country.";
-      } else {
-        resolvedCountry = browserCountryCode;
-        logLevel = "warn";
-        message = "Auto mode enabled but no verified address found. Falling back to browser country.";
-      }
-    } else {
-      // Fallback for unexpected modes
-      resolvedCountry = browserCountryCode;
-      logLevel = "warn";
-      message = `Unknown mode '${mode}'. Falling back to browser country.`;
-    }
-
-    logResolution(logLevel, message, {
-      userId,
-      mode,
-      addressCountry,
-      browserCountry: browserCountryCode,
-      resolvedCountry,
-    });
-
-    return resolvedCountry;
-  } catch (error) {
-    if (error instanceof MissingAddressError) {
-      throw error;
-    }
-    // Fallback resolve
-    logResolution("error", `Unexpected resolution error: ${(error as Error).message}. Falling back to browser country.`, {
-      userId,
-      mode,
-      addressCountry,
+  // Use browser country code if available and valid (not empty and not "EU")
+  if (browserCountryCode && browserCountryCode !== "EU") {
+    logResolution("info", "Using browser country code.", {
+      mode: "BROWSER",
       browserCountry: browserCountryCode,
       resolvedCountry: browserCountryCode,
     });
     return browserCountryCode;
   }
+
+  // Fallback to pickup/sender country code if browser detection is not allowed or not available
+  if (fallbackCountryCode) {
+    logResolution("info", "Browser country not available. Using fallback/pickup country code.", {
+      mode: "FALLBACK",
+      browserCountry: browserCountryCode || "",
+      resolvedCountry: fallbackCountryCode,
+    });
+    return fallbackCountryCode;
+  }
+
+  // Final fallback to US
+  logResolution("warn", "Neither browser nor fallback country available. Defaulting to US.", {
+    mode: "DEFAULT",
+    browserCountry: browserCountryCode || "",
+    resolvedCountry: "US",
+  });
+  return "US";
 }

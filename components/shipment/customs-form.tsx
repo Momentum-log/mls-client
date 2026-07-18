@@ -244,7 +244,8 @@ export default function CustomsForm({
         isOpen={showVerificationModal}
         onClose={() => setShowVerificationModal(false)}
         onVerify={handleVerifyAccount}
-        message="To create a shipment, please verify your email address and complete your shipping address."
+        requiresAddressUpdate={false}
+        requiresEmailVerification={true}
       />
 
       {/* Form Container - Disabled when verification is required */}

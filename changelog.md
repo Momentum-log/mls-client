@@ -5,15 +5,57 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [version code: 1.44.2] - 2026-06-13 - Reinstall corrupted Babel types dependency
+## [1.44.8] - 2026-07-18 - Improve Payment Verification Error Parsing
+- Changed: **Payment Verification Page** (`app/app/shipments/new/verify/page.tsx`)
+  - Enhanced error parsing in `handleVerify` catch block to extract `"details"` or `"error"` properties from backend response bodies.
+
+## [1.44.7] - 2026-07-18 - Support PayU Payment Verification Redirect
+- Changed: **Payment Verification Endpoint helper** (`api/payments/index.ts`)
+  - Updated `verifyPayment` to accept and forward the full query string rather than just a Stripe `session_id`.
+- Changed: **Payment Verification Page** (`app/app/shipments/new/verify/page.tsx`)
+  - Parse and support query parameters for both Stripe (`session_id`) and PayU (`gateway`, `shipment_id`, `order_id`).
+  - Pass the entire query string to the payment verification endpoint to support both gateways.
+  - Refactored component state logic and fixed various linter warnings/errors (unused vars, explicit `any` types, missing useEffect hook dependencies, and unescaped quotes).
+
+## [1.44.6] - 2026-07-18 - Resolve userCountryCode Inconsistency
+- Changed: **New Shipment Page** (`app/app/shipments/new/page.tsx`)
+  - Pass `sender?.country` as the fallback/pickup country parameter to `useUserCountryCode`.
+  - Consistently use resolved `countryCode` in the `handleFinalize` mutation payload instead of hardcoding `sender.country`.
+- Changed: **Update Shipment Modal** (`components/invoice/UpdateShipmentModal.tsx`)
+  - Pass resolved shipment pickup country code to `useUserCountryCode`.
+- Changed: **User Country Code Hook & Helper** (`hooks/use-user-country-code.ts` and `utils/address-country-helper.ts`)
+  - Accept `fallbackCountryCode` in the hook and helper.
+  - Removed all user address checks and MissingAddressError exceptions since user address is decoupled.
+  - Fall back to the pickup/sender country code if browser country detection is not allowed or not available.
+
+## [1.44.5] - 2026-07-17 - Remove Address Verification from Shipment Creation Guard
+- Changed: **Middleware Proxy** (`proxy.ts`)
+  - Updated `getShipmentGuardState` to only check email verification.
+  - Allowed bypass/non-blocked state on backend fetch failures to prevent lockouts.
+- Changed: **Customs Form** (`components/shipment/customs-form.tsx`)
+  - Updated `AccountVerificationModal` instantiation to set `requiresAddressUpdate={false}`.
+  - Removed the hardcoded address verification message.
+
+## [1.44.4] - 2026-07-16 - Nuke Address Verification Requirement
+- Changed: **Verification Helpers** (`utils/verification-helpers.ts`)
+  - Updated `hasApprovedAddress` to always return `true`.
+  - Simplified `getVerificationStatus` and `getVerificationError` to check only email verification.
+- Changed: **Account Page** (`app/app/account/page.tsx`)
+  - Removed `AddressVerificationBanner` and the Address Verification section card containing `AddressVerificationSection`.
+- Changed: **Shipment Creation page** (`app/app/shipments/new/page.tsx`)
+  - Removed `isAddressRequiredModalOpen` state and related address block checking, keeping only email verification.
+- Changed: **Middleware Proxy** (`proxy.ts`)
+  - Removed address completeness checking (`hasCompleteAddress`) from the shipment creation page guard flow.
+
+## [1.44.3] - 2026-06-13 - Reinstall corrupted Babel types dependency
 - Fixed: Resolved compilation error where Babel could not find the internal `createTypeAnnotationBasedOnTypeof.js` module by reinstalling `@babel/types`.
 
-### [version code: 1.44.1] - 2026-05-28 - Fix skipping rate estimation on domestic shipment creation
+## [1.44.2] - 2026-05-28 - Fix skipping rate estimation on domestic shipment creation
 - Fixed: Resolved the issue where transitioning straight to the Service Selection step (e.g., in domestic/local shipments where the Customs step is bypassed) failed to trigger the rate estimation API request.
     - Reset the `lastFetchedEstimateSignatureRef.current` rate-estimation signature to `null` whenever rates are cleared (on component mount, inside `handlePackageSubmit`, and inside `handleCustomsSubmit`).
     - This forces a fresh estimation API request when entering the Service Selection step, preventing the empty "No services available" screen on domestic shipments.
 
-### [version code: 1.44.0] - 2026-05-28 - Finalized Address-Based Country Override Integration
+## [1.44.1] - 2026-05-28 - Finalized Address-Based Country Override Integration
 - Added: Feature flags utility `utils/feature-flags.ts` for managing feature toggles via environment variables (`ENABLED`, `AUTO`, `DISABLED`).
 - Added: Address country helper `utils/address-country-helper.ts` implementing `getUserCountryCode` resolution with session-persistent diagnostic logs and custom `MissingAddressError`.
 - Added: Debug utilities `utils/address-help.ts` (`runAddressHelp()`) and `utils/auth-debug.ts` (`debugAuthStore()` and `validateUserAddressComplete()`).
