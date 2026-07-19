@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useShipmentStore } from "@/store/shipment-store";
 import { mapShipmentToStore } from "@/utils/shipment-helper";
-import { Shipment, CustomsData } from "@/types/shipping";
+import { Shipment } from "@/types/shipping";
 import { useToast } from "@/hooks/use-toast";
 
 /**

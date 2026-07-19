@@ -3,14 +3,11 @@
 import React, { useState } from "react";
 import { useFormik, FormikProvider, FieldArray } from "formik";
 import { z } from "zod";
-// import { useRouter } from "next/navigation";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   FiArrowRight,
   FiArrowLeft,
-  FiPlus,
-  FiTrash2,
   FiHelpCircle,
 } from "react-icons/fi";
 import {
@@ -53,7 +50,7 @@ const createCustomsSchema = (type: "S" | "I") =>
 
 interface CustomsFormProps {
   initialValues?: CustomsData | null;
-  pkg: Package | null;
+  packages: Package[];
   sender: Address | null;
   currency?: string;
   onSubmit: (values: CustomsData) => void;
@@ -63,14 +60,13 @@ interface CustomsFormProps {
 
 export default function CustomsForm({
   initialValues,
-  pkg,
+  packages = [],
   sender,
   currency = "EUR",
   onSubmit,
   onBack,
   defaultCustomsType = "S",
 }: CustomsFormProps) {
-  // const router = useRouter();
   const {
     isVerificationRequired,
     triggerVerification,
@@ -107,23 +103,23 @@ export default function CustomsForm({
         },
       );
     }
-    return [
-      {
-        nameEn: pkg?.description || "",
-        tariffCode: "",
-      },
-    ];
+    return packages.map((pkg) => ({
+      nameEn: pkg.description || "Package Item",
+      tariffCode: "",
+    }));
   };
+
+  const totalPackagesWeight = packages.reduce((acc, p) => acc + p.weight, 0);
 
   const formik = useFormik({
     initialValues: {
       customsType: activeTab,
-      firstName: initialValues?.firstName || pkg?.description || "",
+      firstName: initialValues?.firstName || packages[0]?.description || "Multiple Package Shipment",
       secondaryName:
         initialValues?.secondaryName ||
         (sender ? sender.name.split(" ").slice(1).join(" ") : ""),
       categoryOfItem: initialValues?.categoryOfItem || "11",
-      grossWeight: initialValues?.grossWeight || pkg?.weight || 1,
+      grossWeight: initialValues?.grossWeight || totalPackagesWeight || 1,
       nipNr: (initialValues as IndividualClearanceData)?.nipNr || "",
       customsItem: getInitialItems(),
     },
@@ -157,7 +153,7 @@ export default function CustomsForm({
           // Handle array errors manually for formik
           const innerErrors = error.issues.filter((i) => i.path.length > 1);
           if (innerErrors.length > 0) {
-            if (!formikErrors.customsItem) {
+            if (!formikErrors.customsItem || typeof formikErrors.customsItem === "string") {
               formikErrors.customsItem = [];
             }
 
@@ -179,26 +175,21 @@ export default function CustomsForm({
       }
     },
     onSubmit: (values) => {
-      // Auto-compute weight and value split evenly across items
-      const itemCount = values.customsItem.length;
-      const totalWeight = pkg?.weight || 1;
-      const totalValue = pkg?.value || 1;
-
-      const weightPerItem = Number((totalWeight / itemCount).toFixed(2));
-      const valuePerItem = Number((totalValue / itemCount).toFixed(2));
-
       // Re-map the flattened items to the strict backend structure
-      const formattedItems = values.customsItem.map((item) => ({
-        item: [
-          {
-            nameEn: item.nameEn,
-            quantity: 1,
-            weight: weightPerItem,
-            value: valuePerItem,
-            tariffCode: item.tariffCode,
-          },
-        ],
-      }));
+      const formattedItems = values.customsItem.map((item, idx) => {
+        const pkgItem = packages[idx] || packages[0];
+        return {
+          item: [
+            {
+              nameEn: item.nameEn || pkgItem.description || "Package Item",
+              quantity: 1,
+              weight: pkgItem.weight,
+              value: pkgItem.value,
+              tariffCode: item.tariffCode,
+            },
+          ],
+        };
+      });
 
       const basePayload = {
         customsType: values.customsType,
@@ -230,16 +221,12 @@ export default function CustomsForm({
     "text-xs font-black uppercase tracking-tight text-gray-700 block mb-2";
   const errorStyles = "text-red-500 text-[11px] font-bold mt-1 ml-1 block";
 
-  /**
-   * Handle verification modal CTA - navigate to account settings
-   */
   const handleVerifyAccount = () => {
     triggerVerification();
   };
 
   return (
     <>
-      {/* Account Verification Modal */}
       <AccountVerificationModal
         isOpen={showVerificationModal}
         onClose={() => setShowVerificationModal(false)}
@@ -248,7 +235,6 @@ export default function CustomsForm({
         requiresEmailVerification={true}
       />
 
-      {/* Form Container - Disabled when verification is required */}
       <FormikProvider value={formik}>
         <form
           onSubmit={formik.handleSubmit}
@@ -265,7 +251,7 @@ export default function CustomsForm({
             </p>
           </div>
 
-          <div className="bg-white rounded-3xl p-6 md:p-8 border-gray-100 space-y-6">
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 space-y-6">
             {/* Entity Toggle */}
             <div className="flex gap-4 p-1 bg-gray-50 rounded-xl mb-6 border border-gray-200">
               <button
@@ -332,7 +318,7 @@ export default function CustomsForm({
                   value={formik.values.categoryOfItem}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full text-sm font-semibold h-12 rounded-xl bg-gray-50 border-gray-200 outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent px-4 py-2 transition-all text-gray-900 placeholder:text-gray-400"
+                  className="w-full text-sm font-semibold h-12 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent px-4 py-2 transition-all text-gray-900 placeholder:text-gray-400"
                 >
                   {ITEM_CATEGORIES.map((cat) => (
                     <option key={cat.value} value={cat.value}>
@@ -382,18 +368,18 @@ export default function CustomsForm({
           </div>
 
           {/* Declarations (Items) */}
-          <div className="bg-white rounded-3xl p-6 md:p-8 border-gray-100 space-y-6">
+          <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 space-y-6">
             <div className="flex items-center gap-2 mb-2">
               <div className="h-px flex-1 bg-gray-100" />
               <span className="text-[10px] uppercase tracking-widest font-black text-gray-400">
-                Customs Declarations
+                Customs Declarations (1-to-1 sync with packages)
               </span>
               <div className="h-px flex-1 bg-gray-100" />
             </div>
 
             <FieldArray
               name="customsItem"
-              render={(arrayHelpers) => (
+              render={() => (
                 <div className="space-y-6">
                   {formik.values.customsItem.map((item, index) => {
                     const errorBag =
@@ -410,27 +396,17 @@ export default function CustomsForm({
                         key={index}
                         className="p-5 border border-gray-200 rounded-2xl relative bg-gray-50/50"
                       >
-                        {formik.values.customsItem.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => arrayHelpers.remove(index)}
-                            className="absolute -top-3 -right-3 w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                          >
-                            <FiTrash2 className="w-4 h-4" />
-                          </button>
-                        )}
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="md:col-span-1">
                             <label className={labelStyles}>
-                              Item Name / Description
+                              Item Name / Description (Package #{index + 1})
                             </label>
                             <Input
                               name={`customsItem.${index}.nameEn`}
                               value={item.nameEn}
-                              onChange={formik.handleChange}
-                              onBlur={formik.handleBlur}
-                              placeholder="e.g. Cotton T-Shirt"
+                              disabled
+                              className="bg-gray-100 opacity-70 cursor-not-allowed font-semibold text-gray-600"
+                              placeholder="Pre-populated from Package"
                             />
                             {(touchedBag as ItemDetail).nameEn &&
                               (errorBag as ItemDetail).nameEn && (
@@ -472,20 +448,6 @@ export default function CustomsForm({
                       </div>
                     );
                   })}
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() =>
-                      arrayHelpers.push({
-                        nameEn: "",
-                        tariffCode: "",
-                      })
-                    }
-                    className="w-full h-12 border-dashed border-2 border-brand-blue/30 text-brand-blue font-bold hover:bg-brand-blue/5 rounded-xl"
-                  >
-                    <FiPlus className="mr-2" /> Add Another Item
-                  </Button>
                 </div>
               )}
             />

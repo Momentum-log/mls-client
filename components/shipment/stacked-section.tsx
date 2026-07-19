@@ -13,6 +13,7 @@ interface StackedSectionProps {
   isExpanded: boolean;
   isCompleted: boolean;
   onEdit?: () => void;
+  headerAction?: React.ReactNode;
 }
 
 /**
@@ -27,6 +28,7 @@ interface StackedSectionProps {
  * @param isExpanded - Whether the section is currently open for editing
  * @param isCompleted - Whether the section has been successfully filled
  * @param onEdit - Callback when the user clicks the Edit button
+ * @param headerAction - Optional custom header element (visible when expanded)
  */
 export const StackedSection: React.FC<StackedSectionProps> = ({
   id,
@@ -37,6 +39,7 @@ export const StackedSection: React.FC<StackedSectionProps> = ({
   isExpanded,
   isCompleted,
   onEdit,
+  headerAction,
 }) => {
   return (
     <div
@@ -81,15 +84,18 @@ export const StackedSection: React.FC<StackedSectionProps> = ({
           </div>
         </div>
 
-        {!isExpanded && isCompleted && onEdit && (
-          <button
-            onClick={onEdit}
-            className="flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-blue/80 transition-colors py-2 px-4 rounded-xl border border-brand-blue/20 hover:bg-brand-blue/5 cursor-pointer"
-          >
-            <FiEdit2 className="w-3.5 h-3.5" />
-            Edit
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          {isExpanded && headerAction}
+          {!isExpanded && isCompleted && onEdit && (
+            <button
+              onClick={onEdit}
+              className="flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-blue/80 transition-colors py-2 px-4 rounded-xl border border-brand-blue/20 hover:bg-brand-blue/5 cursor-pointer"
+            >
+              <FiEdit2 className="w-3.5 h-3.5" />
+              Edit
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content Area */}

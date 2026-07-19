@@ -12,7 +12,7 @@ import { toDisplayCarrierName } from "@/utils/carrier-branding";
 interface ShipmentFormData {
   pickup: Record<string, unknown>;
   dropoff: Record<string, unknown>;
-  package: ShipmentMutationPayload["package"];
+  packages: ShipmentMutationPayload["packages"];
 }
 
 interface CreateShipmentApiResponse {
@@ -64,7 +64,7 @@ const RateSelection: React.FC<RateSelectionProps> = ({
         carrierName: rate.carrier,
         pickupAddress: { ...shipmentData.pickup, contact },
         dropoffAddress: { ...shipmentData.dropoff, contact },
-        package: shipmentData.package,
+        packages: shipmentData.packages,
         rate: rate,
         // Include userCountryCode in the payload
         userCountryCode: countryCode || undefined,

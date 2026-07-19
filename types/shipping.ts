@@ -131,13 +131,15 @@ export interface EstimatePackageDetails {
 export interface ShippingEstimatePayload {
   pickup: Address;
   dropoff: Address;
-  package: EstimatePackageDetails;
+  packages: EstimatePackageDetails[];
   guestId?: string; // Keep consistent with docs
   /** Optional ISO 3166-1 alpha-2 country code for currency determination (e.g., 'PL', 'DE') */
   userCountryCode?: string;
   email?: string;
   phone?: string;
   customs?: CustomsData;
+  /** Optional currency override (PLN or EUR) */
+  currency?: string;
 }
 
 // Shipping estimate response
@@ -278,11 +280,13 @@ export interface LocalShipmentPayload {
   carrierSlug: string; // e.g. "fedex", "mls"
   pickupAddress: Address;
   dropoffAddress: Address;
-  package: PackageDetails;
+  packages: PackageDetails[];
   rate: Rate;
   customs?: never; // Using 'never' ensures you DON'T pass it by mistake
   userCountryCode?: string;
   preferredPaymentOption?: "payu" | "stripe";
+  /** Optional currency override (PLN or EUR) */
+  currency?: string;
 }
 
 /**
@@ -293,11 +297,13 @@ export interface InternationalShipmentPayload {
   carrierSlug: string;
   pickupAddress: Address;
   dropoffAddress: Address;
-  package: PackageDetails;
+  packages: PackageDetails[];
   rate: Rate;
   customs: CustomsData; // <--- Mandatory
   userCountryCode?: string;
   preferredPaymentOption?: "payu" | "stripe";
+  /** Optional currency override (PLN or EUR) */
+  currency?: string;
 }
 
 // Union type helper if you need to handle both generically
@@ -384,6 +390,7 @@ export interface Shipment {
   weight: Weight;
   dimensions: Dimensions;
   customs?: CustomsData;
+  packages?: PackageDetails[];
 
   // --- Logistics ---
   pickupAddress: Address;

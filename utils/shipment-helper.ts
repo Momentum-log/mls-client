@@ -76,10 +76,10 @@ export const mapShipmentToStore = (shipment: Shipment) => {
   // Store uses 'Package' interface (id, weight, length, width, height, description, value, currency)
   const pkg = {
     id: crypto.randomUUID(),
-    weight: shipment.weight.value,
-    length: shipment.dimensions.length,
-    width: shipment.dimensions.width,
-    height: shipment.dimensions.height,
+    weight: shipment.weight?.value ?? 1,
+    length: shipment.dimensions?.length ?? 0,
+    width: shipment.dimensions?.width ?? 0,
+    height: shipment.dimensions?.height ?? 0,
     description: shipment.customs?.firstName ?? "",
     value: shipment.customs?.costsOfShipment ?? 1,
     currency: shipment.customs?.currency || shipment.currency,

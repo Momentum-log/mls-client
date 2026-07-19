@@ -24,6 +24,8 @@ export interface CountryState {
 export interface CountryActions {
   /** Set country manually (triggers manual override flag) */
   setCountry: (code: string) => void;
+  /** Set currency manually */
+  setCurrency: (currency: SupportedCurrency) => void;
   /** Detect country via Browser geolocation */
   detectCountry: () => Promise<void>;
   /** Reset to auto-detect mode */

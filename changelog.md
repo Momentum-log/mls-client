@@ -5,6 +5,48 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.44.11] - 2026-07-19 - Multiple Packages Support
+- Added: **Multiple Packages Form block** (`components/shipment/package-form.tsx`)
+  - Redesigned package details card to support Formik `FieldArray` for multiple package entries.
+  - Added a global unit switch selector (Metric vs Imperial) applied to all package inputs.
+  - Provided quick-select dimension/weight presets per package block and dynamic deletion controls.
+- Changed: **Customs Form Lock** (`components/shipment/customs-form.tsx`)
+  - Updated props to accept `packages` list and pre-populate customs declaration cards 1-to-1.
+  - Pre-populated description and weight fields, leaving only tariff/HS code editable.
+  - Disabled manual item addition or removal from the customs declarations list.
+  - Calculated gross weight and distributed package weight and values accurately on submit.
+- Changed: **Summary Drawer** (`components/shipment/summary-drawer.tsx`)
+  - Refactored `SummaryDrawer` to display specifications (weight, dimensions, value, description) for all packages.
+- Changed: **New Shipment Page** (`app/app/shipments/new/page.tsx`)
+  - Handled rate calculation with `packages` array payload instead of single package object.
+  - Updated heavy shipment modal trigger to check if any individual package exceeds the 70kg threshold.
+  - Formatted final creation mutation payload using `packages` mapping.
+- Changed: **Invoice Update flow & Rate selection** (`components/invoice/UpdateShipmentModal.tsx` and `components/shipping/rate-selection.tsx`)
+  - Migrated legacy single `package` references to `packages` array formats to avoid API errors and compile issues.
+
+## [1.44.10] - 2026-07-18 - Persistent Currency Switcher and PayU/EUR Validation
+- Added: **Currency Switcher Component** (`components/shipment/currency-switcher.tsx`)
+  - A flat, minimalist pill toggle component enabling quick currency switching between EUR and PLN.
+- Changed: **Country detection store** (`store/country-store.ts` and `types/country.ts`)
+  - Migrated storage engine from `sessionStorage` to `localStorage` to persist currency preferences across sessions.
+  - Added an explicit `setCurrency` action to update the user's preferred currency directly.
+- Changed: **Shipping Types & Estimate Utils** (`types/shipping.ts` and `app/(marketing)/shipping-estimate/utils.ts`)
+  - Added support for an optional `currency` field in `ShippingEstimatePayload`, `LocalShipmentPayload`, and `InternationalShipmentPayload`.
+- Changed: **New Shipment Page** (`app/app/shipments/new/page.tsx`)
+  - Retrieve the active currency from the persisted `useCountryStore` and pass it to rate estimation and shipment creation endpoints.
+  - Reset and re-fetch rates dynamically when the currency is changed in the switcher header action.
+- Changed: **Summary Drawer** (`components/shipment/summary-drawer.tsx`)
+  - Disable the PayU payment method when EUR is the selected active currency since PayU only supports PLN.
+  - Auto-select Stripe when PayU is disabled due to active EUR currency.
+
+## [1.44.9] - 2026-07-18 - Fix Shipment Duplication and Customs Validation TypeErrors
+- Fixed: **Shipment Helper** (`utils/shipment-helper.ts`)
+  - Added optional chaining and default values for `shipment.dimensions` and `shipment.weight` in `mapShipmentToStore` to prevent crashes when duplicating shipments lacking physical specifications.
+- Fixed: **Customs Form** (`components/shipment/customs-form.tsx`)
+  - Corrected validation logic to ensure `formikErrors.customsItem` is initialized as an array instead of a string before assigning nested validation errors, resolving uncaught `TypeError: Cannot create property on string` errors.
+- Changed: **Duplicate Shipment Hook** (`hooks/shipments/use-duplicate-shipment.ts`)
+  - Removed unused `CustomsData` import to clean up TypeScript/ESLint warnings.
+
 ## [1.44.8] - 2026-07-18 - Improve Payment Verification Error Parsing
 - Changed: **Payment Verification Page** (`app/app/shipments/new/verify/page.tsx`)
   - Enhanced error parsing in `handleVerify` catch block to extract `"details"` or `"error"` properties from backend response bodies.

@@ -29,7 +29,8 @@ import {
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { Rate, CustomsData, ShipmentMutationPayload } from "@/types/shipping";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
-// import { useCountryStore } from "@/store/country-store";
+import { useCountryStore } from "@/store/country-store";
+import CurrencySwitcher from "@/components/shipment/currency-switcher";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
 import { deepTransformData } from "@/utils/data-transform";
 
@@ -62,8 +63,7 @@ export default function NewShipmentPage() {
     recipient,
     setRecipient,
     packages,
-    addPackage,
-    updatePackage,
+    setPackages,
     customs,
     setCustoms,
     selectedRate,
@@ -76,7 +76,7 @@ export default function NewShipmentPage() {
     sender.country !== recipient.country;
 
   const { countryCode } = useUserCountryCode(sender?.country);
-  const activeCurrency = countryCode === "PL" ? "PLN" : "EUR";
+  const { currency: activeCurrency, setCurrency } = useCountryStore();
 
   const [rates, setRates] = useState<Rate[]>([]);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -189,6 +189,19 @@ export default function NewShipmentPage() {
       return;
     }
 
+    const formattedPackages = packages.map((pkg) => ({
+      weight: {
+        value: parseFloat(pkg.weight.toFixed(2)),
+        units: "KG",
+      },
+      dimensions: {
+        length: parseFloat(pkg.length.toFixed(1)),
+        width: parseFloat(pkg.width.toFixed(1)),
+        height: parseFloat(pkg.height.toFixed(1)),
+        units: "CM",
+      },
+    }));
+
     const payload = getEstimatePayload(
       {
         city: sender.city,
@@ -204,30 +217,21 @@ export default function NewShipmentPage() {
         postalCode: recipient.postalCode,
         streetLines: [recipient.street],
       },
-      {
-        weight: {
-          value: parseFloat(packages[0].weight.toFixed(2)),
-          units: "KG",
-        },
-        dimensions: {
-          length: parseFloat(packages[0].length.toFixed(1)),
-          width: parseFloat(packages[0].width.toFixed(1)),
-          height: parseFloat(packages[0].height.toFixed(1)),
-          units: "CM",
-        },
-      },
+      formattedPackages,
       getOrSetGuestId(),
       countryCode || undefined,
       customs || undefined,
+      activeCurrency,
     );
 
     const estimateSignature = JSON.stringify({
       sender,
       recipient,
-      package: packages[0],
+      packages: packages,
       countryCode: countryCode || null,
       customs: customs || null,
       isInternational,
+      currency: activeCurrency,
     });
 
     if (lastFetchedEstimateSignatureRef.current === estimateSignature) {
@@ -249,6 +253,7 @@ export default function NewShipmentPage() {
     customs,
     addToast,
     isInternational,
+    activeCurrency,
   ]);
 
   const steps: TimelineStep[] = useMemo(() => {
@@ -351,14 +356,15 @@ export default function NewShipmentPage() {
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const handlePackageSubmit = (pkg: Package) => {
+  const handlePackageSubmit = (pkgs: Package[]) => {
     // Check for heavy shipment (70kg+)
-    if (pkg.weight >= HEAVY_SHIPMENT_THRESHOLD) {
+    const hasHeavy = pkgs.some((pkg) => pkg.weight >= HEAVY_SHIPMENT_THRESHOLD);
+    if (hasHeavy) {
       setIsHeavyShipmentModalOpen(true);
       return;
     }
 
-    addPackage(pkg);
+    setPackages(pkgs);
     markSectionCompleted("package");
     setRates([]); // Clear previous rates to trigger re-fetch in useEffect
     lastFetchedEstimateSignatureRef.current = null; // Reset estimate signature to force a re-fetch when transitioning to service selection
@@ -411,7 +417,7 @@ export default function NewShipmentPage() {
     if (
       !sender ||
       !recipient ||
-      !packages[0] ||
+      packages.length === 0 ||
       !selectedRate ||
       (isInternational && !customs)
     ) {
@@ -454,23 +460,24 @@ export default function NewShipmentPage() {
           companyName: recipient.company ?? "",
         },
       },
-      package: {
+      packages: packages.map((pkg) => ({
         weight: {
-          value: packages[0].weight,
+          value: pkg.weight,
           units: "KG",
         },
         dimensions: {
-          length: packages[0].length,
-          width: packages[0].width,
-          height: packages[0].height,
+          length: pkg.length,
+          width: pkg.width,
+          height: pkg.height,
           units: "CM",
         },
-      },
+      })),
       rate: selectedRate,
       customs: customs ?? undefined,
       userCountryCode: countryCode,
       preferredPaymentOption: paymentMethod,
       invoiceId: invoiceId,
+      currency: activeCurrency,
     };
 
     performCreateShipment(payload, {
@@ -686,23 +693,21 @@ export default function NewShipmentPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                        Dimensions
+                        Packages
                       </p>
                       <p className="font-bold text-gray-900 leading-tight">
-                        {packages[0].length}x{packages[0].width}x
-                        {packages[0].height} cm
+                        {packages.length} package{packages.length > 1 ? "s" : ""}
                       </p>
                       <p className="text-xs text-gray-500 font-medium">
-                        {packages[0].weight} kg | {packages[0].value}{" "}
-                        {packages[0].currency}
+                        Total weight: {packages.reduce((acc, p) => acc + p.weight, 0).toFixed(2)} kg
                       </p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                        Description
+                        Descriptions
                       </p>
-                      <p className="font-bold text-gray-900 leading-tight line-clamp-1">
-                        {packages[0].description}
+                      <p className="font-bold text-gray-900 leading-tight line-clamp-2">
+                        {packages.map((p) => p.description).filter(Boolean).join(", ")}
                       </p>
                     </div>
                   </div>
@@ -710,9 +715,9 @@ export default function NewShipmentPage() {
               }
             >
               <PackageForm
-                initialValue={packages[0] || null}
+                initialValues={packages.length > 0 ? packages : null}
                 onSubmit={handlePackageSubmit}
-                onSync={updatePackage}
+                onSync={setPackages}
                 onBack={() => setExpandedSection("dropoff")}
                 submitLabel={isInternational ? "Customs Details" : "Get Rates"}
                 isInternational={Boolean(isInternational)}
@@ -746,7 +751,7 @@ export default function NewShipmentPage() {
             >
               <CustomsForm
                 initialValues={customs}
-                pkg={packages[0] || null}
+                packages={packages}
                 sender={sender}
                 currency={activeCurrency}
                 onSubmit={handleCustomsSubmit}
@@ -764,6 +769,13 @@ export default function NewShipmentPage() {
               isExpanded={expandedSection === "service"}
               isCompleted={completedSteps.includes("service")}
               onEdit={() => setExpandedSection("service")}
+              headerAction={
+                <CurrencySwitcher
+                  currency={activeCurrency}
+                  onChange={setCurrency}
+                  disabled={isFetchingRates}
+                />
+              }
               summary={
                 selectedRate && (
                   <div className="flex items-center gap-3">
@@ -815,7 +827,7 @@ export default function NewShipmentPage() {
           onClose={() => setIsSummaryOpen(false)}
           sender={sender}
           recipient={recipient}
-          pkg={packages[0] || null}
+          packages={packages}
           rate={displaySelectedRate}
           onFinalize={handleFinalize}
           isLoading={isCreatingShipment}

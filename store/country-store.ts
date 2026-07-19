@@ -92,6 +92,17 @@ export const useCountryStore = create<CountryStore>()(
       },
 
       /**
+       * Manually set the user's preferred currency directly.
+       */
+      setCurrency: (currency: SupportedCurrency) => {
+        set({
+          currency,
+          isDetected: true,
+          isManualOverride: true,
+        });
+      },
+
+      /**
        * Detect country via browser locale metadata.
        * Only runs if not already detected or manually overridden.
        */
@@ -128,7 +139,7 @@ export const useCountryStore = create<CountryStore>()(
     }),
     {
       name: "country-storage",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         countryCode: state.countryCode,
         currency: state.currency,

@@ -63,6 +63,7 @@ interface ShipmentUpdateSource {
   sender?: ShipmentModalAddress;
   recipient?: ShipmentModalAddress;
   package?: ShipmentModalPackage;
+  packages?: ShipmentModalPackage[];
   weight?: { value?: number; units?: string };
   dimensions?: {
     length?: number;
@@ -160,12 +161,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
     // Extract shipment data for rate calculation
     const pickupAddress = shipment.pickupAddress || shipment.sender;
     const dropoffAddress = shipment.dropoffAddress || shipment.recipient;
-    const pkg = shipment.package || {
-      weight: shipment.weight,
-      dimensions: shipment.dimensions,
-    };
 
-    if (!pickupAddress || !dropoffAddress || !pkg) {
+    if (!pickupAddress || !dropoffAddress) {
       addToast({
         title: "Missing Data",
         message: "Could not extract shipment details for rate calculation.",
@@ -174,10 +171,30 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       return;
     }
 
-    const weightValue =
-      typeof pkg.weight === "number" ? pkg.weight : (pkg.weight?.value ?? 1);
-    const weightUnits =
-      typeof pkg.weight === "number" ? "KG" : (pkg.weight?.units ?? "KG");
+    const shipmentPackages = shipment.packages || (shipment.package ? [shipment.package] : []);
+    const finalPackages = shipmentPackages.length > 0 ? shipmentPackages : [
+      {
+        weight: typeof shipment.weight === "number" ? { value: shipment.weight, units: "KG" } : shipment.weight,
+        dimensions: shipment.dimensions,
+      }
+    ];
+
+    const formattedPackages = finalPackages.map((p: ShipmentModalPackage) => {
+      const wVal = typeof p.weight === "number" ? p.weight : (p.weight?.value ?? 1);
+      const wUnits = typeof p.weight === "number" ? "KG" : (p.weight?.units ?? "KG");
+      return {
+        weight: {
+          value: wVal,
+          units: wUnits,
+        },
+        dimensions: {
+          length: p.dimensions?.length || 10,
+          width: p.dimensions?.width || 10,
+          height: p.dimensions?.height || 10,
+          units: p.dimensions?.units || "CM",
+        },
+      };
+    });
 
     const payload = getEstimatePayload(
       {
@@ -196,18 +213,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
           dropoffAddress.street || "",
         ],
       },
-      {
-        weight: {
-          value: weightValue,
-          units: weightUnits,
-        },
-        dimensions: {
-          length: pkg.dimensions?.length || 10,
-          width: pkg.dimensions?.width || 10,
-          height: pkg.dimensions?.height || 10,
-          units: pkg.dimensions?.units || "CM",
-        },
-      },
+      formattedPackages,
       getOrSetGuestId(),
       countryCode || undefined,
       shipment.customs || undefined,
@@ -236,12 +242,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
 
     const pickupAddress = shipment.pickupAddress || shipment.sender;
     const dropoffAddress = shipment.dropoffAddress || shipment.recipient;
-    const pkg = shipment.package || {
-      weight: shipment.weight,
-      dimensions: shipment.dimensions,
-    };
 
-    if (!pickupAddress || !dropoffAddress || !pkg) {
+    if (!pickupAddress || !dropoffAddress) {
       addToast({
         title: "Missing Data",
         message: "Could not prepare shipment update payload.",
@@ -250,10 +252,30 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       return;
     }
 
-    const weightValue =
-      typeof pkg.weight === "number" ? pkg.weight : (pkg.weight?.value ?? 1);
-    const weightUnits =
-      typeof pkg.weight === "number" ? "KG" : (pkg.weight?.units ?? "KG");
+    const shipmentPackages = shipment.packages || (shipment.package ? [shipment.package] : []);
+    const finalPackages = shipmentPackages.length > 0 ? shipmentPackages : [
+      {
+        weight: typeof shipment.weight === "number" ? { value: shipment.weight, units: "KG" } : shipment.weight,
+        dimensions: shipment.dimensions,
+      }
+    ];
+
+    const formattedPackages = finalPackages.map((p: ShipmentModalPackage) => {
+      const wVal = typeof p.weight === "number" ? p.weight : (p.weight?.value ?? 1);
+      const wUnits = typeof p.weight === "number" ? "KG" : (p.weight?.units ?? "KG");
+      return {
+        weight: {
+          value: wVal,
+          units: wUnits,
+        },
+        dimensions: {
+          length: p.dimensions?.length || 10,
+          width: p.dimensions?.width || 10,
+          height: p.dimensions?.height || 10,
+          units: p.dimensions?.units || "CM",
+        },
+      };
+    });
 
     const isInternational =
       (pickupAddress?.countryCode || pickupAddress?.country) !==
@@ -298,18 +320,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
             dropoffAddress.contact?.companyName || dropoffAddress.company || "",
         },
       },
-      package: {
-        weight: {
-          value: weightValue,
-          units: weightUnits,
-        },
-        dimensions: {
-          length: pkg.dimensions?.length || 10,
-          width: pkg.dimensions?.width || 10,
-          height: pkg.dimensions?.height || 10,
-          units: pkg.dimensions?.units || "CM",
-        },
-      },
+      packages: formattedPackages,
       rate: {
         carrier: selectedRate.carrier,
         serviceType: selectedRate.serviceType,
