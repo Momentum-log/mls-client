@@ -12,7 +12,6 @@ import {
 } from "react-icons/fi";
 import {
   CustomsData,
-  IndividualClearanceData,
   ItemDetail,
 } from "@/types/shipping";
 import { Package, Address } from "@/store/shipment-store";
@@ -35,8 +34,8 @@ const createCustomsSchema = (type: "S" | "I") =>
     categoryOfItem: z.string().min(1, "Category is required"),
     grossWeight: z.number().min(0.1, "Total weight required"),
     nipNr:
-      type === "I"
-        ? z.string().min(1, "NIP number is required for Individuals")
+      type === "S"
+        ? z.string().min(1, "NIP number is required for Businesses")
         : z.string().optional(),
     customsItem: z
       .array(
@@ -120,7 +119,10 @@ export default function CustomsForm({
         (sender ? sender.name.split(" ").slice(1).join(" ") : ""),
       categoryOfItem: initialValues?.categoryOfItem || "11",
       grossWeight: initialValues?.grossWeight || totalPackagesWeight || 1,
-      nipNr: (initialValues as IndividualClearanceData)?.nipNr || "",
+      nipNr:
+        initialValues && "nipNr" in initialValues
+          ? (initialValues as { nipNr?: string }).nipNr || ""
+          : "",
       customsItem: getInitialItems(),
     },
     enableReinitialize: false,
@@ -201,7 +203,7 @@ export default function CustomsForm({
         customsItem: formattedItems,
       };
 
-      if (values.customsType === "I") {
+      if (values.customsType === "S") {
         onSubmit({
           ...basePayload,
           nipNr: values.nipNr,
@@ -347,7 +349,7 @@ export default function CustomsForm({
                 )}
               </div>
 
-              {activeTab === "I" && (
+              {activeTab === "S" && (
                 <div className="md:col-span-2">
                   <label className={labelStyles}>Sender NIP Number</label>
                   <Input

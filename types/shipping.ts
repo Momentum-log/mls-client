@@ -71,6 +71,7 @@ export type CustomsData =
       countryOfOrigin?: "PL" | string;
       additionalInfo?: string;
       customsItem: { item: ItemDetail | ItemDetail[] }[];
+      nipNr: string;
       customAgreements?: {
         notExceedValue: boolean;
         notProhibitedGoods: true;
@@ -91,7 +92,6 @@ export type CustomsData =
       additionalInfo?: string;
       customsItem: { item: ItemDetail | ItemDetail[] }[];
       // Required specific individual items
-      nipNr: string;
       eoriNr?: string;
       eoriNrReceiver?: string;
       vatRegistrationNumberReceiver?: string;

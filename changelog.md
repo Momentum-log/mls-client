@@ -5,6 +5,12 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.44.12] - 2026-07-19 - Update NIP Number Requirement for Customs Clearance
+- Changed: **Customs Form Validation & Types** (`components/shipment/customs-form.tsx` and `types/shipping.ts`)
+  - Switched the NIP number (`nipNr`) requirement from Individual (`I`) to Simplified/Business (`S`) clearance to align with backend changes.
+  - Made `nipNr` mandatory for Business clearance and optional/hidden for Individual clearance.
+  - Updated openapi schema spec (`openapi.json`) and developer guide (`docs/client-shipping-endpoints-guide.md`) to reflect the updated validation and payload structure.
+
 ## [1.44.11] - 2026-07-19 - Multiple Packages Support
 - Added: **Multiple Packages Form block** (`components/shipment/package-form.tsx`)
   - Redesigned package details card to support Formik `FieldArray` for multiple package entries.

@@ -3152,6 +3152,10 @@
                             "type": "string",
                             "enum": ["S"]
                           },
+                          "nipNr": {
+                            "type": "string",
+                            "minLength": 1
+                          },
                           "costsOfShipment": {
                             "type": "number"
                           },
@@ -3304,7 +3308,8 @@
                           "grossWeight",
                           "firstName",
                           "secondaryName",
-                          "customsItem"
+                          "customsItem",
+                          "nipNr"
                         ]
                       },
                       {
@@ -3433,10 +3438,6 @@
                               "required": ["item"]
                             }
                           },
-                          "nipNr": {
-                            "type": "string",
-                            "minLength": 1
-                          },
                           "eoriNr": {
                             "type": "string",
                             "minLength": 1
@@ -3487,7 +3488,6 @@
                           "firstName",
                           "secondaryName",
                           "customsItem",
-                          "nipNr",
                           "invoiceNr",
                           "invoiceDate",
                           "invoice"

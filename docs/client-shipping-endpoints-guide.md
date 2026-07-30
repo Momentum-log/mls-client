@@ -126,6 +126,7 @@ export type CustomsData =
       countryOfOrigin?: "PL";
       additionalInfo?: string;
       customsItem: { item: ItemDetail | ItemDetail[] }[];
+      nipNr: string;
       customAgreements?: {
         notExceedValue: boolean;
         notProhibitedGoods: true;
@@ -146,7 +147,6 @@ export type CustomsData =
       additionalInfo?: string;
       customsItem: { item: ItemDetail | ItemDetail[] }[];
       // Required specific individual items
-      nipNr: string;
       eoriNr?: string;
       eoriNrReceiver?: string;
       vatRegistrationNumberReceiver?: string;
@@ -214,7 +214,6 @@ export interface ShippingEstimatePayload {
     "grossWeight": 3,
     "firstName": "John",
     "secondaryName": "Doe",
-    "nipNr": "1234567890",
     "invoiceNr": "INV-2026-001",
     "invoiceDate": "2026-03-22",
     "invoice": "JVBERi0xLjQK...",
