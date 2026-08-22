@@ -214,6 +214,9 @@
   --color-brand-yellow: #fcb417;
   --color-accent-dark: #8b5cf6;
   --color-accent-light: #c3b4fc;
+  --color-success: #16a34a;
+  --color-success-bg: #dcfce7;
+  --color-success-fg: #15803d;
   --font-sans: var(--font-satoshi);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-work-sans);

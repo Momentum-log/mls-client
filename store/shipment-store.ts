@@ -1,7 +1,5 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { secureStorage } from "@/utils/secure-storage";
-import { CustomsData, Rate } from "@/types/shipping";
+import { CustomsData, ShippingTier } from "@/types/shipping";
 
 /**
  * Address interface representing a physical location and contact metadata.
@@ -46,7 +44,18 @@ interface ShipmentState {
   recipient: Address | null;
   packages: Package[];
   customs: CustomsData | null;
-  selectedRate: Rate | null;
+
+  // Quote Data
+  /**
+   * The estimate these tiers came from. Paired with `selectedTier.routingRef`
+   * it is the entire booking instruction — the server recovers the carrier,
+   * the service and the price from it.
+   *
+   * Must be cleared whenever the shipment changes, or we would book a quote
+   * that describes a different parcel at a price the customer never saw.
+   */
+  estimateId: string | null;
+  selectedTier: ShippingTier | null;
 
   // Invoice Data
   invoiceId: string | null; // UUID of generated invoice for this shipment
@@ -83,9 +92,23 @@ interface ShipmentState {
   updatePackage: (pkg: Package) => void;
 
   /**
-   * Sets the selected shipping rate/service.
+   * Records the estimate a fresh set of tiers came from.
    */
-  setSelectedRate: (rate: Rate) => void;
+  setEstimateId: (estimateId: string | null) => void;
+
+  /**
+   * Sets the customer's chosen shipping tier.
+   */
+  setSelectedTier: (tier: ShippingTier | null) => void;
+
+  /**
+   * Discards the current quote.
+   *
+   * Call this on any change to the shipment itself — addresses, packages,
+   * customs or currency. A retained `estimateId` still resolves server-side,
+   * so a stale one books the old quote silently rather than failing loudly.
+   */
+  clearEstimate: () => void;
 
   /**
    * Updates customs details
@@ -136,7 +159,8 @@ const initialState = {
   recipient: null,
   packages: [],
   customs: null,
-  selectedRate: null,
+  estimateId: null,
+  selectedTier: null,
   invoiceId: null,
 };
 
@@ -146,6 +170,7 @@ export const useShipmentStore = create<ShipmentState>()((set) => ({
   setSender: (sender) => set({ sender }),
   setRecipient: (recipient) => set({ recipient }),
   setPackages: (packages) => set({ packages }),
+
   setCustoms: (customs) => set({ customs }),
   addPackage: (pkg) =>
     set((state) => {
@@ -171,7 +196,9 @@ export const useShipmentStore = create<ShipmentState>()((set) => ({
       }
       return { packages: [...state.packages, pkg] };
     }),
-  setSelectedRate: (rate) => set({ selectedRate: rate }),
+  setEstimateId: (estimateId) => set({ estimateId }),
+  setSelectedTier: (selectedTier) => set({ selectedTier }),
+  clearEstimate: () => set({ estimateId: null, selectedTier: null }),
   setInvoiceId: (invoiceId) => set({ invoiceId }),
   clearInvoiceId: () => set({ invoiceId: null }),
   setStep: (step) => set({ currentStep: step }),

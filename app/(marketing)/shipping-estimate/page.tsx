@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useEffect, Suspense, useState } from "react";
-import { FormikErrors, FormikProvider, useFormik } from "formik";
+import { FormikErrors, FormikProvider, useFormik, FieldArray } from "formik";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import Container from "@/components/shared/container";
 import Button from "@/components/ui/button";
@@ -151,11 +153,16 @@ function ShippingEstimateContent() {
         postalCode: searchParams.get("dropoffZip") || "",
         street: searchParams.get("dropoffStreet") || "",
       },
-      selectedPreset: PACKAGE_PRESETS[0].id,
-      package: {
-        weight: PACKAGE_PRESETS[0].weight,
-        dimensions: PACKAGE_PRESETS[0].dims,
-      },
+      globalWeightUnit: "KG",
+      globalDimUnit: "CM",
+      packages: [
+        {
+          id: "pkg-1",
+          selectedPreset: PACKAGE_PRESETS[0].id,
+          weight: PACKAGE_PRESETS[0].weight,
+          dimensions: PACKAGE_PRESETS[0].dims,
+        }
+      ],
       isStackable: true,
     },
     validate: (values: ShippingFormValues) => {
@@ -190,10 +197,24 @@ function ShippingEstimateContent() {
     },
     onSubmit: async (values) => {
       // Check for heavy shipment (70kg+)
-      if (values.package.weight >= HEAVY_SHIPMENT_THRESHOLD) {
+      const hasHeavy = values.packages.some(pkg => pkg.weight >= HEAVY_SHIPMENT_THRESHOLD);
+      if (hasHeavy) {
         setIsHeavyShipmentModalOpen(true);
         return;
       }
+
+      const formattedPackages = values.packages.map(pkg => ({
+        weight: {
+          value: parseFloat(pkg.weight.toFixed(2)),
+          units: values.globalWeightUnit,
+        },
+        dimensions: {
+          length: parseFloat(pkg.dimensions.length.toFixed(1)),
+          width: parseFloat(pkg.dimensions.width.toFixed(1)),
+          height: parseFloat(pkg.dimensions.height.toFixed(1)),
+          units: values.globalDimUnit,
+        },
+      }));
 
       const payload = getEstimatePayload(
         {
@@ -204,18 +225,7 @@ function ShippingEstimateContent() {
           ...values.dropoff,
           streetLines: [values.dropoff.street],
         },
-        {
-          weight: {
-            value: parseFloat(values.package.weight.toFixed(2)),
-            units: "KG",
-          },
-          dimensions: {
-            length: parseFloat(values.package.dimensions.length.toFixed(1)),
-            width: parseFloat(values.package.dimensions.width.toFixed(1)),
-            height: parseFloat(values.package.dimensions.height.toFixed(1)),
-            units: "CM",
-          },
-        },
+        formattedPackages,
         getOrSetGuestId(),
         userCountryCode || undefined,
       );
@@ -238,18 +248,6 @@ function ShippingEstimateContent() {
       });
     },
   });
-
-  // Handle Preset Change
-  const handlePresetChange = (presetId: string) => {
-    const preset = PACKAGE_PRESETS.find((p) => p.id === presetId);
-    if (preset) {
-      formik.setFieldValue("selectedPreset", presetId);
-      if (presetId !== "custom") {
-        formik.setFieldValue("package.weight", preset.weight);
-        formik.setFieldValue("package.dimensions", preset.dims);
-      }
-    }
-  };
 
   // Sync URL parameters
   useEffect(() => {
@@ -341,90 +339,170 @@ function ShippingEstimateContent() {
 
                   {/* Package Details */}
                   <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
-                        <FaBoxOpen className="w-5 h-5" />
-                      </div>
-                      <h2 className="font-bold text-xl text-gray-900">
-                        Package Details
-                      </h2>
-                    </div>
-
-                    <div className="mb-6">
-                      <label className="block text-sm font-semibold text-gray-700 mb-3">
-                        Package Type
-                      </label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                        {PACKAGE_PRESETS.map((preset) => (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => handlePresetChange(preset.id)}
-                            className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
-                              formik.values.selectedPreset === preset.id
-                                ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
-                                : "border-gray-200 hover:border-brand-blue/50 text-gray-600"
-                            }`}
-                          >
-                            <span className="text-2xl mb-1">{preset.icon}</span>
-                            <span className="text-xs font-medium">
-                              {preset.name}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Dimensions (cm)
-                        </label>
-                        <div className="grid grid-cols-3 gap-3">
-                          <input
-                            type="number"
-                            name="package.dimensions.length"
-                            value={formik.values.package.dimensions.length}
-                            onChange={formik.handleChange}
-                            placeholder="L"
-                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center"
-                            disabled={formik.values.selectedPreset !== "custom"}
-                          />
-                          <input
-                            type="number"
-                            name="package.dimensions.width"
-                            value={formik.values.package.dimensions.width}
-                            onChange={formik.handleChange}
-                            placeholder="W"
-                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center"
-                            disabled={formik.values.selectedPreset !== "custom"}
-                          />
-                          <input
-                            type="number"
-                            name="package.dimensions.height"
-                            value={formik.values.package.dimensions.height}
-                            onChange={formik.handleChange}
-                            placeholder="H"
-                            className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center"
-                            disabled={formik.values.selectedPreset !== "custom"}
-                          />
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
+                          <FaBoxOpen className="w-5 h-5" />
                         </div>
+                        <h2 className="font-bold text-xl text-gray-900">
+                          Package Details
+                        </h2>
                       </div>
-
-                      <div className="space-y-4">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Weight (kg)
-                        </label>
-                        <input
-                          type="number"
-                          name="package.weight"
-                          value={formik.values.package.weight}
-                          onChange={formik.handleChange}
-                          className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none"
-                          disabled={formik.values.selectedPreset !== "custom"}
-                        />
+                      <div className="flex gap-2 p-1 bg-gray-50 border border-gray-200 rounded-xl">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            formik.setFieldValue("globalWeightUnit", "KG");
+                            formik.setFieldValue("globalDimUnit", "CM");
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            formik.values.globalWeightUnit === "KG"
+                              ? "bg-brand-blue text-white shadow-sm"
+                              : "text-gray-500 hover:text-gray-900"
+                          }`}
+                        >
+                          Metric (KG/CM)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            formik.setFieldValue("globalWeightUnit", "LB");
+                            formik.setFieldValue("globalDimUnit", "IN");
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            formik.values.globalWeightUnit === "LB"
+                              ? "bg-brand-blue text-white shadow-sm"
+                              : "text-gray-500 hover:text-gray-900"
+                          }`}
+                        >
+                          Imperial (LB/IN)
+                        </button>
                       </div>
                     </div>
+
+                    <FieldArray
+                      name="packages"
+                      render={(arrayHelpers) => (
+                        <div className="space-y-6">
+                          {formik.values.packages.map((pkg, index) => (
+                            <div key={pkg.id || index} className="p-5 border border-gray-200 rounded-2xl relative bg-gray-50/50 space-y-4">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[10px] uppercase tracking-widest font-black text-gray-400">
+                                  Package #{index + 1}
+                                </span>
+                                {formik.values.packages.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => arrayHelpers.remove(index)}
+                                    className="w-8 h-8 flex items-center justify-center bg-red-100 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                  >
+                                    <FiTrash2 className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-bold text-gray-700 mb-2">
+                                  Package Type
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                  {PACKAGE_PRESETS.map((preset) => (
+                                    <button
+                                      key={preset.id}
+                                      type="button"
+                                      onClick={() => {
+                                        formik.setFieldValue(`packages.${index}.selectedPreset`, preset.id);
+                                        if (preset.id !== "custom") {
+                                          formik.setFieldValue(`packages.${index}.weight`, preset.weight);
+                                          formik.setFieldValue(`packages.${index}.dimensions`, preset.dims);
+                                        }
+                                      }}
+                                      className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${
+                                        pkg.selectedPreset === preset.id
+                                          ? "border-brand-blue bg-brand-blue/5 text-brand-blue ring-1 ring-brand-blue"
+                                          : "border-gray-200 hover:border-brand-blue/50 text-gray-600 bg-white"
+                                      }`}
+                                    >
+                                      <span className="text-2xl mb-1">{preset.icon}</span>
+                                      <span className="text-xs font-medium">
+                                        {preset.name}
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                  <label className="block text-xs font-bold text-gray-700">
+                                    Dimensions ({formik.values.globalDimUnit})
+                                  </label>
+                                  <div className="grid grid-cols-3 gap-3">
+                                    <input
+                                      type="number"
+                                      name={`packages.${index}.dimensions.length`}
+                                      value={pkg.dimensions.length}
+                                      onChange={formik.handleChange}
+                                      placeholder="L"
+                                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center bg-white"
+                                      disabled={pkg.selectedPreset !== "custom"}
+                                    />
+                                    <input
+                                      type="number"
+                                      name={`packages.${index}.dimensions.width`}
+                                      value={pkg.dimensions.width}
+                                      onChange={formik.handleChange}
+                                      placeholder="W"
+                                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center bg-white"
+                                      disabled={pkg.selectedPreset !== "custom"}
+                                    />
+                                    <input
+                                      type="number"
+                                      name={`packages.${index}.dimensions.height`}
+                                      value={pkg.dimensions.height}
+                                      onChange={formik.handleChange}
+                                      placeholder="H"
+                                      className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center bg-white"
+                                      disabled={pkg.selectedPreset !== "custom"}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <label className="block text-xs font-bold text-gray-700">
+                                    Weight ({formik.values.globalWeightUnit})
+                                  </label>
+                                  <input
+                                    type="number"
+                                    name={`packages.${index}.weight`}
+                                    value={pkg.weight}
+                                    onChange={formik.handleChange}
+                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none bg-white"
+                                    disabled={pkg.selectedPreset !== "custom"}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              arrayHelpers.push({
+                                id: uuidv4(),
+                                selectedPreset: "envelope",
+                                weight: PACKAGE_PRESETS[0].weight,
+                                dimensions: PACKAGE_PRESETS[0].dims,
+                              })
+                            }
+                            className="w-full h-12 border-dashed border-2 border-brand-blue/30 text-brand-blue font-bold hover:bg-brand-blue/5 rounded-xl flex items-center justify-center gap-2 bg-white"
+                          >
+                            <FiPlus /> Add Another Package
+                          </Button>
+                        </div>
+                      )}
+                    />
                   </div>
 
                   <Button
@@ -503,13 +581,11 @@ function ShippingEstimateContent() {
                             <p className="text-[10px] uppercase font-bold text-white/40 mb-2">
                               Carrier Feedback
                             </p>
-                            {estimateData.errors.map(
-                              (err: { details: string }, i: number) => (
-                                <p key={i} className="text-xs text-white/80">
-                                  • {err.details}
-                                </p>
-                              ),
-                            )}
+                            {estimateData.errors.map((err, i) => (
+                              <p key={i} className="text-xs text-white/80">
+                                • {err.details}
+                              </p>
+                            ))}
                           </div>
                         )}
                       <Button

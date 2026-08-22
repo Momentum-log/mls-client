@@ -11,7 +11,7 @@ import {
   FiCreditCard,
 } from "react-icons/fi";
 import { Address, Package } from "@/store/shipment-store";
-import { Rate } from "@/types/shipping";
+import { ShippingTier } from "@/types/shipping";
 import Button from "@/components/ui/button";
 import { formatCurrencyCompact } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
@@ -21,8 +21,8 @@ interface SummaryDrawerProps {
   onClose: () => void;
   sender: Address | null;
   recipient: Address | null;
-  pkg: Package | null;
-  rate: Rate | null;
+  packages: Package[];
+  tier: ShippingTier | null;
   onFinalize: (paymentMethod: "stripe" | "payu") => void;
   isLoading?: boolean;
 }
@@ -36,21 +36,26 @@ export default function SummaryDrawer({
   onClose,
   sender,
   recipient,
-  pkg,
-  rate,
+  packages = [],
+  tier,
   onFinalize,
   isLoading,
 }: SummaryDrawerProps) {
   const isPolishUser = sender?.country?.toUpperCase() === "PL";
+  const isEUR = tier?.currency === "EUR";
   const [paymentMethod, setPaymentMethod] = React.useState<"stripe" | "payu">(
     "stripe",
   );
 
   React.useEffect(() => {
     if (isOpen) {
-      setPaymentMethod(isPolishUser ? "payu" : "stripe");
+      if (isEUR) {
+        setPaymentMethod("stripe");
+      } else {
+        setPaymentMethod(isPolishUser ? "payu" : "stripe");
+      }
     }
-  }, [isPolishUser, isOpen]);
+  }, [isPolishUser, isOpen, isEUR]);
 
   return (
     <AnimatePresence>
@@ -130,45 +135,49 @@ export default function SummaryDrawer({
                 <div className="flex items-center gap-2">
                   <FiPackage className="text-brand-blue" />
                   <h4 className="text-xs font-black uppercase tracking-widest text-gray-500">
-                    Package Spec
+                    Package Specifications
                   </h4>
                 </div>
-                <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
-                    <span className="text-sm font-medium text-gray-500">
-                      Description
-                    </span>
-                    <span className="text-sm font-bold text-gray-900">
-                      {pkg?.description}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-tight text-gray-400 mb-1">
-                        Weight
-                      </p>
-                      <p className="text-base font-black text-gray-900">
-                        {pkg?.weight} <span className="text-[10px]">KG</span>
-                      </p>
+                <div className="space-y-3">
+                  {packages.map((pkgItem, index) => (
+                    <div key={pkgItem.id || index} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                      <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-50">
+                        <span className="text-sm font-medium text-gray-500">
+                          Package #{index + 1} Description
+                        </span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {pkgItem.description || "N/A"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <p className="text-[10px] font-black uppercase tracking-tight text-gray-400 mb-1">
+                            Weight
+                          </p>
+                          <p className="text-base font-black text-gray-900">
+                            {pkgItem.weight} <span className="text-[10px]">KG</span>
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <p className="text-[10px] font-black uppercase tracking-tight text-gray-400 mb-1">
+                            Dims
+                          </p>
+                          <p className="text-xs font-black text-gray-900">
+                            {pkgItem.length}x{pkgItem.width}x{pkgItem.height}
+                          </p>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-3">
+                          <p className="text-[10px] font-black uppercase tracking-tight text-gray-400 mb-1">
+                            Value
+                          </p>
+                          <p className="text-base font-black text-gray-900">
+                            {pkgItem.value}{" "}
+                            <span className="text-[10px]">{pkgItem.currency}</span>
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-tight text-gray-400 mb-1">
-                        Dims
-                      </p>
-                      <p className="text-xs font-black text-gray-900">
-                        {pkg?.length}x{pkg?.width}x{pkg?.height}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black uppercase tracking-tight text-gray-400 mb-1">
-                        Value
-                      </p>
-                      <p className="text-base font-black text-gray-900">
-                        {pkg?.value}{" "}
-                        <span className="text-[10px]">{pkg?.currency}</span>
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -186,24 +195,29 @@ export default function SummaryDrawer({
                   </div>
                   <div className="relative z-10">
                     <h5 className="text-xl font-black tracking-tight">
-                      {rate?.serviceName}
+                      {tier?.label}
                     </h5>
                     <p className="text-brand-yellow text-xs font-bold uppercase tracking-widest mt-1">
-                      {rate?.deliveryDescription || "Standard Express"}
+                      {tier?.deliveryDescription || "Standard Express"}
                     </p>
                     <div className="mt-6 flex items-baseline gap-2 border-t border-white/10 pt-4">
                       <span className="text-3xl font-black text-white">
                         {formatCurrencyCompact(
-                          rate?.actualPrice as number,
-                          rate?.currency as SupportedCurrency,
+                          tier?.actualPrice as number,
+                          tier?.currency as SupportedCurrency,
                         )}
                       </span>
                       <span className="text-sm font-bold opacity-60 uppercase">
-                        {rate?.currency}
+                        {tier?.currency}
                       </span>
                     </div>
                   </div>
                 </div>
+
+                <p className="text-xs text-gray-500 font-medium leading-relaxed px-1">
+                  After payment you&apos;ll get a printable label and choose how
+                  to send it — drop it off yourself, or book a courier pickup.
+                </p>
               </div>
 
               {/* Payment Method Selector */}
@@ -250,10 +264,12 @@ export default function SummaryDrawer({
                   </label>
 
                   <label
-                    className={`flex p-4 border rounded-xl cursor-pointer transition-all ${
-                      paymentMethod === "payu"
-                        ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
-                        : "border-gray-200 hover:border-brand-blue/50"
+                    className={`flex p-4 border rounded-xl transition-all ${
+                      isEUR
+                        ? "border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed"
+                        : paymentMethod === "payu"
+                        ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue cursor-pointer"
+                        : "border-gray-200 hover:border-brand-blue/50 cursor-pointer"
                     }`}
                   >
                     <div className="flex items-center h-5">
@@ -261,8 +277,9 @@ export default function SummaryDrawer({
                         type="radio"
                         name="paymentMethod"
                         value="payu"
-                        className="w-4 h-4 text-brand-blue border-gray-300 focus:ring-brand-blue"
+                        className="w-4 h-4 text-brand-blue border-gray-300 focus:ring-brand-blue disabled:opacity-50"
                         checked={paymentMethod === "payu"}
+                        disabled={isEUR}
                         onChange={(e) =>
                           setPaymentMethod(e.target.value as "stripe" | "payu")
                         }
@@ -273,10 +290,10 @@ export default function SummaryDrawer({
                         PayU
                       </span>
                       <span className="block text-xs text-gray-500 mt-1">
-                        BLIK, Bank transfer, Polish cards
+                        {isEUR ? "PayU only supports PLN payments" : "BLIK, Bank transfer, Polish cards"}
                       </span>
                     </div>
-                    {isPolishUser && (
+                    {isPolishUser && !isEUR && (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-800 self-start">
                         Recommended
                       </span>

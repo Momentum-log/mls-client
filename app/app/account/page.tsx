@@ -4,10 +4,8 @@ import ProfileForm from "@/components/account/ProfileForm";
 import ProfileCard from "@/components/account/ProfileCard";
 import AccountStack, { AccountCard } from "@/components/account/AccountStack";
 import VerificationBanner from "@/components/account/VerificationBanner";
-import AddressVerificationBanner from "@/components/account/AddressVerificationBanner";
 import LogoutAction from "@/components/account/LogoutAction";
 import ChangePasswordForm from "@/components/account/ChangePasswordForm";
-import AddressVerificationSection from "@/components/account/AddressVerificationSection";
 import { useAuthStore } from "@/store/auth-store";
 
 /**
@@ -39,8 +37,6 @@ export default function AccountPage() {
       <AccountStack>
         {!user.is_verified && <VerificationBanner />}
 
-        <AddressVerificationBanner />
-
         <ProfileCard user={user} />
 
         <AccountCard
@@ -50,12 +46,7 @@ export default function AccountPage() {
           <ProfileForm />
         </AccountCard>
 
-        <AccountCard
-          title="Address Verification"
-          description="Submit a proof document to activate or update your shipment address."
-        >
-          <AddressVerificationSection />
-        </AccountCard>
+
 
         <AccountCard
           title="Security"

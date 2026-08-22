@@ -167,6 +167,30 @@ export default function PaymentSuccessPage() {
         isRequestingShipmentInvoice={isRequestingInvoice}
       />
 
+      {/* Arrange collection — the next step, on the shipment page */}
+      {shipmentId && (
+        <div className="mt-8 bg-brand-blue/5 border border-brand-blue/15 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-foreground mb-1">
+              One more step: how should we collect it?
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Print your label, then either drop the parcel off or book a
+              courier pickup.
+            </p>
+          </div>
+          <Button
+            onClick={() =>
+              router.push(`/app/shipments/${shipmentId}#fulfillment`)
+            }
+            variant="default"
+            className="shrink-0"
+          >
+            Arrange Collection
+          </Button>
+        </div>
+      )}
+
       {/* Next Steps */}
       <div className="mt-12 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-8">
         <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-4">
@@ -176,8 +200,8 @@ export default function PaymentSuccessPage() {
           <li className="flex gap-3">
             <span className="text-base">✓</span>
             <span>
-              Your shipment will be picked up according to the schedule you
-              selected.
+              Your label is being prepared. Once it&apos;s ready you can print
+              it and choose how to send the parcel.
             </span>
           </li>
           <li className="flex gap-3">

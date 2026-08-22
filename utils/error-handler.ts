@@ -369,3 +369,136 @@ export const formatErrorForLogging = (
   }
   console.groupEnd();
 };
+
+/**
+ * Why a fulfillment request was refused.
+ *
+ * The five fulfillment endpoints share a precondition ladder, and three of the
+ * outcomes are all 409s distinguished only by their message. That is fragile —
+ * a stable `code` field from the server would be better — but the three mean
+ * very different things to the customer, so matching the message is worth it
+ * over collapsing them into one unhelpful "conflict".
+ */
+export type FulfillmentErrorReason =
+  | "NOT_PAID"
+  | "LABEL_PENDING"
+  | "IN_TRANSIT"
+  | "NOT_SUPPORTED"
+  | "NOT_FOUND"
+  | "CARRIER_ERROR"
+  | "UNAUTHORIZED"
+  | "VALIDATION"
+  | "UNKNOWN";
+
+export interface FulfillmentError {
+  reason: FulfillmentErrorReason;
+  userMessage: string;
+  /** Whether the same call could plausibly succeed shortly. */
+  isRetryable: boolean;
+}
+
+export const parseFulfillmentError = (
+  statusCode: number | undefined,
+  message = "",
+): FulfillmentError => {
+  const text = message.toLowerCase();
+
+  if (statusCode === 409) {
+    if (text.includes("label")) {
+      return {
+        reason: "LABEL_PENDING",
+        userMessage:
+          "Your label is still being created. This usually takes a moment.",
+        isRetryable: true,
+      };
+    }
+    if (text.includes("transit") || text.includes("moved")) {
+      return {
+        reason: "IN_TRANSIT",
+        userMessage:
+          "This parcel is already on its way, so collection can no longer be changed.",
+        isRetryable: false,
+      };
+    }
+    return {
+      reason: "NOT_PAID",
+      userMessage:
+        "Payment hasn't completed for this shipment yet. Collection can be arranged once it has.",
+      isRetryable: false,
+    };
+  }
+
+  if (statusCode === 403) {
+    return {
+      reason: "NOT_SUPPORTED",
+      userMessage:
+        "This shipment's carrier doesn't offer that option. Please use the other one.",
+      isRetryable: false,
+    };
+  }
+
+  // The server deliberately does not distinguish "missing" from "not yours".
+  if (statusCode === 404) {
+    return {
+      reason: "NOT_FOUND",
+      userMessage: "We couldn't find this shipment.",
+      isRetryable: false,
+    };
+  }
+
+  if (statusCode === 401) {
+    return {
+      reason: "UNAUTHORIZED",
+      userMessage: "Your session has expired. Please log in again.",
+      isRetryable: false,
+    };
+  }
+
+  if (statusCode === 502) {
+    return {
+      reason: "CARRIER_ERROR",
+      userMessage:
+        message ||
+        "The carrier couldn't process that request. Your shipment is unaffected — please try again or drop the parcel off instead.",
+      isRetryable: true,
+    };
+  }
+
+  if (statusCode === 400) {
+    return {
+      reason: "VALIDATION",
+      userMessage: message || "Please check the details and try again.",
+      isRetryable: false,
+    };
+  }
+
+  return {
+    reason: "UNKNOWN",
+    userMessage: message || "Something went wrong. Please try again.",
+    isRetryable: true,
+  };
+};
+
+/** Pulls status + message out of an axios-shaped error. */
+export const extractApiError = (
+  error: unknown,
+): { statusCode?: number; message: string } => {
+  if (error && typeof error === "object" && "response" in error) {
+    const res = (
+      error as {
+        response?: {
+          status?: number;
+          data?: { error?: string; details?: string; message?: string };
+        };
+      }
+    ).response;
+
+    return {
+      statusCode: res?.status,
+      message:
+        res?.data?.details || res?.data?.error || res?.data?.message || "",
+    };
+  }
+
+  return { message: error instanceof Error ? error.message : "" };
+};

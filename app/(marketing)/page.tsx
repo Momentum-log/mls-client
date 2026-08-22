@@ -1,30 +1,40 @@
-import Hero from "@/components/home/hero";
-import HowItWorks from "@/components/home/how-it-works";
-import ValueProp from "@/components/home/value-prop";
-import CTASection from "@/components/home/cta-section";
+import LandingHero from "@/components/landing/landing-hero";
+import LandingVideo from "@/components/landing/landing-video";
+import LandingPartners from "@/components/landing/landing-partners";
+import LandingInquiryForm from "@/components/landing/landing-inquiry-form";
+import LandingCompany from "@/components/landing/landing-company";
+import LandingSustainability from "@/components/landing/landing-sustainability";
 import FAQSection from "@/components/shared/faq-section";
-import HeavyFreightSection from "@/components/home/heavy-freight-section";
 
+/**
+ * Momentum Logistics landing page.
+ *
+ * Header and footer come from `app/(marketing)/layout.tsx` — do not add them here.
+ * The previous landing page is preserved at `/legacy-home`.
+ */
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <main>
-        {/* Hero Section */}
-        <Hero />
+        {/* Hero — primary CTA routes to the instant shipment quote flow */}
+        <LandingHero />
 
-        {/* Value Propositions Section */}
-        <ValueProp />
+        {/* Company video */}
+        <LandingVideo />
 
-        {/* How it works */}
-        <HowItWorks />
+        {/* Official carrier partners */}
+        <LandingPartners />
 
-        {/* Heavy Freight Section */}
-        <HeavyFreightSection />
+        {/* Become a partner — live freight enquiry form */}
+        <LandingInquiryForm />
 
-        {/* CTA Section */}
-        <CTASection />
+        {/* About Momentum */}
+        <LandingCompany />
 
-        {/* FAQ Section */}
+        {/* Sustainability & ESG */}
+        <LandingSustainability />
+
+        {/* FAQ */}
         <FAQSection />
       </main>
     </div>

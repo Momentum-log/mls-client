@@ -39,7 +39,7 @@ export const packageDetailsSchema = z.object({
 export const shippingEstimatePayloadSchema = z.object({
   pickup: addressSchema,
   dropoff: addressSchema,
-  package: packageDetailsSchema,
+  packages: z.array(packageDetailsSchema).min(1, "At least one package is required"),
   guestId: z.string().min(1, "Guest ID is required"),
   userCountryCode: z.string().length(2).optional(),
   email: z.string().email().optional(),
@@ -67,15 +67,20 @@ export const shippingFormSchema = z.object({
     postalCode: z.string().min(1, "Zip code is required"),
     street: z.string().min(1, "Street address is required"),
   }),
-  selectedPreset: z.string(),
-  package: z.object({
-    weight: z.number().min(0.1, "Weight must be greater than 0"),
-    dimensions: z.object({
-      length: z.number().min(1, "Length must be at least 1"),
-      width: z.number().min(1, "Width must be at least 1"),
-      height: z.number().min(1, "Height must be at least 1"),
-    }),
-  }),
+  globalWeightUnit: z.enum(["KG", "LB"]).default("KG"),
+  globalDimUnit: z.enum(["CM", "IN"]).default("CM"),
+  packages: z.array(
+    z.object({
+      id: z.string(),
+      selectedPreset: z.string(),
+      weight: z.number().min(0.1, "Weight must be greater than 0"),
+      dimensions: z.object({
+        length: z.number().min(1, "Length must be at least 1"),
+        width: z.number().min(1, "Width must be at least 1"),
+        height: z.number().min(1, "Height must be at least 1"),
+      }),
+    })
+  ).min(1, "At least one package is required"),
   isStackable: z.boolean(),
 });
 

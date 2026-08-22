@@ -1,12 +1,5 @@
 import { ShippingEstimateResponse } from "@/types/shipping";
-import {
-  CreateShipmentPayload,
-  CustomsData,
-  InternationalShipmentPayload,
-  LocalShipmentPayload,
-  ShipmentMutationPayload,
-  ShippingEstimatePayload,
-} from "@/types/shipping";
+import { CustomsData, ShippingEstimatePayload } from "@/types/shipping";
 import {
   deepBrandCarrierDisplay,
   toDisplayCarrierName,
@@ -94,13 +87,17 @@ interface EstimateLocationInput {
 }
 
 interface EstimatePackageInput {
-  weight: ShippingEstimatePayload["package"]["weight"];
-  dimensions: ShippingEstimatePayload["package"]["dimensions"];
+  weight: {
+    value: number;
+    units: string;
+  };
+  dimensions: {
+    length: number;
+    width: number;
+    height: number;
+    units: string;
+  };
 }
-
-type CreatePayloadInput = Omit<ShipmentMutationPayload, "customs"> & {
-  customs?: CustomsData;
-};
 
 /**
  * Checks if a shipment is international based on country codes.
@@ -114,53 +111,24 @@ export const checkIfInternational = (
 };
 
 /**
- * Constructs the payload for creating a shipment.
- * Enforces 'customs' only for international routes.
- */
-export const getPayload = (
-  isInternational: boolean,
-  data: CreatePayloadInput,
-): CreateShipmentPayload => {
-  if (isInternational) {
-    if (!data.customs) {
-      throw new Error(
-        "Customs data is required for international shipment payloads.",
-      );
-    }
-
-    const payload: InternationalShipmentPayload = {
-      ...data,
-      customs: data.customs,
-    };
-    return payload;
-  } else {
-    // For local shipments, customs MUST be absent
-    const { customs, ...rest } = data;
-    const payload: LocalShipmentPayload = {
-      ...rest,
-    };
-    return payload;
-  }
-};
-
-/**
  * Constructs the payload for getting shipping estimates.
- * Follows the standard structure: pickup, dropoff, package, guestId.
+ * Follows the standard structure: pickup, dropoff, packages, guestId.
  * Strips contact and customs information.
  *
  * @param pickup - Pickup location details (countryCode, stateOrProvinceCode, city)
  * @param dropoff - Dropoff location details (countryCode, stateOrProvinceCode, city)
- * @param pkg - Package weight and dimensions
+ * @param packages - Array of package weights and dimensions
  * @param guestId - Guest identifier for non-authenticated users
  * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency
  */
 export const getEstimatePayload = (
   pickup: EstimateLocationInput,
   dropoff: EstimateLocationInput,
-  pkg: EstimatePackageInput,
+  packages: EstimatePackageInput[],
   guestId: string,
   userCountryCode?: string,
   customs?: CustomsData,
+  currency?: string,
 ): ShippingEstimatePayload => {
   return {
     pickup: {
@@ -191,13 +159,11 @@ export const getEstimatePayload = (
         email: "",
       },
     },
-    package: {
-      weight: pkg.weight,
-      dimensions: pkg.dimensions,
-    },
+    packages: packages,
     guestId,
     ...(userCountryCode && { userCountryCode }),
     ...(customs && { customs }),
+    ...(currency && { currency }),
     email: pickup.email,
     phone: pickup.phoneNumber,
   };

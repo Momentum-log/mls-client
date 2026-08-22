@@ -11,12 +11,22 @@
 
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiX, FiTruck, FiCreditCard, FiCheck, FiLoader } from "react-icons/fi";
+import { FiX, FiCreditCard, FiCheck } from "react-icons/fi";
 import { CreateShipmentResponse, Invoice } from "@/types/invoice";
-import { CustomsData, Rate } from "@/types/shipping";
-import { useCountryStore } from "@/store/country-store";
+import {
+  CustomsData,
+  ShippingEstimateResponse,
+  ShippingTier,
+  TIER_KEYS,
+} from "@/types/shipping";
+import {
+  buildCreateShipmentPayload,
+  type FlatAddress,
+} from "@/utils/create-shipment-payload";
+import TierSelection from "@/components/shipment/tier-selection";
+import useUserCountryCode from "@/hooks/use-user-country-code";
 import {
   useGetShippingEstimate,
   useCreateShipment,
@@ -25,8 +35,6 @@ import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import { useToast } from "@/hooks/use-toast";
 import { deepTransformData } from "@/utils/data-transform";
-import { formatCurrencyCompact } from "@/utils/currency-formatter";
-import { SupportedCurrency } from "@/types/country";
 import Button from "@/components/ui/button";
 
 interface ShipmentModalAddress {
@@ -47,6 +55,22 @@ interface ShipmentModalAddress {
   };
 }
 
+/**
+ * Collapses either address shape this modal receives — canonical (from a
+ * fetched shipment) or flat (from a form) — into the flat shape the shared
+ * payload builder expects.
+ */
+const toFlatAddress = (address: ShipmentModalAddress): FlatAddress => ({
+  name: address.contact?.personName || address.name || "",
+  company: address.contact?.companyName || address.company || "",
+  phone: address.contact?.phoneNumber || address.phone || "",
+  street: address.streetLines?.[0] || address.street || "",
+  city: address.city || "",
+  postalCode: address.postalCode || "",
+  country: address.countryCode || address.country || "",
+  stateOrProvinceCode: address.stateOrProvinceCode || "",
+});
+
 interface ShipmentModalPackage {
   weight?: { value?: number; units?: string } | number;
   dimensions?: {
@@ -63,6 +87,7 @@ interface ShipmentUpdateSource {
   sender?: ShipmentModalAddress;
   recipient?: ShipmentModalAddress;
   package?: ShipmentModalPackage;
+  packages?: ShipmentModalPackage[];
   weight?: { value?: number; units?: string };
   dimensions?: {
     length?: number;
@@ -119,16 +144,28 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
   invoiceId,
   onUpdateSuccess,
 }) => {
-  const { countryCode } = useCountryStore();
+  const pickupCountry = shipment
+    ? (shipment.pickupAddress?.countryCode ||
+       shipment.pickupAddress?.country ||
+       shipment.sender?.countryCode ||
+       shipment.sender?.country)
+    : undefined;
+  const { countryCode } = useUserCountryCode(pickupCountry);
   const { addToast } = useToast();
 
-  const [rates, setRates] = useState<Rate[]>([]);
-  const [selectedRate, setSelectedRate] = useState<Rate | null>(null);
+  const [estimate, setEstimate] = useState<ShippingEstimateResponse | null>(
+    null,
+  );
+  const [selectedTier, setSelectedTier] = useState<ShippingTier | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"stripe" | "payu">(
     countryCode === "PL" ? "payu" : "stripe",
   );
 
   const isPolishUser = countryCode === "PL";
+  // PayU settles in PLN only, so a EUR quote must not offer it. The
+  // new-shipment drawer already enforces this; without it here the same
+  // shipment could be re-submitted through a gateway that cannot take it.
+  const isEUR = selectedTier?.currency === "EUR";
 
   // Rate estimation
   const { mutate: getRates, isPending: isCalculatingRates } =
@@ -137,29 +174,36 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
   // Create/update shipment
   const { mutate: performUpdate, isPending: isUpdating } = useCreateShipment();
 
-  // Transformed rates for display
-  const displayRates = useMemo(() => deepTransformData(rates), [rates]);
+  // Branding is display-only; routingRef is on the skip list and stays intact.
+  const displayTiers = useMemo(
+    () => (estimate?.tiers ? deepTransformData(estimate.tiers) : undefined),
+    [estimate],
+  );
+
+  // Carrier errors are customer-facing too, and carry the carrier's real name
+  // in their text ("FedEx Rate Error: 400"). Brand them like everything else.
+  const displayErrors = useMemo(
+    () => (estimate?.errors ? deepTransformData(estimate.errors) : undefined),
+    [estimate],
+  );
 
   /**
-   * Extracts address and package data from the original shipment
-   * and fetches fresh rates
+   * Re-quotes the original shipment's route.
+   *
+   * Called on open, and again when the server refuses a stale quote — the
+   * price may have moved since the modal was opened.
    */
-  useEffect(() => {
-    if (!isOpen || !shipment) return;
+  const refreshRates = useCallback(() => {
+    if (!shipment) return;
 
-    // Reset state
-    setRates([]);
-    setSelectedRate(null);
+    setEstimate(null);
+    setSelectedTier(null);
 
     // Extract shipment data for rate calculation
     const pickupAddress = shipment.pickupAddress || shipment.sender;
     const dropoffAddress = shipment.dropoffAddress || shipment.recipient;
-    const pkg = shipment.package || {
-      weight: shipment.weight,
-      dimensions: shipment.dimensions,
-    };
 
-    if (!pickupAddress || !dropoffAddress || !pkg) {
+    if (!pickupAddress || !dropoffAddress) {
       addToast({
         title: "Missing Data",
         message: "Could not extract shipment details for rate calculation.",
@@ -168,10 +212,30 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       return;
     }
 
-    const weightValue =
-      typeof pkg.weight === "number" ? pkg.weight : (pkg.weight?.value ?? 1);
-    const weightUnits =
-      typeof pkg.weight === "number" ? "KG" : (pkg.weight?.units ?? "KG");
+    const shipmentPackages = shipment.packages || (shipment.package ? [shipment.package] : []);
+    const finalPackages = shipmentPackages.length > 0 ? shipmentPackages : [
+      {
+        weight: typeof shipment.weight === "number" ? { value: shipment.weight, units: "KG" } : shipment.weight,
+        dimensions: shipment.dimensions,
+      }
+    ];
+
+    const formattedPackages = finalPackages.map((p: ShipmentModalPackage) => {
+      const wVal = typeof p.weight === "number" ? p.weight : (p.weight?.value ?? 1);
+      const wUnits = typeof p.weight === "number" ? "KG" : (p.weight?.units ?? "KG");
+      return {
+        weight: {
+          value: wVal,
+          units: wUnits,
+        },
+        dimensions: {
+          length: p.dimensions?.length || 10,
+          width: p.dimensions?.width || 10,
+          height: p.dimensions?.height || 10,
+          units: p.dimensions?.units || "CM",
+        },
+      };
+    });
 
     const payload = getEstimatePayload(
       {
@@ -190,18 +254,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
           dropoffAddress.street || "",
         ],
       },
-      {
-        weight: {
-          value: weightValue,
-          units: weightUnits,
-        },
-        dimensions: {
-          length: pkg.dimensions?.length || 10,
-          width: pkg.dimensions?.width || 10,
-          height: pkg.dimensions?.height || 10,
-          units: pkg.dimensions?.units || "CM",
-        },
-      },
+      formattedPackages,
       getOrSetGuestId(),
       countryCode || undefined,
       shipment.customs || undefined,
@@ -209,7 +262,7 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
 
     getRates(payload, {
       onSuccess: (data) => {
-        setRates(data.rates || []);
+        setEstimate(data);
       },
       onError: () => {
         addToast({
@@ -220,22 +273,41 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shipment, countryCode]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    refreshRates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, shipment]);
 
   /**
-   * Submits the update payload with the new rate + existing IDs
+   * Resolves the branded tier the user clicked back to the raw one, so the
+   * routingRef reaches the server exactly as it was issued.
+   */
+  const handleTierSelect = (tier: ShippingTier) => {
+    const rawTier =
+      TIER_KEYS.map((key) => estimate?.tiers?.[key]).find(
+        (candidate) => candidate?.routingRef === tier.routingRef,
+      ) ?? tier;
+
+    setSelectedTier(rawTier);
+
+    if (rawTier.currency === "EUR" && paymentMethod === "payu") {
+      setPaymentMethod("stripe");
+    }
+  };
+
+  /**
+   * Submits the update payload with the new tier + existing IDs
    */
   const handleConfirmUpdate = () => {
-    if (!selectedRate || !shipment) return;
+    if (!selectedTier || !shipment || !estimate) return;
 
     const pickupAddress = shipment.pickupAddress || shipment.sender;
     const dropoffAddress = shipment.dropoffAddress || shipment.recipient;
-    const pkg = shipment.package || {
-      weight: shipment.weight,
-      dimensions: shipment.dimensions,
-    };
 
-    if (!pickupAddress || !dropoffAddress || !pkg) {
+    if (!pickupAddress || !dropoffAddress) {
       addToast({
         title: "Missing Data",
         message: "Could not prepare shipment update payload.",
@@ -244,81 +316,48 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       return;
     }
 
-    const weightValue =
-      typeof pkg.weight === "number" ? pkg.weight : (pkg.weight?.value ?? 1);
-    const weightUnits =
-      typeof pkg.weight === "number" ? "KG" : (pkg.weight?.units ?? "KG");
+    const shipmentPackages = shipment.packages || (shipment.package ? [shipment.package] : []);
+    const finalPackages = shipmentPackages.length > 0 ? shipmentPackages : [
+      {
+        weight: typeof shipment.weight === "number" ? { value: shipment.weight, units: "KG" } : shipment.weight,
+        dimensions: shipment.dimensions,
+      }
+    ];
+
+    const formattedPackages = finalPackages.map((p: ShipmentModalPackage) => {
+      const wVal = typeof p.weight === "number" ? p.weight : (p.weight?.value ?? 1);
+      const wUnits = typeof p.weight === "number" ? "KG" : (p.weight?.units ?? "KG");
+      return {
+        weight: {
+          value: wVal,
+          units: wUnits,
+        },
+        dimensions: {
+          length: p.dimensions?.length || 10,
+          width: p.dimensions?.width || 10,
+          height: p.dimensions?.height || 10,
+          units: p.dimensions?.units || "CM",
+        },
+      };
+    });
 
     const isInternational =
       (pickupAddress?.countryCode || pickupAddress?.country) !==
       (dropoffAddress?.countryCode || dropoffAddress?.country);
 
-    const payload = {
-      carrierSlug:
-        selectedRate.carrierSlug ||
-        selectedRate.carrier?.toLowerCase().replace(/\s+/g, "-") ||
-        "fedex",
-      pickupAddress: {
-        streetLines: pickupAddress.streetLines || [pickupAddress.street || ""],
-        city: pickupAddress.city || "",
-        stateOrProvinceCode: pickupAddress.stateOrProvinceCode || "",
-        postalCode: pickupAddress.postalCode || "",
-        countryCode: pickupAddress.countryCode || pickupAddress.country || "",
-        residential: false,
-        contact: {
-          personName:
-            pickupAddress.contact?.personName || pickupAddress.name || "",
-          phoneNumber:
-            pickupAddress.contact?.phoneNumber || pickupAddress.phone || "",
-          companyName:
-            pickupAddress.contact?.companyName || pickupAddress.company || "",
-        },
-      },
-      dropoffAddress: {
-        streetLines: dropoffAddress.streetLines || [
-          dropoffAddress.street || "",
-        ],
-        city: dropoffAddress.city || "",
-        stateOrProvinceCode: dropoffAddress.stateOrProvinceCode || "",
-        postalCode: dropoffAddress.postalCode || "",
-        countryCode: dropoffAddress.countryCode || dropoffAddress.country || "",
-        residential: false,
-        contact: {
-          personName:
-            dropoffAddress.contact?.personName || dropoffAddress.name || "",
-          phoneNumber:
-            dropoffAddress.contact?.phoneNumber || dropoffAddress.phone || "",
-          companyName:
-            dropoffAddress.contact?.companyName || dropoffAddress.company || "",
-        },
-      },
-      package: {
-        weight: {
-          value: weightValue,
-          units: weightUnits,
-        },
-        dimensions: {
-          length: pkg.dimensions?.length || 10,
-          width: pkg.dimensions?.width || 10,
-          height: pkg.dimensions?.height || 10,
-          units: pkg.dimensions?.units || "CM",
-        },
-      },
-      rate: {
-        carrier: selectedRate.carrier,
-        serviceType: selectedRate.serviceType,
-        serviceName: selectedRate.serviceName,
-        carrierPrice: selectedRate.carrierPrice,
-        actualPrice: selectedRate.actualPrice,
-        currency: selectedRate.currency,
-      },
+    const payload = buildCreateShipmentPayload({
+      estimateId: estimate.estimateId,
+      routingRef: selectedTier.routingRef,
+      sender: toFlatAddress(pickupAddress),
+      recipient: toFlatAddress(dropoffAddress),
+      packages: formattedPackages,
       customs: isInternational ? shipment.customs : undefined,
       userCountryCode: countryCode,
       preferredPaymentOption: paymentMethod,
-      // ✅ These trigger the UPDATE flow
+      // These trigger the UPDATE flow
       shipmentId,
       invoiceId,
-    };
+    });
 
     performUpdate(payload, {
       onSuccess: (data) => {
@@ -333,11 +372,33 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
       },
       onError: (error: unknown) => {
         let msg = "Unable to update shipment. Please try again.";
+        let status: number | undefined;
+
         if (error && typeof error === "object" && "response" in error) {
-          const res = (error as { response?: { data?: { error?: string } } })
-            .response;
+          const res = (
+            error as {
+              response?: { status?: number; data?: { error?: string } };
+            }
+          ).response;
+          status = res?.status;
           if (res?.data?.error) msg = res.data.error;
         }
+
+        // The quote aged out while the modal was open. Re-run the estimate the
+        // modal already fetches on open; retrying the same routingRef cannot
+        // succeed.
+        if (status === 409) {
+          setSelectedTier(null);
+          refreshRates();
+          addToast({
+            title: "Prices Have Changed",
+            message:
+              "That quote expired. We're fetching current prices — please choose again.",
+            type: "error",
+          });
+          return;
+        }
+
         addToast({
           title: "Update Failed",
           message: msg,
@@ -389,94 +450,18 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
 
               {/* Rates List */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                {/* Loading */}
-                {isCalculatingRates && (
-                  <div className="py-16 flex flex-col items-center gap-4">
-                    <FiLoader className="w-8 h-8 text-brand-blue animate-spin" />
-                    <p className="text-sm text-gray-500 font-medium">
-                      Calculating fresh rates…
-                    </p>
-                  </div>
-                )}
-
-                {/* Empty state */}
-                {!isCalculatingRates && displayRates.length === 0 && (
-                  <div className="py-16 text-center">
-                    <FiTruck className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-sm text-gray-500 font-medium">
-                      No rates available. Please try again later.
-                    </p>
-                  </div>
-                )}
-
-                {/* Rate Cards */}
-                {!isCalculatingRates && displayRates.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      Available Services
-                    </p>
-                    {displayRates.map((rate: Rate) => {
-                      const isSelected =
-                        selectedRate?.serviceType === rate.serviceType;
-                      // Find original (non-transformed) rate for payload
-                      const originalRate =
-                        rates.find((r) => r.serviceType === rate.serviceType) ||
-                        rate;
-
-                      return (
-                        <button
-                          key={rate.serviceType}
-                          onClick={() => setSelectedRate(originalRate)}
-                          className={`w-full text-left p-5 rounded-2xl border-2 transition-all ${
-                            isSelected
-                              ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
-                              : "border-gray-100 hover:border-brand-blue/30 bg-white"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                  isSelected
-                                    ? "bg-brand-blue text-white"
-                                    : "bg-gray-100 text-gray-500"
-                                }`}
-                              >
-                                {isSelected ? (
-                                  <FiCheck className="w-5 h-5" />
-                                ) : (
-                                  <FiTruck className="w-5 h-5" />
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-bold text-gray-900 text-sm">
-                                  {rate.serviceName}
-                                </p>
-                                <p className="text-xs text-gray-500 font-medium mt-0.5">
-                                  {rate.deliveryDescription || "Standard"}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-black text-gray-900 text-lg">
-                                {formatCurrencyCompact(
-                                  rate.actualPrice,
-                                  rate.currency as SupportedCurrency,
-                                )}
-                              </p>
-                              <p className="text-[10px] text-gray-400 font-bold uppercase">
-                                {rate.currency}
-                              </p>
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                <TierSelection
+                  tiers={displayTiers}
+                  hasRates={(estimate?.rates?.length ?? 0) > 0}
+                  errors={displayErrors}
+                  selectedRoutingRef={selectedTier?.routingRef ?? null}
+                  onSelect={handleTierSelect}
+                  isLoading={isCalculatingRates}
+                  onBack={onClose}
+                />
 
                 {/* Payment Method Selector */}
-                {selectedRate && (
+                {selectedTier && (
                   <div className="space-y-3">
                     <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-2">
                       <FiCreditCard className="w-3.5 h-3.5" />
@@ -510,17 +495,20 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
                         </div>
                       </label>
                       <label
-                        className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          paymentMethod === "payu"
-                            ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue"
-                            : "border-gray-200 hover:border-brand-blue/50"
+                        className={`flex items-center p-4 border-2 rounded-xl transition-all ${
+                          isEUR
+                            ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
+                            : paymentMethod === "payu"
+                              ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue cursor-pointer"
+                              : "border-gray-200 hover:border-brand-blue/50 cursor-pointer"
                         }`}
                       >
                         <input
                           type="radio"
                           name="updatePaymentMethod"
                           value="payu"
-                          className="w-4 h-4 text-brand-blue border-gray-300 focus:ring-brand-blue"
+                          disabled={isEUR}
+                          className="w-4 h-4 text-brand-blue border-gray-300 focus:ring-brand-blue disabled:cursor-not-allowed"
                           checked={paymentMethod === "payu"}
                           onChange={() => setPaymentMethod("payu")}
                         />
@@ -528,10 +516,16 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
                           <span className="block text-sm font-bold text-gray-900">
                             PayU
                           </span>
-                          {isPolishUser && (
-                            <span className="text-[10px] text-green-700 font-bold">
-                              Recommended
+                          {isEUR ? (
+                            <span className="text-[10px] text-gray-500 font-bold">
+                              PayU only supports PLN payments
                             </span>
+                          ) : (
+                            isPolishUser && (
+                              <span className="text-[10px] text-green-700 font-bold">
+                                Recommended
+                              </span>
+                            )
                           )}
                         </div>
                       </label>
@@ -548,11 +542,11 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
                   className="w-full h-14 rounded-2xl text-base font-black shadow-lg shadow-brand-blue/20"
                   onClick={handleConfirmUpdate}
                   isLoading={isUpdating}
-                  disabled={!selectedRate || isUpdating || isCalculatingRates}
+                  disabled={!selectedTier || isUpdating || isCalculatingRates}
                 >
                   {isUpdating ? (
                     "Updating…"
-                  ) : selectedRate ? (
+                  ) : selectedTier ? (
                     <>
                       Confirm Update <FiCheck className="ml-2" />
                     </>

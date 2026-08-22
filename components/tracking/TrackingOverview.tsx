@@ -2,6 +2,7 @@ import React from "react";
 import CopyButton from "@/components/ui/copy-button";
 import { TrackingResponse } from "@/types/shipping";
 import { formatTrackingFull } from "@/utils/format-tracking";
+import { getStatusLabel } from "@/utils/shipment-status";
 
 interface TrackingOverviewProps {
   trackingResponse: TrackingResponse;
@@ -14,11 +15,18 @@ interface TrackingOverviewProps {
 const TrackingOverview: React.FC<TrackingOverviewProps> = ({
   trackingResponse,
 }) => {
-  const { shipment: rawShipment, status } = trackingResponse;
+  const { shipment: rawShipment, shipmentStatus, carrierStatus } =
+    trackingResponse;
 
   if (!rawShipment) return null;
 
   const shipment = rawShipment;
+
+  // The badge shows where the shipment is in the MLS lifecycle. The carrier's
+  // own wording is secondary context, and is omitted entirely before the
+  // carrier has a tracking number for the parcel.
+  const hasCarrierWording =
+    carrierStatus && carrierStatus !== "TRACKING_NOT_AVAILABLE";
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-6">
@@ -42,8 +50,13 @@ const TrackingOverview: React.FC<TrackingOverviewProps> = ({
         </p>
         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-blue/5 text-brand-blue rounded-full font-bold">
           <span className="w-5 h-5 rounded-full border-4 border-brand-blue bg-brand-yellow animate-pulse" />
-          {status}
+          {getStatusLabel(shipmentStatus)}
         </div>
+        {hasCarrierWording && (
+          <p className="text-xs text-gray-500 mt-1.5 font-medium">
+            Carrier reports: {carrierStatus}
+          </p>
+        )}
         {shipment.updatedAt && (
           <p className="text-xs text-gray-400 mt-1 font-medium">
             Last updated: {formatTrackingFull(shipment.updatedAt)}

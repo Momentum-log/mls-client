@@ -13,6 +13,7 @@ import { AxiosError } from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
+import { buildUnpaidTrackingResponse } from "@/utils/tracking-fallbacks";
 
 export default function TrackShipmentByIdPage() {
   const params = useParams();
@@ -56,52 +57,36 @@ export default function TrackShipmentByIdPage() {
         const response = await trackShipment(trackingId.toUpperCase());
         const cleanedData = deepTransformData(response);
 
-        // Check for success-200 "CREATED" response (Unpaid)
-        // This handles the case where the API returns 200 but with status: "CREATED"
-        // and no shipment object (just status/message).
+        // Check for success-200 "CREATED" response (Unpaid).
+        // The server returns the authoritative state as `shipmentStatus`, with
+        // `carrierStatus: "TRACKING_NOT_AVAILABLE"` and an empty timeline when
+        // no carrier tracking number exists yet.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const responseData = cleanedData as any;
         if (
-          responseData.status === "CREATED" ||
+          responseData.shipmentStatus === "CREATED" ||
           responseData.message?.includes("Carrier tracking not yet available")
         ) {
-          const mockData: TrackingResponse = {
-            // @ts-expect-error - Limited data for unpaid state
-            shipment: {
-              shipmentStatus: "CREATED",
-              carrierTrackingNumber: trackingId,
-            },
-            timeline: [],
-          };
-          setTrackingData(mockData);
+          setTrackingData(buildUnpaidTrackingResponse(trackingId));
           return;
         }
 
         setTrackingData(cleanedData);
       } catch (err) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const error = err as AxiosError<{ message: string; status?: string }>;
+        const error = err as AxiosError<{
+          message: string;
+          shipmentStatus?: string;
+        }>;
         console.error(error);
 
         // Handle Unpaid (CREATED) shipment error response
         if (
-          error.response?.data?.status === "CREATED" ||
+          error.response?.data?.shipmentStatus === "CREATED" ||
           error.response?.data?.message?.includes(
             "Carrier tracking not yet available"
           )
         ) {
-          // Construct a minimal tracking response to trigger the "Pay" UI
-          const mockData: TrackingResponse = {
-            // @ts-expect-error - Limited data for unpaid state
-            shipment: {
-              shipmentStatus: "CREATED",
-              carrierTrackingNumber: trackingId,
-              // We might not have ID if API doesn't return it in error,
-              // but we rely on trackingId for the button link as failover
-            },
-            timeline: [],
-          };
-          setTrackingData(mockData);
+          setTrackingData(buildUnpaidTrackingResponse(trackingId));
           return;
         }
 

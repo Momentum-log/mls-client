@@ -54,12 +54,13 @@ const normalizePaymentInvoice = (
 };
 
 /**
- * Verifies a Stripe payment session.
- * @param sessionId - Stripe checkout session ID.
+ * Verifies a payment session.
+ * @param queryParams - The query string parameters (e.g. "?session_id=..." or "?gateway=payu&shipment_id=...").
  */
-export const verifyPayment = async (sessionId: string) => {
+export const verifyPayment = async (queryParams: string) => {
+  const queryString = queryParams.startsWith("?") ? queryParams : `?${queryParams}`;
   const response = await apiClient.get<VerifyPaymentResponse>(
-    `/payments/verify-payment?session_id=${sessionId}`,
+    `/payments/verify-payment${queryString}`,
   );
   return response.data;
 };

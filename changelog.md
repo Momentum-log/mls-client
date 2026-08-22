@@ -5,6 +5,313 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.0] - 2026-08-22 - Account type at sign-up drives the customs declaration
+API v4.3 records at sign-up whether an account belongs to a business or a private individual, so the shipment flow no longer has to ask. The per-shipment "Business or Individual?" toggle is gone; the customs branch is derived from the account.
+- Added: **Account type at sign-up** (`components/auth/register-form.tsx`, `types/auth.ts`)
+  - Segmented Individual / Business control. Choosing Business reveals optional `companyName` and `nip` inputs.
+  - Both company fields are omitted from the payload entirely on an individual account — the server rejects them rather than dropping them, and its minimum length is 1, so empty strings are not an option either. Switching back to Individual clears them.
+  - A `409` now offers "sign in instead" rather than a generic failure.
+  - `User` gains `accountType`, `companyName` and `nip`; `defaultCustomsType` is removed, having never existed server-side.
+- Added: **`utils/account-type.ts`** — the single home for `accountType → customsType` and the per-branch customs category lists. One copy of the rule, so the customs form and the estimate step cannot disagree.
+- Changed: **Customs form derives its branch** (`components/shipment/customs-form.tsx`)
+  - Deleted the Business/Individual toggle. The declaration type is shown read-only, sourced from the account.
+  - `customsType` is no longer form state. It was frozen at mount, so a profile arriving from the background session refresh after the form rendered would show one branch and submit the other — the exact stale-account-type failure this release exists to prevent.
+  - `nipNr` is prefilled from `user.nip` and its input hidden when the profile already has one; it is still required, and still never sent, on the individual branch.
+  - Category options follow the branch — `31` and `91` are business-only. A selection that the branch stops accepting resets rather than being submitted and rejected.
+  - `firstName` / `secondaryName` now enforce the schema's 30-character cap, which an auto-filled package description could breach.
+- Added: **Shipper declarations** (`components/shipment/customs-form.tsx`)
+  - `customAgreements` was never sent. It now renders as checkboxes — four on the business branch, two on the individual one — and blocks submit until confirmed.
+  - `notProhibitedGoods` and `notRestrictedGoods` are typed `enum [true]` server-side, so an unticked box blocks rather than sending `false`. Enforced with `z.literal(true)` in the same validator as every other field.
+- Changed: **Profile shows account type, not a customs preference** (`components/account/ProfileForm.tsx`)
+  - Replaced the "Default Customs Entity" dropdown, which the server never accepted, with a read-only account type and editable company name / NIP for business accounts.
+  - The PATCH body is now built explicitly rather than posting the whole form, so company details never reach a non-business account.
+- Fixed: **Session refresh on app open** (`app/app/layout.tsx`) — `getCurrentUser()` ran only when the store was empty, and the store is persisted, so a returning user was served a cached profile indefinitely. `accountType` decides which customs declaration is filed and an admin can change it between sessions. It now refreshes on every mount, behind the cached profile so first paint is unaffected, and a failed refresh no longer logs a warm session out.
+- Changed: **`docs/client-shipping-endpoints-guide.md`** — it still instructed the reader to collect `customsType` from the user, which is exactly the step this release removes. Marked superseded with the derivation, and corrected two interface errors the v4.3 guides call out: `nipNr` belongs on the business branch only, and `invoiceNr` / `invoiceDate` / `invoice` were never required. `types/shipping.ts` already had these right; only its comment said otherwise.
+- Fixed: **Unverified accounts got a generic error** (`app/app/shipments/new/page.tsx`) — the server refuses them in the service layer, so the throw arrives as a `500` rather than a `403`. Matched on the message and routed to email verification.
+
+## [1.46.0] - 2026-08-21 - Freight partnership landing page
+The Momentum freight-partnership campaign page (`docs/new-landing-page/`) is now the site's front door at `/`. It shipped as a self-unpacking single-file React bundle; its sections were decoded and re-implemented as Next.js components against the existing UI kit and design tokens.
+- Added: **Landing sections** (`components/landing/`)
+  - `landing-hero.tsx`, `landing-video.tsx`, `landing-partners.tsx`, `landing-inquiry-form.tsx`, `landing-company.tsx`, `landing-sustainability.tsx`, plus `eyebrow.tsx`, `marker-heading.tsx` and `stat-tile.tsx` primitives.
+  - Inline styles converted to Tailwind against the existing theme tokens; the bundle's runtime `lucide.createIcons()` wrapper dropped in favour of `lucide-react` imports.
+  - Reuses `components/ui/button`, `components/ui/select` and `components/shared/container` rather than duplicating them. `FAQSection` is appended unchanged.
+- Added: **Live inquiry submission** (`types/inquiry.ts`, `api/inquiries/index.ts`, `hooks/inquiries/use-inquiries.ts`)
+  - "Become a partner" posts to `POST /inquiries` via the shared `apiClient`, so the request carries the configured base URL plus the `X-Guest-ID` / `X-MLS-Key` headers. Replaces the bundle's hardcoded `fetch` to a production URL.
+  - The freight `Select` emits lowercase; the payload boundary maps it to the API's uppercase `freightTypes` enum array.
+  - Errors surface through `handleApiError`. Added a client-side guard on freight type — the custom select is not covered by native `required` validation, so an empty selection previously cost a round trip to be rejected.
+- Added: **Bilingual landing copy** (`components/landing/translations.ts`, `store/language-store.ts`, `hooks/use-landing-copy.ts`)
+  - Full EN/PL dictionary ported from the bundle. The Polish table is typed against the English one, so a missing translation is a compile error.
+  - Copy that the original scattered across inline `lang === "pl" ? ... : ...` ternaries and a thrice-duplicated `getCtaLabel()` is folded into the dictionary as real keys.
+  - Preference persists to `sessionStorage`; rehydration is read via `useSyncExternalStore` so a stored Polish preference does not trigger a hydration mismatch.
+- Added: **EN | PL toggle in the header** (`components/landing/language-toggle.tsx`, `components/layout/header.tsx`)
+  - Rendered on `/` only, since only the landing sections are translated. Held to `lg` and up on desktop — at exactly `md` the nav, country selector and CTA already fill the header row. Below `md` it appears in the mobile menu.
+- Changed: **`components/ui/input.tsx`** — optional `label` prop matching the label treatment in `components/ui/select.tsx`. Backwards compatible with every existing call site.
+- Changed: **`app/globals.css`** — added `--color-success`, `--color-success-bg`, `--color-success-fg` tokens for the sustainability section.
+- Changed: **Quote CTAs point at the real quote engine.** The header's "Get a Quote" and the hero's primary CTA both route to `/shipping-estimate`; only the hero's secondary CTA scrolls to the enquiry form. The two journeys stay distinct.
+- Added: **`/legacy-home`** — the previous landing page, preserved verbatim behind `robots: noindex, nofollow` and unlinked from the app. Every `components/home/*` file is untouched and still importable.
+- Added: Landing assets under `public/images/landing/`, `public/images/partners/` and `public/videos/`. The 6.4 MB company video carries a generated poster and `preload="none"`, so it only downloads on play.
+
+## [1.45.0] - 2026-08-08 - MLS API v4 Migration (Rate Tiering & Post-Payment Fulfillment)
+**Breaking.** The server no longer accepts the previous `create-shipment` contract, so every booking attempt was being rejected until this change.
+- Added: **Rate tier selection** (`components/shipment/tier-selection.tsx`, `types/shipping.ts`, `store/shipment-store.ts`)
+  - Replaced the per-service rate list with Fastest / Balanced / Economy tiers. Handles fewer than three tiers, since a route with one viable option returns one.
+  - The customer picks a price and a delivery window; the server picks the carrier. `carrierSlug` and the client-asserted price are gone.
+  - Store now holds `estimateId` + `selectedTier`; removed `selectedRate`. Deleted `components/shipment/service-selection.tsx`.
+  - Surfaces per-tier `warnings[]` and carrier `errors[]`, neither of which was previously rendered.
+- Added: **Post-payment fulfillment** (`components/shipment/fulfillment-panel.tsx`, `hooks/shipments/use-fulfillment.ts`)
+  - Courier pickup and drop-off moved off the creation form and onto the shipment page, where the carrier and leg are known. Reachable from both post-payment return pages.
+  - Renders controls only per `/fulfillment-options`; capability is never inferred from the carrier name.
+  - Polls while the label generates, so arriving straight from checkout resolves without a manual refresh.
+  - A refused pickup keeps both options open; a refused cancellation never clears local state.
+- Added: **Shared status vocabulary** (`utils/shipment-status.ts`)
+  - The 15 real server statuses with labels, tones and action gates. Replaces scattered string comparisons, including a drop-off control gated on `"LABEL_CREATED"` — a status the server has never emitted.
+- Changed: **Create-shipment payload** (`utils/create-shipment-payload.ts`, `app/app/shipments/new/page.tsx`, `components/invoice/UpdateShipmentModal.tsx`)
+  - Sends `estimateId` + `routingRef`; drops `carrierSlug`, `rate`, `fulfillmentType`, `pickupDetails`, `dropoffCenterId`.
+  - Handles `409 Quote Expired` by re-quoting instead of retrying, and discards a quote whenever the shipment changes — a stale `estimateId` still resolves server-side and would book the previous quote at a price the customer never saw.
+  - Added the PayU/EUR guard to the update modal, which the creation drawer already had.
+- Changed: **Tracking status** (`components/tracking/TrackingOverview.tsx`, `types/shipping.ts`)
+  - Branch on `shipmentStatus`; the carrier's own wording is shown separately as `carrierStatus`. Previously the carrier's text shadowed the real status, which is why paid shipments looked "in transit" immediately.
+- Fixed: **Pickup scheduling never worked** (`components/shipment/pickup-schedule-form.tsx`)
+  - It posted a flat address to an endpoint expecting the nested shape, failed every time, and silently fell back to locally-generated dates — showing collection dates no carrier had confirmed. Now driven by the carrier's real `availableDates`, with `accessTime` treated as a duration and `remarks` capped at the carrier's 60 characters.
+- Fixed: Dashboard "active" count included unpaid and failed shipments (`hooks/shipments/use-shipments.ts`).
+- Fixed: Carrier names leaked through unbranded error text on the quote screen.
+
+## [1.44.13] - 2026-07-30 - Courier Pickup & Drop-off Center Flow Enhancements
+- Added: **Fulfillment Mode Selection & Toggle UI** (`components/shipment/fulfillment-type-toggle.tsx`, `components/shipment/fulfillment-info-modal.tsx`)
+  - Added segmented toggle switch for choosing between Courier Pickup and Center Drop-off during shipment creation.
+  - Provided info triggers launching modals with detailed guidelines and process descriptions for both fulfillment options.
+- Added: **Pickup Scheduling & Validation** (`components/shipment/pickup-schedule-form.tsx`, `hooks/shipments/use-shipments.ts`, `api/shipments/index.ts`)
+  - Integrated `POST /api/shipments/pickup-availability` to dynamically fetch valid carrier business dates (Mon–Fri only, excluding past dates).
+  - Added ready time and close time inputs with validation.
+- Added: **Drop-off Center Discovery** (`components/shipment/dropoff-center-list.tsx`, `hooks/locations/use-locations.ts`, `api/location/index.ts`)
+  - Integrated `POST /api/locations/dropoff-centers` to search nearby FedEx sorting centers based on origin address with distance (km) and operating hours.
+- Added: **Post-Creation Guidance** (`components/shipment/shipment-preparation-instructions.tsx`)
+  - Added step-by-step label download, printing, package attachment, and handover instructions to payment success view (`app/app/shipments/payment-success/page.tsx`).
+- Changed: **Shipment Details Management** (`app/app/shipments/[id]/page.tsx`)
+  - Added fulfillment mode badge, scheduled pickup date/time details, and missed pickup warning banner with support trigger.
+  - Added dynamic "View Available Drop-off Centers" action button for drop-off shipments that automatically hides once package status changes to `IN_TRANSIT` or `PICKED_UP`.
+
+## [1.44.12] - 2026-07-19 - Update NIP Number Requirement for Customs Clearance
+- Changed: **Customs Form Validation & Types** (`components/shipment/customs-form.tsx` and `types/shipping.ts`)
+  - Switched the NIP number (`nipNr`) requirement from Individual (`I`) to Simplified/Business (`S`) clearance to align with backend changes.
+  - Made `nipNr` mandatory for Business clearance and optional/hidden for Individual clearance.
+  - Updated openapi schema spec (`openapi.json`) and developer guide (`docs/client-shipping-endpoints-guide.md`) to reflect the updated validation and payload structure.
+
+## [1.44.11] - 2026-07-19 - Multiple Packages Support
+- Added: **Multiple Packages Form block** (`components/shipment/package-form.tsx`)
+  - Redesigned package details card to support Formik `FieldArray` for multiple package entries.
+  - Added a global unit switch selector (Metric vs Imperial) applied to all package inputs.
+  - Provided quick-select dimension/weight presets per package block and dynamic deletion controls.
+- Changed: **Customs Form Lock** (`components/shipment/customs-form.tsx`)
+  - Updated props to accept `packages` list and pre-populate customs declaration cards 1-to-1.
+  - Pre-populated description and weight fields, leaving only tariff/HS code editable.
+  - Disabled manual item addition or removal from the customs declarations list.
+  - Calculated gross weight and distributed package weight and values accurately on submit.
+- Changed: **Summary Drawer** (`components/shipment/summary-drawer.tsx`)
+  - Refactored `SummaryDrawer` to display specifications (weight, dimensions, value, description) for all packages.
+- Changed: **New Shipment Page** (`app/app/shipments/new/page.tsx`)
+  - Handled rate calculation with `packages` array payload instead of single package object.
+  - Updated heavy shipment modal trigger to check if any individual package exceeds the 70kg threshold.
+  - Formatted final creation mutation payload using `packages` mapping.
+- Changed: **Invoice Update flow & Rate selection** (`components/invoice/UpdateShipmentModal.tsx` and `components/shipping/rate-selection.tsx`)
+  - Migrated legacy single `package` references to `packages` array formats to avoid API errors and compile issues.
+
+## [1.44.10] - 2026-07-18 - Persistent Currency Switcher and PayU/EUR Validation
+- Added: **Currency Switcher Component** (`components/shipment/currency-switcher.tsx`)
+  - A flat, minimalist pill toggle component enabling quick currency switching between EUR and PLN.
+- Changed: **Country detection store** (`store/country-store.ts` and `types/country.ts`)
+  - Migrated storage engine from `sessionStorage` to `localStorage` to persist currency preferences across sessions.
+  - Added an explicit `setCurrency` action to update the user's preferred currency directly.
+- Changed: **Shipping Types & Estimate Utils** (`types/shipping.ts` and `app/(marketing)/shipping-estimate/utils.ts`)
+  - Added support for an optional `currency` field in `ShippingEstimatePayload`, `LocalShipmentPayload`, and `InternationalShipmentPayload`.
+- Changed: **New Shipment Page** (`app/app/shipments/new/page.tsx`)
+  - Retrieve the active currency from the persisted `useCountryStore` and pass it to rate estimation and shipment creation endpoints.
+  - Reset and re-fetch rates dynamically when the currency is changed in the switcher header action.
+- Changed: **Summary Drawer** (`components/shipment/summary-drawer.tsx`)
+  - Disable the PayU payment method when EUR is the selected active currency since PayU only supports PLN.
+  - Auto-select Stripe when PayU is disabled due to active EUR currency.
+
+## [1.44.9] - 2026-07-18 - Fix Shipment Duplication and Customs Validation TypeErrors
+- Fixed: **Shipment Helper** (`utils/shipment-helper.ts`)
+  - Added optional chaining and default values for `shipment.dimensions` and `shipment.weight` in `mapShipmentToStore` to prevent crashes when duplicating shipments lacking physical specifications.
+- Fixed: **Customs Form** (`components/shipment/customs-form.tsx`)
+  - Corrected validation logic to ensure `formikErrors.customsItem` is initialized as an array instead of a string before assigning nested validation errors, resolving uncaught `TypeError: Cannot create property on string` errors.
+- Changed: **Duplicate Shipment Hook** (`hooks/shipments/use-duplicate-shipment.ts`)
+  - Removed unused `CustomsData` import to clean up TypeScript/ESLint warnings.
+
+## [1.44.8] - 2026-07-18 - Improve Payment Verification Error Parsing
+- Changed: **Payment Verification Page** (`app/app/shipments/new/verify/page.tsx`)
+  - Enhanced error parsing in `handleVerify` catch block to extract `"details"` or `"error"` properties from backend response bodies.
+
+## [1.44.7] - 2026-07-18 - Support PayU Payment Verification Redirect
+- Changed: **Payment Verification Endpoint helper** (`api/payments/index.ts`)
+  - Updated `verifyPayment` to accept and forward the full query string rather than just a Stripe `session_id`.
+- Changed: **Payment Verification Page** (`app/app/shipments/new/verify/page.tsx`)
+  - Parse and support query parameters for both Stripe (`session_id`) and PayU (`gateway`, `shipment_id`, `order_id`).
+  - Pass the entire query string to the payment verification endpoint to support both gateways.
+  - Refactored component state logic and fixed various linter warnings/errors (unused vars, explicit `any` types, missing useEffect hook dependencies, and unescaped quotes).
+
+## [1.44.6] - 2026-07-18 - Resolve userCountryCode Inconsistency
+- Changed: **New Shipment Page** (`app/app/shipments/new/page.tsx`)
+  - Pass `sender?.country` as the fallback/pickup country parameter to `useUserCountryCode`.
+  - Consistently use resolved `countryCode` in the `handleFinalize` mutation payload instead of hardcoding `sender.country`.
+- Changed: **Update Shipment Modal** (`components/invoice/UpdateShipmentModal.tsx`)
+  - Pass resolved shipment pickup country code to `useUserCountryCode`.
+- Changed: **User Country Code Hook & Helper** (`hooks/use-user-country-code.ts` and `utils/address-country-helper.ts`)
+  - Accept `fallbackCountryCode` in the hook and helper.
+  - Removed all user address checks and MissingAddressError exceptions since user address is decoupled.
+  - Fall back to the pickup/sender country code if browser country detection is not allowed or not available.
+
+## [1.44.5] - 2026-07-17 - Remove Address Verification from Shipment Creation Guard
+- Changed: **Middleware Proxy** (`proxy.ts`)
+  - Updated `getShipmentGuardState` to only check email verification.
+  - Allowed bypass/non-blocked state on backend fetch failures to prevent lockouts.
+- Changed: **Customs Form** (`components/shipment/customs-form.tsx`)
+  - Updated `AccountVerificationModal` instantiation to set `requiresAddressUpdate={false}`.
+  - Removed the hardcoded address verification message.
+
+## [1.44.4] - 2026-07-16 - Nuke Address Verification Requirement
+- Changed: **Verification Helpers** (`utils/verification-helpers.ts`)
+  - Updated `hasApprovedAddress` to always return `true`.
+  - Simplified `getVerificationStatus` and `getVerificationError` to check only email verification.
+- Changed: **Account Page** (`app/app/account/page.tsx`)
+  - Removed `AddressVerificationBanner` and the Address Verification section card containing `AddressVerificationSection`.
+- Changed: **Shipment Creation page** (`app/app/shipments/new/page.tsx`)
+  - Removed `isAddressRequiredModalOpen` state and related address block checking, keeping only email verification.
+- Changed: **Middleware Proxy** (`proxy.ts`)
+  - Removed address completeness checking (`hasCompleteAddress`) from the shipment creation page guard flow.
+
+## [1.44.3] - 2026-06-13 - Reinstall corrupted Babel types dependency
+- Fixed: Resolved compilation error where Babel could not find the internal `createTypeAnnotationBasedOnTypeof.js` module by reinstalling `@babel/types`.
+
+## [1.44.2] - 2026-05-28 - Fix skipping rate estimation on domestic shipment creation
+- Fixed: Resolved the issue where transitioning straight to the Service Selection step (e.g., in domestic/local shipments where the Customs step is bypassed) failed to trigger the rate estimation API request.
+    - Reset the `lastFetchedEstimateSignatureRef.current` rate-estimation signature to `null` whenever rates are cleared (on component mount, inside `handlePackageSubmit`, and inside `handleCustomsSubmit`).
+    - This forces a fresh estimation API request when entering the Service Selection step, preventing the empty "No services available" screen on domestic shipments.
+
+## [1.44.1] - 2026-05-28 - Finalized Address-Based Country Override Integration
+- Added: Feature flags utility `utils/feature-flags.ts` for managing feature toggles via environment variables (`ENABLED`, `AUTO`, `DISABLED`).
+- Added: Address country helper `utils/address-country-helper.ts` implementing `getUserCountryCode` resolution with session-persistent diagnostic logs and custom `MissingAddressError`.
+- Added: Debug utilities `utils/address-help.ts` (`runAddressHelp()`) and `utils/auth-debug.ts` (`debugAuthStore()` and `validateUserAddressComplete()`).
+- Changed: React hook `hooks/use-user-country-code.ts` to consume the feature flags and address override resolution logic with browser and default fallbacks.
+- Changed: `components/invoice/UpdateShipmentModal.tsx` to utilize `useUserCountryCode` so invoice updates and fresh rate calculations respect the override.
+- Fixed: Resolved TypeScript duplication and type checks in `app/app/shipments/new/page.tsx` and related components.
+
+## [1.44.0] - 2026-05-26 - Shipment Creation API Payload Fixes
+
+- **Added:** Comprehensive PRD for Address-Based Country Override feature
+  - `docs/prd/prd-address-country-override.md` - Complete feature specification
+  - Defines three modes: DISABLED (default), ENABLED (strict), AUTO (recommended)
+  - Documents country resolution logic and user journey
+  - Includes test scenarios and rollout plan
+  - Related to payload fixes below
+
+- **Fixed:** userCountryCode now uses pickup address country instead of global user setting
+  - Changed from `countryCode` (global user country) to `sender.country` (shipment pickup country)
+  - Ensures correct currency/locale determination for shipments
+  - Example: Domestic Poland shipments now correctly use PL instead of US
+
+- **Fixed:** Missing invoiceId in create-shipment payload for invoice updates
+  - Added `useSearchParams` hook to extract `invoiceId` from URL params
+  - invoiceId is now included in payload when updating existing invoice
+  - Enables proper invoice updates without creating duplicates
+  - Example: `/app/shipments/new?invoiceId=inv-123` now includes invoiceId in payload
+
+- **Added:** Supporting PRD document for shipment creation fixes
+  - `docs/prd/prd-shipment-creation-fixes.md` - API payload specification
+  - Documents both userCountryCode and invoiceId fixes
+  - Includes before/after payload examples
+  - Provides test scenarios and rollout plan
+
+- **Changed:** `app/app/shipments/new/page.tsx` improvements
+  - Extract `invoiceId` from search params early in component
+  - Pass `invoiceId` to `ShipmentMutationPayload` when available
+  - Use pickup address country for userCountryCode instead of global setting
+
+
+
+- **Added:** New utility files for address-based country override feature
+  - `utils/feature-flags.ts` - Centralized feature flag management for `USE_ADDRESS_COUNTRY` environment variable
+  - `utils/address-country-helper.ts` - Country code resolution logic with comprehensive logging and recovery
+  - `hooks/use-user-country-code.ts` - React hook to get country code (user's address or fallback to default)
+  - `docs/address-based-country.md` - Feature documentation and configuration guide
+
+- **Fixed:** Shipping estimate form missing required backend validation fields
+  - Added Contact information fields (personName, phoneNumber, email) to pickup and dropoff addresses
+  - Added State/Province code field to address validation schema
+  - Form now pre-populates contact info from user profile (name, phone, email)
+  - Form pre-fills pickup address country from `user.address.country`
+
+- **Changed:** Shipping estimate form now uses wrapped API function
+  - Replaced direct `apiClient.post("/shipping/estimate")` with wrapped `getShippingEstimate()`
+  - Ensures proper address country override logic is applied
+  - Improves error handling with backend validation details
+
+- **Changed:** Updated shipment creation flow to use address country override
+  - Modified `app/app/shipments/new/page.tsx` to use new `useUserCountryCode()` hook
+  - Replaced deprecated `useCountryStore()` with feature-flag-aware hook
+  - Currency selection now based on user's verified address country when feature enabled
+
+- **Added:** Comprehensive fix documentation
+  - `docs/SHIPPING_ESTIMATE_FIX.md` - Complete troubleshooting guide with debugging steps and common errors
+
+- **Removed:** Debug file cleanup
+  - Deleted `type-check-full.txt`
+
+## [1.43.1] - 2026-05-10 - Address Debugging & Recovery Tools
+
+- Added: **Comprehensive Address Debugging Tools**
+  - Auth store debug utilities for inspection and validation
+  - Address validation hooks and components for forms
+  - Auth recovery mechanism to restore lost address data
+  - Enhanced logging with session storage persistence
+
+- Added: **Auth Debug Utilities** (`utils/auth-debug.ts`)
+  - `debugAuthStore()` - Full diagnostic report with auth state, user info, address details
+  - `getAuthStoreDebugInfo()` - Structured debug information object
+  - `validateUserAddressComplete()` - Address completeness validation
+  - `canProceedWithAddressOperation()` - Boolean validation check
+  - `getUserAddressOrThrow()` - Safe address retrieval with error handling
+
+- Added: **Auth Recovery System** (`utils/auth-recovery.ts`)
+  - `fixMissingAddress()` - Auto-recover from backups and restore to store
+  - `recoverMissingAddressFromBackup()` - Search localStorage for backup data
+  - `backupUserAddressData()` - Create backup of user address
+  - `validateAuthStoreConsistency()` - Detect sync issues
+  - `printAuthStoreHealth()` - Formatted health report
+
+- Added: **Address Validation Hook** (`hooks/shipments/useAddressValidation.ts`)
+  - Comprehensive address validation with error types and action suggestions
+  - Pre-flight checks before shipment operations
+  - Integration with auth recovery system
+
+- Added: **Address Validation UI Component** (`components/shipment/AddressValidationStatus.tsx`)
+  - Status display with validation feedback
+  - Three variants: full, compact, and debug
+  - Integration with useAddressValidation hook
+
+- Added: **Auth Store Enhancement** (`store/auth-store.ts`)
+  - `ensureAddress()` action to restore lost address data
+  - Prevents data loss during store updates
+
+- Added: **Comprehensive Documentation** (5 files)
+  - `docs/QUICK_START_ADDRESS_ERROR.md` - 30-second quick fix
+  - `docs/DEBUG_ADDRESS_NOT_FOUND.md` - Step-by-step troubleshooting
+  - `docs/DEBUGGING_TOOLS_REFERENCE.md` - Complete tool documentation
+  - `docs/IMPLEMENTATION_SUMMARY_ADDRESS_DEBUG.md` - Technical overview
+  - `docs/ADDRESS_DEBUG_TOOLS_INDEX.md` - Quick reference index
+
+- Added: **Address Resolution Logging** (enhanced `utils/address-country-helper.ts`)
+  - `logAddressResolution()` - Session-persistent logging
+  - `printAddressResolutionLogs()` - Formatted log display
+  - `getAddressResolutionDebugLogs()` - JSON export of logs
+  - `clearAddressResolutionDebugLogs()` - Clear logs
+
+- Changed: **One-Stop Diagnosis Utility** (`utils/address-help.ts`)
+  - `runAddressHelp()` - 6-step complete diagnostic
+  - Global window exposure: `window.__mlsAddressHelp` (dev only)
+  - Runs all debug tools and provides recommended actions
+
 ## [1.42.3] - 2026-04-23 - Dashboard Currency Display
 
 - Fixed: **Dashboard Currency Display** (`app/app/dashboard/page.tsx`)

@@ -11,12 +11,17 @@ import { FaArrowRight, FaXmark, FaBars, FaUser } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import HeaderCountrySelector from "@/components/shared/header-country-selector";
+import LanguageToggle from "@/components/landing/language-toggle";
 
 const Header: FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated } = useAuthStore();
   const pathname = usePathname();
   const router = useRouter();
+
+  // Only the landing page ships bilingual copy, so the EN/PL switch is scoped
+  // to that route rather than promising translation of the whole site.
+  const showLanguageToggle = pathname === "/";
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -93,6 +98,15 @@ const Header: FC = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Held back to `lg`: at exactly `md` the nav, country selector and
+                CTA already consume the full header row, and adding the 80px
+                toggle there would overflow it. Below `md` it appears in the
+                mobile menu instead. */}
+            {showLanguageToggle && (
+              <div className="hidden lg:flex">
+                <LanguageToggle />
+              </div>
+            )}
             <HeaderCountrySelector />
             {isAuthenticated ? (
               <Button
@@ -234,6 +248,13 @@ const Header: FC = () => {
             )}
 
             <div className="mt-8 flex flex-col items-center gap-4">
+              {/* Mobile Language Toggle */}
+              {showLanguageToggle && (
+                <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2">
+                  <LanguageToggle />
+                </div>
+              )}
+
               {/* Mobile Region Toggle */}
               <div className="flex items-center gap-3 text-white/80">
                 <span className="text-sm">Region:</span>

@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import { FaFileCirclePlus, FaArrowRight, FaEuroSign } from "react-icons/fa6";
 import { useShipmentStats } from "@/hooks/shipments/use-shipments";
+import { getStatusBadgeClasses } from "@/utils/shipment-status";
 
 export default function DashboardPage() {
   const {
@@ -158,12 +159,9 @@ export default function DashboardPage() {
 
                   <div className="flex items-center gap-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                        (shipment.shipmentStatus || "").toUpperCase() ===
-                        "DELIVERED"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClasses(
+                        shipment.shipmentStatus,
+                      )}`}
                     >
                       {shipment.formattedStatus}
                     </span>

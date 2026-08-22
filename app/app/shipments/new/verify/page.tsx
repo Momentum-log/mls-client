@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyPayment } from "@/api/payments";
 import { VerifyPaymentResponse } from "@/types/shipping";
@@ -14,7 +14,6 @@ import {
   FiArrowRight,
   FiHome,
 } from "react-icons/fi";
-import { useToast } from "@/hooks/use-toast";
 import CopyButton from "@/components/ui/copy-button";
 import Link from "next/link";
 
@@ -22,7 +21,10 @@ export default function VerifyPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const sessionId = searchParams.get("session_id");
-  const { addToast: toast } = useToast();
+  const shipmentId = searchParams.get("shipment_id");
+  const orderId = searchParams.get("order_id");
+
+  const hasSession = !!sessionId || !!shipmentId || !!orderId;
 
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<VerifyPaymentResponse | null>(null);
@@ -31,30 +33,34 @@ export default function VerifyPage() {
   const hasCalled = useRef(false);
 
   // Re-usable verification handler
-  const handleVerify = async () => {
-    if (!sessionId) return;
+  const handleVerify = useCallback(async () => {
+    if (!hasSession) return;
 
     setLoading(true);
     try {
-      const data = await verifyPayment(sessionId);
+      const queryString = searchParams.toString();
+      const data = await verifyPayment(queryString ? `?${queryString}` : "");
       setResult(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Verification failed:", err);
+      const error = err as { response?: { data?: { message?: string; details?: string; error?: string } } };
+      const responseData = error.response?.data;
+      const errorMessage = responseData?.message || responseData?.details || responseData?.error || "Verification request failed.";
       setResult({
         status: "FAILED",
         paymentStatus: "unknown",
         shipmentStatus: "FAILED",
-        message: err.response?.data?.message || "Verification request failed.",
+        message: errorMessage,
         trackingNumber: undefined,
         labelUrl: "",
       } as VerifyPaymentResponse);
     } finally {
       setLoading(false);
     }
-  };
+  }, [hasSession, searchParams]);
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!hasSession) {
       setLoading(false);
       return;
     }
@@ -63,12 +69,12 @@ export default function VerifyPage() {
     hasCalled.current = true;
 
     handleVerify();
-  }, [sessionId]);
+  }, [hasSession, handleVerify]);
 
   // Defensive Check: Valid success means STATUS is SUCCESS AND Tracking Number exists
   const isSuccess = result?.status === "SUCCESS" && !!result?.trackingNumber;
 
-  if (!sessionId) {
+  if (!hasSession) {
     return (
       <div className="flex items-center justify-center py-2">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
@@ -122,7 +128,7 @@ export default function VerifyPage() {
               Shipment Confirmed!
             </h1>
             <p className="text-gray-500 mb-8 font-medium">
-              Your package is ready to move. Download your label below.
+              Print your label, then choose how to send it.
             </p>
 
             {/* Tracking Info Card */}
@@ -161,8 +167,26 @@ export default function VerifyPage() {
                 </a>
               ) : (
                 <div className="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-sm font-medium">
-                  Label generation pending. Please check "My Shipments" shortly.
+                  Label generation pending. Please check &quot;My Shipments&quot; shortly.
                 </div>
+              )}
+
+              {/*
+                Fulfillment lives on the shipment page. The gateway decides
+                which return page the customer lands on, so both carry this
+                CTA — a link on only one strands half of them.
+              */}
+              {shipmentId && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() =>
+                    router.push(`/app/shipments/${shipmentId}#fulfillment`)
+                  }
+                  className="w-full h-14 rounded-xl text-base border-brand-blue/30 text-brand-blue hover:bg-brand-blue/5"
+                >
+                  <FiTruck className="mr-2" /> Arrange Collection
+                </Button>
               )}
 
               <div className="grid grid-cols-2 gap-3 mt-4">
@@ -204,9 +228,9 @@ export default function VerifyPage() {
                 <div>
                   <h4 className="text-sm font-bold text-red-900">Need Help?</h4>
                   <p className="text-xs text-red-700 mt-1">
-                    Session ID:{" "}
+                    Identifier:{" "}
                     <span className="font-mono bg-white/50 px-1 rounded">
-                      {sessionId?.slice(0, 12)}...
+                      {(sessionId || shipmentId || orderId || "N/A").slice(0, 12)}...
                     </span>
                   </p>
                 </div>

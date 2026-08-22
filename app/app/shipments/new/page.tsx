@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useShipmentStore, Address, Package } from "@/store/shipment-store";
 import {
@@ -10,7 +10,7 @@ import {
 import { StackedSection } from "@/components/shipment/stacked-section";
 import AddressForm from "@/components/shipment/address-form";
 import PackageForm from "@/components/shipment/package-form";
-import ServiceSelection from "@/components/shipment/service-selection";
+import TierSelection from "@/components/shipment/tier-selection";
 import CustomsForm from "@/components/shipment/customs-form";
 import SummaryDrawer from "@/components/shipment/summary-drawer";
 import {
@@ -27,16 +27,27 @@ import {
   useCreateShipment,
 } from "@/hooks/shipments/use-shipments";
 import { getOrSetGuestId } from "@/utils/auth-helper";
-import { Rate, CustomsData, ShipmentMutationPayload } from "@/types/shipping";
+import {
+  CustomsData,
+  ShippingEstimateResponse,
+  ShippingTier,
+  TIER_KEYS,
+} from "@/types/shipping";
+import { formatCurrency } from "@/utils/currency-formatter";
+import { SupportedCurrency } from "@/types/country";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
+import CurrencySwitcher from "@/components/shipment/currency-switcher";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
 import { deepTransformData } from "@/utils/data-transform";
+import { buildCreateShipmentPayload } from "@/utils/create-shipment-payload";
 
 import { useLocationPermission } from "@/hooks/use-location-permission";
 import { LocationPermissionOverlay } from "@/components/ui/location-permission-overlay";
 import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
 import { useVerification } from "@/hooks/shipments/useVerification";
+import { extractApiError } from "@/utils/error-handler";
+import useUserCountryCode from "@/hooks/use-user-country-code";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -47,23 +58,29 @@ const HEAVY_SHIPMENT_THRESHOLD = 70;
  */
 export default function NewShipmentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invoiceId = searchParams?.get("invoiceId") || undefined;
+
   const {
     completedSteps,
     expandedSection,
     setExpandedSection,
     markSectionCompleted,
+    markSectionIncomplete,
     reset,
     sender,
     setSender,
     recipient,
     setRecipient,
     packages,
-    addPackage,
-    updatePackage,
+    setPackages,
     customs,
     setCustoms,
-    selectedRate,
-    setSelectedRate,
+    estimateId,
+    setEstimateId,
+    selectedTier,
+    setSelectedTier,
+    clearEstimate,
   } = useShipmentStore();
 
   const isInternational =
@@ -71,29 +88,40 @@ export default function NewShipmentPage() {
     recipient?.country &&
     sender.country !== recipient.country;
 
-  const { countryCode } = useCountryStore();
-  const activeCurrency = countryCode === "PL" ? "PLN" : "EUR";
+  const { countryCode } = useUserCountryCode(sender?.country);
+  const { currency: activeCurrency, setCurrency } = useCountryStore();
 
-  const [rates, setRates] = useState<Rate[]>([]);
+  const [estimate, setEstimate] = useState<ShippingEstimateResponse | null>(
+    null,
+  );
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
-    useState(false);
-  const [isAddressRequiredModalOpen, setIsAddressRequiredModalOpen] =
     useState(false);
   const { addToast } = useToast();
 
   const { permission, requestPermission } = useLocationPermission();
-  const { isVerificationRequired, error } = useVerification();
+  const { isVerificationRequired, error, triggerVerification } =
+    useVerification();
 
-  // Create memoized transformed rates for UI display only
-  const transformedRates = useMemo(() => deepTransformData(rates), [rates]);
   const lastFetchedEstimateSignatureRef = useRef<string | null>(null);
   const [isFetchingRates, setIsFetchingRates] = useState(false);
 
-  // Transform selectedRate for UI display only
-  const displaySelectedRate = useMemo(
-    () => (selectedRate ? deepTransformData(selectedRate) : null),
-    [selectedRate],
+  // Branding is a display concern only. `routingRef` and `estimateId` are on
+  // the skip list, so the copy is rewritten while the handles stay intact.
+  const displayTiers = useMemo(
+    () => (estimate?.tiers ? deepTransformData(estimate.tiers) : undefined),
+    [estimate],
+  );
+
+  // Carrier errors are customer-facing too, and carry the carrier's real name
+  // in their text ("FedEx Rate Error: 400"). Brand them like everything else.
+  const displayErrors = useMemo(
+    () => (estimate?.errors ? deepTransformData(estimate.errors) : undefined),
+    [estimate],
+  );
+  const displaySelectedTier = useMemo(
+    () => (selectedTier ? deepTransformData(selectedTier) : null),
+    [selectedTier],
   );
 
   // Auto-request location permission if in prompt state
@@ -108,8 +136,8 @@ export default function NewShipmentPage() {
     useGetShippingEstimate({
       onSuccess: (data) => {
         setIsFetchingRates(false);
-        console.log("Fetched rates on load:", data);
-        setRates(data.rates);
+        setEstimate(data);
+        setEstimateId(data.estimateId);
       },
       onError: () => {
         setIsFetchingRates(false);
@@ -131,7 +159,6 @@ export default function NewShipmentPage() {
   // 2. If we arrive cleanly (reload, nav), we RESET the store.
   // 3. We remove duplication flag immediately so reload works as expected.
   // 4. We do NOT use cleanup on unmount because Strict Mode triggers it prematurely.
-  const searchParams = useSearchParams();
   const source = searchParams.get("source");
   const verificationRequiredParam =
     searchParams.get("verificationRequired") === "1";
@@ -143,28 +170,16 @@ export default function NewShipmentPage() {
     guardParam === "email" ||
     guardParam === "both";
 
-  const requiresAddressUpdate =
-    error?.type === "ADDRESS_INCOMPLETE" ||
-    error?.type === "BOTH" ||
-    guardParam === "address" ||
-    guardParam === "both";
-
   const shouldShowVerificationModal =
     isVerificationRequired ||
-    verificationRequiredParam ||
-    isAddressRequiredModalOpen;
+    verificationRequiredParam;
 
   const handleVerifyEmail = () => {
     router.push("/app/account?openVerifyEmail=1&next=/app/shipments/new");
   };
 
-  const handleUpdateAddress = () => {
-    router.push(
-      "/app/account?openAddressVerification=1&next=/app/shipments/new",
-    );
-  };
-
   useEffect(() => {
+    lastFetchedEstimateSignatureRef.current = null;
     if (source === "duplicate") {
       // Preservation Mode: Don't reset. Just clean the URL.
       router.replace("/app/shipments/new");
@@ -175,20 +190,56 @@ export default function NewShipmentPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run ONCE on mount
 
-  // Navigation warning for unsaved changes
+  /**
+   * Everything that changes what is being shipped, or what it should cost.
+   * Used both to skip redundant re-quotes and to detect a stale one.
+   */
+  const shipmentSignature = useMemo(
+    () =>
+      JSON.stringify({
+        sender,
+        recipient,
+        packages,
+        countryCode: countryCode || null,
+        customs: customs || null,
+        isInternational,
+        currency: activeCurrency,
+      }),
+    [
+      sender,
+      recipient,
+      packages,
+      countryCode,
+      customs,
+      isInternational,
+      activeCurrency,
+    ],
+  );
+
+  const invalidateQuote = useCallback(() => {
+    setEstimate(null);
+    clearEstimate();
+    lastFetchedEstimateSignatureRef.current = null;
+    markSectionIncomplete("service");
+  }, [clearEstimate, markSectionIncomplete]);
+
+  /**
+   * Discard a quote that no longer describes this shipment.
+   *
+   * The server still resolves a stale `estimateId`, so keeping one around
+   * books the previous quote — a different parcel, at a price the customer
+   * never saw — instead of failing. Deriving this from the signature rather
+   * than from individual change handlers means a new form field cannot forget
+   * to invalidate.
+   */
+  useEffect(() => {
+    if (lastFetchedEstimateSignatureRef.current === null) return;
+    if (lastFetchedEstimateSignatureRef.current === shipmentSignature) return;
+    invalidateQuote();
+  }, [shipmentSignature, invalidateQuote]);
 
   // Auto-fetch rates if we land on Service Selection (e.g. from Duplicate functionality)
-
   useEffect(() => {
-    console.log("🔥 effect entered", {
-      expandedSection,
-      lastFetchedSignature: lastFetchedEstimateSignatureRef.current,
-      isCalculatingRates,
-      sender: !!sender,
-      recipient: !!recipient,
-      packagesLength: packages.length,
-    });
-
     if (
       expandedSection !== "service" ||
       isCalculatingRates ||
@@ -196,9 +247,21 @@ export default function NewShipmentPage() {
       !recipient ||
       packages.length === 0
     ) {
-      console.log("Early Return - Not all conditions met");
       return;
     }
+
+    const formattedPackages = packages.map((pkg) => ({
+      weight: {
+        value: parseFloat(pkg.weight.toFixed(2)),
+        units: "KG",
+      },
+      dimensions: {
+        length: parseFloat(pkg.length.toFixed(1)),
+        width: parseFloat(pkg.width.toFixed(1)),
+        height: parseFloat(pkg.height.toFixed(1)),
+        units: "CM",
+      },
+    }));
 
     const payload = getEstimatePayload(
       {
@@ -215,41 +278,22 @@ export default function NewShipmentPage() {
         postalCode: recipient.postalCode,
         streetLines: [recipient.street],
       },
-      {
-        weight: {
-          value: parseFloat(packages[0].weight.toFixed(2)),
-          units: "KG",
-        },
-        dimensions: {
-          length: parseFloat(packages[0].length.toFixed(1)),
-          width: parseFloat(packages[0].width.toFixed(1)),
-          height: parseFloat(packages[0].height.toFixed(1)),
-          units: "CM",
-        },
-      },
+      formattedPackages,
       getOrSetGuestId(),
       countryCode || undefined,
       customs || undefined,
+      activeCurrency,
     );
 
-    const estimateSignature = JSON.stringify({
-      sender,
-      recipient,
-      package: packages[0],
-      countryCode: countryCode || null,
-      customs: customs || null,
-      isInternational,
-    });
-
-    if (lastFetchedEstimateSignatureRef.current === estimateSignature) {
-      console.log("Skipping duplicate rate fetch for unchanged shipment data");
+    if (lastFetchedEstimateSignatureRef.current === shipmentSignature) {
       return;
     }
 
-    lastFetchedEstimateSignatureRef.current = estimateSignature;
+    lastFetchedEstimateSignatureRef.current = shipmentSignature;
     setIsFetchingRates(true);
     getRates(payload);
   }, [
+    shipmentSignature,
     expandedSection,
     isCalculatingRates,
     sender,
@@ -259,6 +303,8 @@ export default function NewShipmentPage() {
     countryCode,
     customs,
     addToast,
+    isInternational,
+    activeCurrency,
   ]);
 
   const steps: TimelineStep[] = useMemo(() => {
@@ -361,16 +407,17 @@ export default function NewShipmentPage() {
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const handlePackageSubmit = (pkg: Package) => {
+  const handlePackageSubmit = (pkgs: Package[]) => {
     // Check for heavy shipment (70kg+)
-    if (pkg.weight >= HEAVY_SHIPMENT_THRESHOLD) {
+    const hasHeavy = pkgs.some((pkg) => pkg.weight >= HEAVY_SHIPMENT_THRESHOLD);
+    if (hasHeavy) {
       setIsHeavyShipmentModalOpen(true);
       return;
     }
 
-    addPackage(pkg);
+    setPackages(pkgs);
     markSectionCompleted("package");
-    setRates([]); // Clear previous rates to trigger re-fetch in useEffect
+    invalidateQuote();
 
     const nextSection = isInternational ? "customs" : "service";
     setExpandedSection(nextSection);
@@ -388,7 +435,7 @@ export default function NewShipmentPage() {
   const handleCustomsSubmit = (data: CustomsData) => {
     setCustoms(data);
     markSectionCompleted("customs");
-    setRates([]); // Clear previous rates
+    invalidateQuote();
     setExpandedSection("service");
 
     addToast({
@@ -401,16 +448,20 @@ export default function NewShipmentPage() {
       ?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  const handleServiceSelect = (rate: Rate) => {
-    // Find matching original rate to preserve raw carrier data for the backend
-    const originalRate =
-      rates.find((r) => r.serviceType === rate.serviceType) || rate;
-    setSelectedRate(originalRate);
+  const handleTierSelect = (tier: ShippingTier) => {
+    // Resolve back to the raw tier. The list renders branded copy, and the
+    // routingRef must reach the server exactly as it was issued.
+    const rawTier =
+      TIER_KEYS.map((key) => estimate?.tiers?.[key]).find(
+        (candidate) => candidate?.routingRef === tier.routingRef,
+      ) ?? tier;
+
+    setSelectedTier(rawTier);
     markSectionCompleted("service");
     setIsSummaryOpen(true);
     addToast({
       title: "Service Selected",
-      message: `${deepTransformData(originalRate.serviceName)} chosen. Review your shipment to continue.`,
+      message: `${tier.label} chosen. Review your shipment to continue.`,
       type: "success",
     });
   };
@@ -419,8 +470,9 @@ export default function NewShipmentPage() {
     if (
       !sender ||
       !recipient ||
-      !packages[0] ||
-      !selectedRate ||
+      packages.length === 0 ||
+      !estimateId ||
+      !selectedTier ||
       (isInternational && !customs)
     ) {
       addToast({
@@ -431,54 +483,29 @@ export default function NewShipmentPage() {
       return;
     }
 
-    const payload: ShipmentMutationPayload = {
-      carrierSlug:
-        selectedRate.carrierSlug ||
-        selectedRate.carrier?.toLowerCase().replace(/\s+/g, "-") ||
-        "fedex", // Use slug if available, else derive from name
-      pickupAddress: {
-        streetLines: [sender.street],
-        city: sender.city,
-        stateOrProvinceCode: sender.stateOrProvinceCode || "",
-        postalCode: sender.postalCode,
-        countryCode: sender.country,
-        residential: false,
-        contact: {
-          personName: sender.name,
-          phoneNumber: sender.phone,
-          companyName: sender.company ?? "",
-        },
-      },
-      dropoffAddress: {
-        streetLines: [recipient.street],
-        city: recipient.city,
-        stateOrProvinceCode: recipient.stateOrProvinceCode || "",
-        postalCode: recipient.postalCode,
-        countryCode: recipient.country,
-        residential: false,
-        contact: {
-          personName: recipient.name,
-          phoneNumber: recipient.phone,
-          companyName: recipient.company ?? "",
-        },
-      },
-      package: {
+    const payload = buildCreateShipmentPayload({
+      estimateId,
+      routingRef: selectedTier.routingRef,
+      sender,
+      recipient,
+      packages: packages.map((pkg) => ({
         weight: {
-          value: packages[0].weight,
+          value: pkg.weight,
           units: "KG",
         },
         dimensions: {
-          length: packages[0].length,
-          width: packages[0].width,
-          height: packages[0].height,
+          length: pkg.length,
+          width: pkg.width,
+          height: pkg.height,
           units: "CM",
         },
-      },
-      rate: selectedRate,
+      })),
       customs: customs ?? undefined,
       userCountryCode: countryCode,
       preferredPaymentOption: paymentMethod,
-    };
+      invoiceId,
+      currency: activeCurrency,
+    });
 
     performCreateShipment(payload, {
       onSuccess: (data) => {
@@ -513,11 +540,13 @@ export default function NewShipmentPage() {
       onError: (error: unknown) => {
         let msg = "Unable to create shipment. Please try again.";
         let isAddressRequired = false;
+        let status: number | undefined;
 
         if (error && typeof error === "object" && "response" in error) {
           const res = (
             error as {
               response?: {
+                status?: number;
                 data?: {
                   error?: string;
                   details?: string;
@@ -525,6 +554,8 @@ export default function NewShipmentPage() {
               };
             }
           ).response;
+
+          status = res?.status;
 
           if (res?.data?.error) msg = res.data.error;
           isAddressRequired = res?.data?.error === "ADDRESS_REQUIRED";
@@ -534,8 +565,36 @@ export default function NewShipmentPage() {
           }
         }
 
-        if (isAddressRequired) {
-          setIsAddressRequiredModalOpen(true);
+        // An unverified account is refused in the service layer, and the throw
+        // is not mapped — so it arrives as a 500 rather than a 403, carrying
+        // only its message. Match on that before blaming the server. The CTA
+        // gate on `is_verified` normally prevents reaching this at all.
+        const { message: apiMessage } = extractApiError(error);
+        if (/email verification required/i.test(apiMessage || msg)) {
+          addToast({
+            title: "Verify Your Email",
+            message:
+              "Please verify your email address before creating a shipment.",
+            type: "error",
+          });
+          triggerVerification();
+          return;
+        }
+
+        // Carrier pricing moved on. The quote is refused rather than honoured
+        // at a stale figure, so re-quote and let the customer re-pick — the
+        // same routingRef will keep failing.
+        if (status === 409) {
+          invalidateQuote();
+          setIsSummaryOpen(false);
+          setExpandedSection("service");
+          addToast({
+            title: "Prices Have Changed",
+            message:
+              "This quote has expired. We're fetching current prices — please choose again.",
+            type: "error",
+          });
+          return;
         }
 
         addToast({
@@ -567,16 +626,8 @@ export default function NewShipmentPage() {
       <AccountVerificationModal
         isOpen={shouldShowVerificationModal}
         requiresEmailVerification={requiresEmailVerification}
-        requiresAddressUpdate={
-          requiresAddressUpdate || isAddressRequiredModalOpen
-        }
+        requiresAddressUpdate={false}
         onVerifyEmail={handleVerifyEmail}
-        onUpdateAddress={handleUpdateAddress}
-        message={
-          isAddressRequiredModalOpen
-            ? "An approved address is required before you can create a shipment. Submit an address update request with proof to continue."
-            : undefined
-        }
       />
 
       <div
@@ -635,6 +686,11 @@ export default function NewShipmentPage() {
               )
             }
           >
+            {/*
+              No fulfillment questions here. Courier pickup and drop-off are
+              chosen after payment, on the shipment page, once the carrier and
+              the leg are known — before that there is no carrier to ask about.
+            */}
             <AddressForm
               type="pickup"
               initialValues={sender || undefined}
@@ -703,23 +759,21 @@ export default function NewShipmentPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                        Dimensions
+                        Packages
                       </p>
                       <p className="font-bold text-gray-900 leading-tight">
-                        {packages[0].length}x{packages[0].width}x
-                        {packages[0].height} cm
+                        {packages.length} package{packages.length > 1 ? "s" : ""}
                       </p>
                       <p className="text-xs text-gray-500 font-medium">
-                        {packages[0].weight} kg | {packages[0].value}{" "}
-                        {packages[0].currency}
+                        Total weight: {packages.reduce((acc, p) => acc + p.weight, 0).toFixed(2)} kg
                       </p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
-                        Description
+                        Descriptions
                       </p>
-                      <p className="font-bold text-gray-900 leading-tight line-clamp-1">
-                        {packages[0].description}
+                      <p className="font-bold text-gray-900 leading-tight line-clamp-2">
+                        {packages.map((p) => p.description).filter(Boolean).join(", ")}
                       </p>
                     </div>
                   </div>
@@ -727,9 +781,9 @@ export default function NewShipmentPage() {
               }
             >
               <PackageForm
-                initialValue={packages[0] || null}
+                initialValues={packages.length > 0 ? packages : null}
                 onSubmit={handlePackageSubmit}
-                onSync={updatePackage}
+                onSync={setPackages}
                 onBack={() => setExpandedSection("dropoff")}
                 submitLabel={isInternational ? "Customs Details" : "Get Rates"}
                 isInternational={Boolean(isInternational)}
@@ -763,7 +817,7 @@ export default function NewShipmentPage() {
             >
               <CustomsForm
                 initialValues={customs}
-                pkg={packages[0] || null}
+                packages={packages}
                 sender={sender}
                 currency={activeCurrency}
                 onSubmit={handleCustomsSubmit}
@@ -781,30 +835,40 @@ export default function NewShipmentPage() {
               isExpanded={expandedSection === "service"}
               isCompleted={completedSteps.includes("service")}
               onEdit={() => setExpandedSection("service")}
+              headerAction={
+                <CurrencySwitcher
+                  currency={activeCurrency}
+                  onChange={setCurrency}
+                  disabled={isFetchingRates}
+                />
+              }
               summary={
-                selectedRate && (
+                displaySelectedTier && (
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-brand-blue/10 flex items-center justify-center text-brand-blue">
                       <FiCheckCircle className="w-4 h-4" />
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900 leading-tight">
-                        {displaySelectedRate?.serviceName}
+                        {displaySelectedTier.label}
                       </p>
                       <p className="text-xs text-brand-blue font-bold tracking-tight">
-                        {displaySelectedRate?.price ||
-                          displaySelectedRate?.actualPrice}{" "}
-                        {displaySelectedRate?.currency}
+                        {formatCurrency(
+                          displaySelectedTier.actualPrice,
+                          displaySelectedTier.currency as SupportedCurrency,
+                        )}
                       </p>
                     </div>
                   </div>
                 )
               }
             >
-              <ServiceSelection
-                rates={transformedRates}
-                selectedRateId={selectedRate?.serviceType || null}
-                onSelect={handleServiceSelect}
+              <TierSelection
+                tiers={displayTiers}
+                hasRates={(estimate?.rates?.length ?? 0) > 0}
+                errors={displayErrors}
+                selectedRoutingRef={selectedTier?.routingRef ?? null}
+                onSelect={handleTierSelect}
                 isLoading={isFetchingRates}
                 onBack={() =>
                   setExpandedSection(isInternational ? "customs" : "package")
@@ -832,8 +896,8 @@ export default function NewShipmentPage() {
           onClose={() => setIsSummaryOpen(false)}
           sender={sender}
           recipient={recipient}
-          pkg={packages[0] || null}
-          rate={displaySelectedRate}
+          packages={packages}
+          tier={displaySelectedTier}
           onFinalize={handleFinalize}
           isLoading={isCreatingShipment}
         />

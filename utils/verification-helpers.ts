@@ -4,8 +4,7 @@
  * @module utils/verification-helpers
  */
 
-import { User } from "@/types/auth";
-import { Address } from "@/store/shipment-store";
+import { User, UserAddress } from "@/types/auth";
 import { VerificationStatus, VerificationError } from "@/types/verification";
 
 /**
@@ -28,7 +27,7 @@ export const isEmailVerified = (user: User | null): boolean => {
 export const hasCompleteAddress = (user: User | null): boolean => {
   if (!user || !user.address) return false;
 
-  const addr = user.address as Record<string, any>;
+  const addr = user.address as UserAddress;
 
   const street = String(addr.street || "").trim();
   const city = String(addr.city || "").trim();
@@ -38,26 +37,9 @@ export const hasCompleteAddress = (user: User | null): boolean => {
   return Boolean(street && city && postalCode && country);
 };
 
-/**
- * Checks if a user's address is approved for shipment creation.
- */
-export const hasApprovedAddress = (user: User | null): boolean => {
-  if (!user) return false;
-
-  const status = user.addressRequestStatus;
-  const hasVerifiedTimestamp = Boolean(user.addressVerifiedAt);
-
-  // Prefer explicit backend approval metadata when available.
-  if (status) {
-    return status === "APPROVED";
-  }
-
-  if (hasVerifiedTimestamp) {
-    return true;
-  }
-
-  // Backward-compatible fallback for users without new metadata.
-  return hasCompleteAddress(user);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const hasApprovedAddress = (_user: User | null): boolean => {
+  return true;
 };
 
 /**
@@ -70,12 +52,12 @@ export const getVerificationStatus = (
   user: User | null,
 ): VerificationStatus => {
   const emailVerified = isEmailVerified(user);
-  const addressComplete = hasApprovedAddress(user);
+  const addressComplete = true;
 
   return {
     emailVerified,
     addressComplete,
-    isFullyVerified: emailVerified && addressComplete,
+    isFullyVerified: emailVerified,
   };
 };
 
@@ -101,28 +83,11 @@ export const getVerificationError = (
 ): VerificationError | null => {
   const status = getVerificationStatus(user);
 
-  if (!status.emailVerified && !status.addressComplete) {
-    return {
-      type: "BOTH",
-      field: "both",
-      message:
-        "Please verify your email and complete your address to create a shipment.",
-    };
-  }
-
   if (!status.emailVerified) {
     return {
       type: "EMAIL_NOT_VERIFIED",
       field: "email",
       message: "Please verify your email address to create a shipment.",
-    };
-  }
-
-  if (!status.addressComplete) {
-    return {
-      type: "ADDRESS_INCOMPLETE",
-      field: "address",
-      message: "Please complete your address to create a shipment.",
     };
   }
 
@@ -138,11 +103,11 @@ export const getVerificationError = (
 export const formatUserAddress = (user: User | null): string => {
   if (!user || !user.address) return "";
 
-  const addr = user.address as Record<string, any>;
+  const addr = user.address as UserAddress;
   const parts = [
     addr.street,
     addr.city,
-    addr.stateOrProvinceCode && addr.stateOrProvinceCode,
+    addr.state,
     addr.postalCode,
     addr.country,
   ].filter(Boolean);
@@ -159,6 +124,6 @@ export const formatUserAddress = (user: User | null): string => {
 export const extractUserInfoForInvoice = (user: User | null) => {
   return {
     name: user?.name || "",
-    address: (user?.address as Record<string, any> | null) || null,
+    address: (user?.address as UserAddress | null) || null,
   };
 };

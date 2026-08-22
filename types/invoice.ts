@@ -884,8 +884,11 @@ export interface CreateShipmentResponse {
   customTrackingNumber: string;
   /** Payment checkout URL (same as paymentLink for backward compatibility) */
   checkoutUrl: string;
-  /** Payment gateway used (stripe or payu) */
-  paymentGateway: "stripe" | "payu";
+  /**
+   * Payment gateway used. Returned upper-cased ("STRIPE"), unlike the
+   * lower-cased `preferredPaymentOption` sent on the request.
+   */
+  paymentGateway: "STRIPE" | "PAYU";
 
   /** Invoice data embedded in response */
   invoice: InvoiceQuickInfo;

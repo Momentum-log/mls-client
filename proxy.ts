@@ -16,28 +16,13 @@ const decodeCookieToken = (value?: string): string | null => {
   }
 };
 
-const hasCompleteAddress = (address: unknown): boolean => {
-  if (!address || typeof address !== "object") return false;
 
-  const addr = address as Record<string, unknown>;
-  const street = (addr.street as string | undefined)?.trim();
-  const city = (addr.city as string | undefined)?.trim();
-  const postalCode =
-    (addr.postalCode as string | undefined)?.trim() ||
-    (addr.zip as string | undefined)?.trim();
-  const country = (addr.country as string | undefined)?.trim();
-
-  return Boolean(street && city && postalCode && country);
-};
 
 const getShipmentGuardState = async (
   token: string,
-): Promise<{ blocked: boolean; reason: "email" | "address" | "both" }> => {
-  const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
-  if (!baseURL) {
-    // If base URL is missing, avoid bypass by defaulting to guarded mode.
-    return { blocked: true, reason: "both" };
-  }
+): Promise<{ blocked: boolean; reason: "email" }> => {
+  const baseURL =
+    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8000/api";
 
   try {
     const response = await fetch(`${baseURL}/auth/get-current-user`, {
@@ -50,35 +35,22 @@ const getShipmentGuardState = async (
     });
 
     if (!response.ok) {
-      return { blocked: true, reason: "both" };
+      return { blocked: false, reason: "email" };
     }
 
     const data = (await response.json()) as {
-      user?: { is_verified?: boolean; address?: unknown };
-      data?: { user?: { is_verified?: boolean; address?: unknown } };
+      user?: { is_verified?: boolean };
+      data?: { user?: { is_verified?: boolean } };
     };
 
     const user = data.user || data.data?.user;
-    if (!user) return { blocked: true, reason: "both" };
+    if (!user) return { blocked: false, reason: "email" };
 
     const emailVerified = user.is_verified === true;
-    const addressComplete = hasCompleteAddress(user.address);
 
-    if (!emailVerified && !addressComplete) {
-      return { blocked: true, reason: "both" };
-    }
-
-    if (!emailVerified) {
-      return { blocked: true, reason: "email" };
-    }
-
-    if (!addressComplete) {
-      return { blocked: true, reason: "address" };
-    }
-
-    return { blocked: false, reason: "both" };
+    return { blocked: !emailVerified, reason: "email" };
   } catch {
-    return { blocked: true, reason: "both" };
+    return { blocked: false, reason: "email" };
   }
 };
 
