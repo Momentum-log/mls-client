@@ -14,7 +14,21 @@ import { TrackingResponse } from "@/types/shipping";
 import { InvoiceDrawer, UpdateShipmentModal } from "@/components/invoice";
 import { CreateShipmentResponse } from "@/types/invoice";
 import Button from "@/components/ui/button";
-import { FiBox, FiInfo, FiCopy, FiDownload, FiFileText } from "react-icons/fi";
+import FulfillmentPanel from "@/components/shipment/fulfillment-panel";
+import ShipmentPreparationInstructions from "@/components/shipment/shipment-preparation-instructions";
+import {
+  getStatusLabel,
+  hasNoJourney,
+  isUnpaid,
+} from "@/utils/shipment-status";
+import {
+  FiBox,
+  FiInfo,
+  FiCopy,
+  FiDownload,
+  FiFileText,
+  FiAlertTriangle,
+} from "react-icons/fi";
 
 /**
  * ShipmentDetailsPage Component
@@ -67,19 +81,17 @@ export default function ShipmentDetailsPage() {
       );
     }
 
-    // If shipment failed or cancelled, do not show tracking data
-    if (
-      cleanedData.shipmentStatus === "FAILED" ||
-      cleanedData.shipmentStatus === "CANCELLED" ||
-      cleanedData.shipmentStatus === "CREATED"
-    ) {
+    // Failed, cancelled or unpaid shipments have no carrier journey to show.
+    if (hasNoJourney(cleanedData.shipmentStatus)) {
       return {
         shipment: cleanedData,
         trackingResponse: null,
       };
     }
 
-    // Reconstruct TrackingResponse for the sub-components if tracking data exists
+    // Reconstruct TrackingResponse for the sub-components if tracking data exists.
+    // The nested `tracking.status` is the carrier's own wording; the shipment's
+    // own `shipmentStatus` stays the authority on the MLS lifecycle.
     const trackingData = cleanedData.tracking;
     const tr: TrackingResponse | null = trackingData
       ? {
@@ -89,7 +101,8 @@ export default function ShipmentDetailsPage() {
             cleanedData.carrierTrackingNumber ||
             "",
           carrier: cleanedData.carrier?.name || "MLS",
-          status: trackingData.status || cleanedData.shipmentStatus,
+          carrierStatus: trackingData.status || "TRACKING_NOT_AVAILABLE",
+          shipmentStatus: cleanedData.shipmentStatus,
           timeline: trackingData.timeline || [],
           shipment: cleanedData,
         }
@@ -176,21 +189,17 @@ export default function ShipmentDetailsPage() {
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
             <div className="flex flex-col gap-8">
-              {/* Status Banner for Failed/Cancelled */}
-              {/* Status Banner for Failed/Cancelled/Created */}
-              {(shipment.shipmentStatus === "FAILED" ||
-                shipment.shipmentStatus === "CANCELLED" ||
-                shipment.shipmentStatus === "CREATED") && (
+              {hasNoJourney(shipment.shipmentStatus) && (
                 <div
                   className={`border p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-4 ${
-                    shipment.shipmentStatus === "CREATED"
+                    isUnpaid(shipment.shipmentStatus)
                       ? "bg-blue-50 border-blue-100"
                       : "bg-red-50 border-red-100"
                   }`}
                 >
                   <div
                     className={`p-3 rounded-xl shrink-0 ${
-                      shipment.shipmentStatus === "CREATED"
+                      isUnpaid(shipment.shipmentStatus)
                         ? "bg-blue-100 text-brand-blue"
                         : "bg-red-100 text-red-600"
                     }`}
@@ -200,29 +209,76 @@ export default function ShipmentDetailsPage() {
                   <div className="flex-1">
                     <h3
                       className={`font-bold text-lg mb-1 ${
-                        shipment.shipmentStatus === "CREATED"
+                        isUnpaid(shipment.shipmentStatus)
                           ? "text-brand-blue"
                           : "text-red-900"
                       }`}
                     >
-                      {shipment.shipmentStatus === "CREATED"
+                      {isUnpaid(shipment.shipmentStatus)
                         ? "Payment Pending"
-                        : `Shipment Status: ${shipment.shipmentStatus}`}
+                        : getStatusLabel(shipment.shipmentStatus)}
                     </h3>
                     <p
                       className={`text-sm font-medium ${
-                        shipment.shipmentStatus === "CREATED"
+                        isUnpaid(shipment.shipmentStatus)
                           ? "text-blue-700"
                           : "text-red-700"
                       }`}
                     >
-                      {shipment.shipmentStatus === "CREATED"
+                      {isUnpaid(shipment.shipmentStatus)
                         ? "This shipment was created but is unpaid. Use the invoice section to continue payment and renewal actions."
                         : "Tracking information is unavailable for this shipment. Please contact support if you believe this is an error."}
                     </p>
                   </div>
                 </div>
               )}
+
+              {/* Missed Pickup Warning Banner */}
+              {(shipment.pickupStatus === "MISSED" ||
+                shipment.supportAction === "CONTACT_SUPPORT_FOR_RESCHEDULE") && (
+                <div className="border border-red-200 bg-red-50 p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 bg-red-100 text-red-600 rounded-xl shrink-0">
+                      <FiAlertTriangle className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-red-900 mb-1">
+                        Courier Pickup Missed
+                      </h3>
+                      <p className="text-sm font-medium text-red-700">
+                        The scheduled pickup date has passed without courier collection. Please contact support to reschedule your pickup or drop off your package at an authorized center.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      document
+                        .getElementById("support-center")
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                    className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-sm transition-colors shrink-0"
+                  >
+                    Contact Support
+                  </button>
+                </div>
+              )}
+
+              {shipment.labelUrl && (
+                <ShipmentPreparationInstructions
+                  labelUrl={shipment.labelUrl}
+                />
+              )}
+
+              <FulfillmentPanel
+                shipmentId={shipment.id}
+                shipmentStatus={shipment.shipmentStatus}
+                invoiceId={rawData?.invoice?.invoiceId}
+                scheduledPickupDate={shipment.scheduledPickupDate}
+                pickupReadyTime={shipment.pickupReadyTime}
+                pickupCloseTime={shipment.pickupCloseTime}
+                pickupConfirmationCode={shipment.pickupConfirmationCode}
+                pickupLocationCode={shipment.pickupLocationCode}
+              />
 
               {trackingResponse && (
                 <TrackingOverview trackingResponse={trackingResponse} />
@@ -321,7 +377,7 @@ export default function ShipmentDetailsPage() {
             </Button>
           )}
 
-          <div className="bg-brand-blue/5 p-8 rounded-3xl border border-brand-blue/10">
+          <div id="support-center" className="bg-brand-blue/5 p-8 rounded-3xl border border-brand-blue/10">
             <h4 className="font-black text-brand-blue mb-2 text-lg">
               Support Center
             </h4>
@@ -368,6 +424,7 @@ export default function ShipmentDetailsPage() {
           onUpdateSuccess={handleUpdateSuccess}
         />
       )}
+
     </div>
   );
 }

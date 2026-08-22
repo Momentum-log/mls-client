@@ -11,7 +11,7 @@ import {
   FiCreditCard,
 } from "react-icons/fi";
 import { Address, Package } from "@/store/shipment-store";
-import { Rate } from "@/types/shipping";
+import { ShippingTier } from "@/types/shipping";
 import Button from "@/components/ui/button";
 import { formatCurrencyCompact } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
@@ -22,7 +22,7 @@ interface SummaryDrawerProps {
   sender: Address | null;
   recipient: Address | null;
   packages: Package[];
-  rate: Rate | null;
+  tier: ShippingTier | null;
   onFinalize: (paymentMethod: "stripe" | "payu") => void;
   isLoading?: boolean;
 }
@@ -37,12 +37,12 @@ export default function SummaryDrawer({
   sender,
   recipient,
   packages = [],
-  rate,
+  tier,
   onFinalize,
   isLoading,
 }: SummaryDrawerProps) {
   const isPolishUser = sender?.country?.toUpperCase() === "PL";
-  const isEUR = rate?.currency === "EUR";
+  const isEUR = tier?.currency === "EUR";
   const [paymentMethod, setPaymentMethod] = React.useState<"stripe" | "payu">(
     "stripe",
   );
@@ -195,24 +195,29 @@ export default function SummaryDrawer({
                   </div>
                   <div className="relative z-10">
                     <h5 className="text-xl font-black tracking-tight">
-                      {rate?.serviceName}
+                      {tier?.label}
                     </h5>
                     <p className="text-brand-yellow text-xs font-bold uppercase tracking-widest mt-1">
-                      {rate?.deliveryDescription || "Standard Express"}
+                      {tier?.deliveryDescription || "Standard Express"}
                     </p>
                     <div className="mt-6 flex items-baseline gap-2 border-t border-white/10 pt-4">
                       <span className="text-3xl font-black text-white">
                         {formatCurrencyCompact(
-                          rate?.actualPrice as number,
-                          rate?.currency as SupportedCurrency,
+                          tier?.actualPrice as number,
+                          tier?.currency as SupportedCurrency,
                         )}
                       </span>
                       <span className="text-sm font-bold opacity-60 uppercase">
-                        {rate?.currency}
+                        {tier?.currency}
                       </span>
                     </div>
                   </div>
                 </div>
+
+                <p className="text-xs text-gray-500 font-medium leading-relaxed px-1">
+                  After payment you&apos;ll get a printable label and choose how
+                  to send it — drop it off yourself, or book a courier pickup.
+                </p>
               </div>
 
               {/* Payment Method Selector */}

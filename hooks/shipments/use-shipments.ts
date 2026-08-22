@@ -18,6 +18,7 @@ import {
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
+import { isActive, isDelivered } from "@/utils/shipment-status";
 import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
@@ -129,10 +130,12 @@ export const useShipmentStats = () => {
     );
 
     shipments.forEach((shipment) => {
-      // Logic for status counts
-      if (shipment.shipmentStatus === "DELIVERED") {
+      // "Active" means paid for and still moving. Previously this was
+      // everything except DELIVERED and CANCELLED, which counted unpaid drafts
+      // and outright failures toward the number on the dashboard.
+      if (isDelivered(shipment.shipmentStatus)) {
         completedCount++;
-      } else if (shipment.shipmentStatus !== "CANCELLED") {
+      } else if (isActive(shipment.shipmentStatus)) {
         activeCount++;
       }
 

@@ -1,0 +1,381 @@
+/* ============================================================
+   Momentum Logistics — Design System entry point
+   Consumers link THIS file only. Imports reach every token
+   file and the webfont declarations.
+   ============================================================ */
+
+/* ============================================================
+   Momentum Logistics — Webfont declarations
+   Satoshi  → body / UI / primary sans (--font-satoshi)
+   Work Sans → headings / display (--font-work-sans)
+   Mono numerals / IDs use the native system monospace stack
+   (--font-mono) — no custom webfont required.
+   Satoshi & Work Sans ship straight from the production codebase.
+   ============================================================ */
+
+/* ---------- Satoshi (primary) ---------- */
+@font-face {
+  font-family: "Satoshi";
+  src: url("3f77eb22-301f-4b18-9b34-639bf381c53d") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("a97732b7-7dde-4cb8-91e9-e91d82f85753") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("6a8c5999-5de3-4372-885c-0ce12200ff6d") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("9d86fbc7-5ff4-455f-b07b-6f1b9149b4c1") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("52cf2c29-7f34-4b9d-8a41-9678cbbe1614") format("opentype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Satoshi";
+  src: url("d029890d-22db-43d3-bd47-2d44c136b3f8") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- Work Sans (headings) ---------- */
+@font-face {
+  font-family: "WorkSans";
+  src: url("417c6431-7b2c-4ec3-aace-e227298ea390") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "WorkSans";
+  src: url("61d1c8dd-0824-47d3-9f54-f8aafce3fe79") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "WorkSans";
+  src: url("69f536fb-3df0-4471-94d0-406802154534") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "WorkSans";
+  src: url("5025101e-4ed0-4465-9dc4-627958779537") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "WorkSans";
+  src: url("b6d938f1-7a72-433b-8e9b-9b1b3f11ce17") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "WorkSans";
+  src: url("a520f428-ca72-4919-8bf7-e157e896bdaa") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* ============================================================
+   Momentum Logistics — Color tokens
+   Sourced verbatim from app/globals.css (@theme inline).
+   Philosophy: FLAT. Solid colors only — never gradients.
+   ============================================================ */
+
+:root {
+  /* ---------- Brand core ---------- */
+  --brand-blue: #005db1;        /* primary — trust, motion, the "M" mark */
+  --brand-yellow: #fcb417;      /* secondary — energy, highlights, CTAs */
+  --accent-dark: #8b5cf6;       /* violet accent — quotes & data moments */
+  --accent-light: #c3b4fc;      /* soft violet — card frames, fills */
+
+  /* Logo-exact variants (slightly warmer than the CSS brand pair) */
+  --brand-blue-logo: #0763b0;
+  --brand-yellow-logo: #fcb119;
+
+  /* ---------- Neutrals (Tailwind grey scale in use) ---------- */
+  --white: #ffffff;
+  --foreground: #171717;        /* near-black text */
+  --gray-50: #f9fafb;           /* app canvas / input fill */
+  --gray-100: #f3f4f6;          /* hairlines, hover wells */
+  --gray-200: #e5e7eb;          /* borders */
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;          /* placeholder / muted icon */
+  --gray-500: #6b7280;          /* secondary text */
+  --gray-600: #4b5563;          /* nav idle text */
+  --gray-700: #374151;          /* body strong */
+  --gray-900: #111827;          /* headings in app */
+
+  /* ---------- Semantic status ---------- */
+  --success: #16a34a;           /* green-600 — delivered */
+  --success-bg: #dcfce7;        /* green-100 */
+  --success-fg: #15803d;        /* green-700 */
+  --info: #2563eb;              /* blue-600 — in transit */
+  --info-bg: #dbeafe;           /* blue-100 */
+  --info-fg: #1d4ed8;           /* blue-700 */
+  --danger: #dc2626;            /* red-600 — destructive / sign out */
+  --danger-bg: #fef2f2;         /* red-50 */
+  --warning: var(--brand-yellow);
+
+  /* ---------- Semantic aliases (use these in product UI) ---------- */
+  --color-primary: var(--brand-blue);
+  --color-secondary: var(--brand-yellow);
+  --bg-page: var(--white);
+  --bg-canvas: var(--gray-50);          /* logged-in app shell */
+  --surface-card: var(--white);
+  --surface-input: var(--gray-50);
+  --surface-well: var(--gray-100);
+  --border-subtle: var(--gray-100);
+  --border-default: var(--gray-200);
+  --text-strong: var(--gray-900);
+  --text-body: var(--foreground);
+  --text-muted: var(--gray-500);
+  --text-faint: var(--gray-400);
+  --text-on-brand: var(--white);        /* text on blue */
+  --text-on-yellow: var(--brand-blue);  /* text on yellow */
+  --focus-ring: var(--brand-blue);
+}
+
+/* ============================================================
+   Momentum Logistics — Typography tokens
+   Headings: Work Sans  •  Body / UI: Satoshi  •  Mono: Geist Mono
+   ============================================================ */
+
+:root {
+  /* ---------- Families ---------- */
+  --font-satoshi: "Satoshi", system-ui, -apple-system, sans-serif;
+  --font-work-sans: "WorkSans", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* Role aliases */
+  --font-display: var(--font-satoshi);  /* hero h1 uses Satoshi Black */
+  --font-heading: var(--font-work-sans);
+  --font-body: var(--font-satoshi);
+
+  /* ---------- Weights ---------- */
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --weight-black: 900;
+
+  /* ---------- Type scale (rem @ 16px base) ---------- */
+  --text-xs: 0.75rem;     /* 12px — meta, tracking numbers */
+  --text-sm: 0.875rem;    /* 14px — secondary, table cells */
+  --text-base: 1rem;      /* 16px — body */
+  --text-lg: 1.125rem;    /* 18px — lead nav */
+  --text-xl: 1.25rem;     /* 20px — card titles */
+  --text-2xl: 1.5rem;     /* 24px — page H1 (app) */
+  --text-3xl: 1.875rem;   /* 30px — stat numbers */
+  --text-4xl: 2.25rem;    /* 36px — section heads */
+  --text-6xl: 3.75rem;    /* 60px — marketing display */
+  --text-8xl: 6rem;       /* 96px — hero display */
+
+  /* ---------- Line height ---------- */
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  /* ---------- Tracking ---------- */
+  --tracking-tight: -0.02em;  /* big display headings */
+  --tracking-normal: 0;
+  --tracking-widest: 0.15em;  /* eyebrow / uppercase labels */
+}
+
+/* ============================================================
+   Momentum Logistics — Spacing, radius, shadow & motion tokens
+   Derived from the Tailwind utilities used across the codebase.
+   ============================================================ */
+
+:root {
+  /* ---------- Spacing scale (4px base) ---------- */
+  --space-1: 0.25rem;   /* 4 */
+  --space-2: 0.5rem;    /* 8 */
+  --space-3: 0.75rem;   /* 12 */
+  --space-4: 1rem;      /* 16 */
+  --space-5: 1.25rem;   /* 20 */
+  --space-6: 1.5rem;    /* 24 — card padding */
+  --space-8: 2rem;      /* 32 — section gap */
+  --space-10: 2.5rem;   /* 40 */
+  --space-12: 3rem;     /* 48 */
+  --space-16: 4rem;     /* 64 — hero rhythm */
+  --space-24: 6rem;     /* 96 */
+
+  /* ---------- Radius (very rounded house style) ---------- */
+  --radius-sm: 0.5rem;    /* 8  — pills inside dense rows */
+  --radius-md: 0.75rem;   /* 12 — inputs, nav items (rounded-xl) */
+  --radius-lg: 1rem;      /* 16 — buttons, cards (rounded-2xl on inner) */
+  --radius-xl: 1.5rem;    /* 24 — feature cards (rounded-3xl) */
+  --radius-2xl: 2rem;     /* 32 — modals */
+  --radius-full: 9999px;  /* pills, avatars, round CTAs */
+
+  /* ---------- Shadows (soft, neutral — never colored) ---------- */
+  --shadow-sm: 0 1px 2px 0 rgba(17, 24, 39, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(17, 24, 39, 0.08), 0 2px 4px -2px rgba(17, 24, 39, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(17, 24, 39, 0.10), 0 4px 6px -4px rgba(17, 24, 39, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(17, 24, 39, 0.10), 0 8px 10px -6px rgba(17, 24, 39, 0.05);
+  --shadow-2xl: 0 25px 50px -12px rgba(17, 24, 39, 0.25);
+
+  /* ---------- Borders ---------- */
+  --border-width: 1px;
+  --border-width-strong: 2px;   /* outline buttons */
+
+  /* ---------- Motion ---------- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1); /* @kind other */
+  --duration-fast: 150ms;   /* @kind other */
+  --duration-base: 200ms;   /* @kind other */
+  --duration-slow: 300ms;   /* @kind other */
+  --duration-slower: 500ms; /* @kind other */
+
+  /* ---------- Layout ---------- */
+  --container-max: 80rem;   /* 1280px content width */
+  --sidebar-width: 16rem;   /* 256px app sidebar */
+}
+
+/* ============================================================
+   Momentum Logistics — Base element defaults
+   Mirrors the resets in app/globals.css.
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: var(--weight-regular);
+  color: var(--text-body);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--text-strong);
+  margin: 0;
+}
+
+/* Hero / marketing display uses Satoshi Black, not Work Sans */
+.mls-display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+/* Signature yellow marker-swipe behind hero words */
+.mls-marker {
+  position: relative;
+  display: inline-block;
+}
+.mls-marker > .mls-marker-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0.05em;
+  width: 100%;
+  height: 0.34em;
+  background: var(--brand-yellow);
+  transform: rotate(-3deg);
+  z-index: 0;
+}
+.mls-marker > .mls-marker-text {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hide scrollbar utility (carried over from production) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+body { margin: 0; background: var(--white); font-family: var(--font-body); color: var(--text-body); }
+  * { box-sizing: border-box; }
+  .lp-container { margin: 0 auto; padding: 0 28px; width: 100%; }
+  a { text-decoration: none; }
+  img { display: block; }
+
+  /* backlink: desktop only */
+  .lp-backlink { display: inline-flex; align-items: center; gap: 6px; transition: color var(--duration-base); }
+  .lp-backlink:hover { color: var(--brand-blue) !important; }
+  @media (max-width: 1040px) { .lp-backlink { display: none; } }
+
+  /* textarea matching the DS Input look */
+  .lp-textarea {
+    width: 100%; box-sizing: border-box; padding: 12px 16px; font-size: 14px;
+    font-family: var(--font-body); color: var(--text-body); background: var(--surface-input);
+    border: 1px solid var(--border-default); border-radius: var(--radius-md);
+    transition: all var(--duration-base) var(--ease-standard); outline: none; resize: vertical;
+    line-height: 1.5;
+  }
+  .lp-textarea::placeholder { color: var(--text-faint); }
+  .lp-textarea:focus-visible { border-color: var(--brand-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-blue) 20%, transparent); }
+
+  /* responsive collapses */
+  @media (max-width: 980px) {
+    .lp-hero-grid, .lp-company-grid, .lp-sus-grid, .lp-form-grid { grid-template-columns: 1fr !important; }
+    .lp-freight-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .lp-footer-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+  /* hide the inline nav on tablet/mobile — logo + CTA remain */
+  @media (max-width: 860px) {
+    .lp-nav { display: none !important; }
+  }
+  @media (max-width: 600px) {
+    .lp-container { padding: 0 18px; }
+    .lp-pair { grid-template-columns: 1fr !important; }
+    .lp-footer-grid { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 560px) {
+    .lp-freight-grid { grid-template-columns: 1fr !important; }
+  }
+
+  /* Safety-net: guarantee brand button appearance even before the DS
+     component effect injects its stylesheet (and for static-capture export). */
+  .mls-btn { -webkit-appearance: none; appearance: none; }
+  .mls-btn--primary { background: var(--brand-blue); color: var(--white); }
+  .mls-btn--primary:hover { background: var(--brand-yellow); color: var(--brand-blue); }
+  .mls-btn--secondary { background: var(--brand-yellow); color: var(--brand-blue); }
+  .mls-btn--outline { background: transparent; border-color: var(--brand-blue); color: var(--brand-blue); }
+  .mls-btn--outline:hover { background: var(--brand-blue); color: var(--white); }

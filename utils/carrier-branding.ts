@@ -7,7 +7,25 @@
 
 const CARRIER_NAME_PATTERN = /\b(fedex|dhl|inpost)\b/gi;
 
-const DEFAULT_SKIP_KEYS = new Set(["carrierSlug", "slug"]);
+/**
+ * Keys whose values are identifiers, not prose.
+ *
+ * Anything sent back to the server, or shown to a courier, must survive
+ * branding untouched. `routingRef` is the sharp one: it is contractually opaque
+ * and must be echoed back byte-for-byte, so a substitution inside it would
+ * silently fail to resolve server-side and surface as an unrelated booking
+ * error.
+ */
+const DEFAULT_SKIP_KEYS = new Set([
+  "carrierSlug",
+  "slug",
+  "routingRef",
+  "estimateId",
+  "pickupConfirmationCode",
+  "pickupLocationCode",
+  "customTrackingNumber",
+  "carrierTrackingNumber",
+]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null && !Array.isArray(value);

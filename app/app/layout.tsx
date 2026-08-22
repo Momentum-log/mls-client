@@ -15,7 +15,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const isInitializing = React.useRef(false);
+  // Snapshotted on mount so the refresh can tell a cold start (no cached
+  // profile — a failure means log in again) from a warm one.
+  const hasCachedUser = React.useRef(Boolean(user));
 
+  // Refreshed on every app open, not only when the store is empty. The auth
+  // store is persisted, so a returning user would otherwise be served a cached
+  // profile forever — and `accountType` decides which customs declaration they
+  // are shown, which an admin can change between sessions.
   useEffect(() => {
     const initAuth = async () => {
       if (isInitializing.current) return;
@@ -27,31 +34,41 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (!user) {
-        isInitializing.current = true;
-        try {
-          const { getCurrentUser } = await import("@/api/auth");
-          const response = await getCurrentUser();
-          updateUser(response.data.user);
-        } catch (error: unknown) {
-          // If it's a network error, the server might be down
-          if (error instanceof Error && error.message === "Network Error") {
-            console.error(
-              "Backend API is unreachable. Please ensure the server is running on port 8000.",
-            );
-          } else {
-            console.error("Auth check failed", error);
-            router.push("/login");
-          }
-        } finally {
-          isInitializing.current = false;
-        }
+      // A cached user paints immediately; the refresh below happens behind it.
+      if (hasCachedUser.current) {
+        setIsLoading(false);
       }
+
+      isInitializing.current = true;
+      try {
+        const { getCurrentUser } = await import("@/api/auth");
+        const response = await getCurrentUser();
+        updateUser(response.data.user);
+      } catch (error: unknown) {
+        // If it's a network error, the server might be down
+        if (error instanceof Error && error.message === "Network Error") {
+          console.error(
+            "Backend API is unreachable. Please ensure the server is running on port 8000.",
+          );
+        } else if (!hasCachedUser.current) {
+          console.error("Auth check failed", error);
+          router.push("/login");
+        } else {
+          // A failed refresh behind a cached profile is not worth throwing the
+          // user out over; the next call that needs a live token will 401.
+          console.error("Auth refresh failed", error);
+        }
+      } finally {
+        isInitializing.current = false;
+      }
+
       setIsLoading(false);
     };
 
     initAuth();
-  }, [user, router, updateUser]);
+    // Runs once per mount. `user` is deliberately not a dependency — it is
+    // written by this effect, and depending on it would re-fire the fetch.
+  }, [router, updateUser]);
 
   // Handle body scroll lock
   useEffect(() => {

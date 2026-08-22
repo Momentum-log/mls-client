@@ -128,7 +128,7 @@ export default function VerifyPage() {
               Shipment Confirmed!
             </h1>
             <p className="text-gray-500 mb-8 font-medium">
-              Your package is ready to move. Download your label below.
+              Print your label, then choose how to send it.
             </p>
 
             {/* Tracking Info Card */}
@@ -169,6 +169,24 @@ export default function VerifyPage() {
                 <div className="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-sm font-medium">
                   Label generation pending. Please check &quot;My Shipments&quot; shortly.
                 </div>
+              )}
+
+              {/*
+                Fulfillment lives on the shipment page. The gateway decides
+                which return page the customer lands on, so both carry this
+                CTA — a link on only one strands half of them.
+              */}
+              {shipmentId && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() =>
+                    router.push(`/app/shipments/${shipmentId}#fulfillment`)
+                  }
+                  className="w-full h-14 rounded-xl text-base border-brand-blue/30 text-brand-blue hover:bg-brand-blue/5"
+                >
+                  <FiTruck className="mr-2" /> Arrange Collection
+                </Button>
               )}
 
               <div className="grid grid-cols-2 gap-3 mt-4">

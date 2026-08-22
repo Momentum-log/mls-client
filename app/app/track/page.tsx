@@ -27,6 +27,7 @@ import RecentShipments from "@/components/tracking/RecentShipments";
 
 import Link from "next/link";
 import Button from "@/components/ui/button";
+import { isFailed, isUnpaid } from "@/utils/shipment-status";
 
 // ... existing imports
 
@@ -92,10 +93,10 @@ export default function TrackShipmentPage() {
       const cleanedResponse = deepTransformData(data);
 
       // Check for explicit FAILED status in the response data or shipment status
-      // Note: The backend might return 200 OK but with status="FAILED" in the body
+      // Note: The backend might return 200 OK but with a failed status in the body
       if (
-        cleanedResponse.status === "FAILED" ||
-        cleanedResponse.shipment?.shipmentStatus === "FAILED"
+        isFailed(cleanedResponse.shipmentStatus) ||
+        isFailed(cleanedResponse.shipment?.shipmentStatus ?? "")
       ) {
         setError(
           "Tracking information could not be found because the shipment failed. Please contact support.",
@@ -123,8 +124,8 @@ export default function TrackShipmentPage() {
   };
 
   const isCreatedStatus =
-    trackingResponse?.status === "CREATED" ||
-    trackingResponse?.shipment?.shipmentStatus === "CREATED";
+    isUnpaid(trackingResponse?.shipmentStatus ?? "") ||
+    isUnpaid(trackingResponse?.shipment?.shipmentStatus ?? "");
 
   return (
     <div className="container mx-auto py-8 max-w-4xl px-4">

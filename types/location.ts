@@ -37,3 +37,28 @@ export interface PlaceDetails {
   zip: string;
   formattedAddress: string;
 }
+
+export interface DropoffCenterAddress {
+  streetLines: string[];
+  city: string;
+  stateOrProvinceCode?: string;
+  postalCode: string;
+  countryCode: string;
+}
+
+export interface DropoffCenter {
+  id?: string;
+  centerName: string;
+  address: DropoffCenterAddress;
+  distanceKm: number;
+  operatingHours?: Record<string, string>;
+  carrierCapabilities?: string[];
+  locationType?: string;
+}
+
+export interface DropoffCenterSearchParams {
+  carrierSlug?: string;
+  address: DropoffCenterAddress;
+  radiusKm?: number;
+}
+

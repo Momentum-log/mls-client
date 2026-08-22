@@ -1,17 +1,11 @@
 import { Shipment } from "@/types/shipping";
+import { getStatusLabel } from "@/utils/shipment-status";
 
 /**
- * Formats a shipment status enum into a human-readable string.
- * Example: "IN_TRANSIT" -> "In Transit"
+ * Formats a shipment status into its customer-facing label.
+ * Example: "IN_TRANSIT" -> "In Transit", "LEG2_PENDING" -> "In Transit"
  */
-export const formatStatus = (status: string) => {
-  if (!status) return "Unknown";
-  return status
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+export const formatStatus = (status: string) => getStatusLabel(status);
 
 /**
  * Generates a meaningful display name for a shipment.

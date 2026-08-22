@@ -13,6 +13,10 @@ import {
 import Button from "@/components/ui/button";
 import { useGetShipmentHistory } from "@/hooks/shipments/use-shipments";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
+import {
+  getStatusBadgeClasses,
+  isTerminalFailure,
+} from "@/utils/shipment-status";
 import CopyButton from "@/components/ui/copy-button";
 import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
 import ActionMenu from "@/components/ui/action-menu";
@@ -101,14 +105,12 @@ export default function ShipmentHistoryPage() {
                     </p>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-gray-900 truncate">
-                        {shipment.shipmentStatus === "FAILED" ||
-                        shipment.shipmentStatus === "CANCELLED"
+                        {isTerminalFailure(shipment.shipmentStatus)
                           ? "Tracking Unavailable"
                           : shipment.customTrackingNumber || "N/A"}
                       </p>
                       {shipment.customTrackingNumber &&
-                        shipment.shipmentStatus !== "FAILED" &&
-                        shipment.shipmentStatus !== "CANCELLED" && (
+                        !isTerminalFailure(shipment.shipmentStatus) && (
                           <div
                             onClick={(e) => {
                               e.preventDefault();
@@ -127,14 +129,9 @@ export default function ShipmentHistoryPage() {
                   {/* Column 3: Status & Action (Fixed Width) */}
                   <div className="flex items-center gap-4 w-40 shrink-0 justify-end">
                     <span
-                      className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${
-                        shipment.shipmentStatus === "DELIVERED"
-                          ? "bg-green-100 text-green-700 font-bold"
-                          : shipment.shipmentStatus === "FAILED" ||
-                              shipment.shipmentStatus === "CANCELLED"
-                            ? "bg-red-100 text-red-700 font-bold"
-                            : "bg-blue-100 text-blue-700 font-bold"
-                      }`}
+                      className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tight ${getStatusBadgeClasses(
+                        shipment.shipmentStatus,
+                      )}`}
                     >
                       {formatStatus(shipment.shipmentStatus)}
                     </span>

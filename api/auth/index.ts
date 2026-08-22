@@ -35,10 +35,17 @@ export const getCurrentUser = () => {
 
 /**
  * Updates the current user's profile information.
+ *
+ * @remarks `accountType` is deliberately absent — the endpoint does not accept
+ * it. Switching between business and individual decides which customs path the
+ * user is shown, so it is admin-only. `companyName` and `nip` are rejected with
+ * a 400 on a non-business account.
  */
 export const updateProfile = (data: {
   name?: string;
   phone?: string;
+  companyName?: string;
+  nip?: string;
   address?: {
     street?: string;
     city?: string;

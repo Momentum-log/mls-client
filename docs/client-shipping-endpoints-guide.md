@@ -99,7 +99,7 @@ export interface ShippingQuotePayload {
 **Endpoint:** `POST /api/shipments/get-shipping-estimate`
 **Auth:** Optional (Guest compatible)
 
-This endpoint must be invoked when the user transitions from checking prices to actively creating a shipment wizard. DHL and cross-border carriers have strict international rules regarding business vs individual declarations.
+This endpoint must be invoked when the user transitions from checking prices to actively creating a shipment wizard. DHL and cross-border carriers have strict international rules regarding business vs individual declarations — which branch applies is derived from the signed-in account, not asked (see the v4.3 note under Business Validation Rules).
 
 ### TypeScript Interfaces
 
@@ -146,13 +146,14 @@ export type CustomsData =
       countryOfOrigin?: "PL";
       additionalInfo?: string;
       customsItem: { item: ItemDetail | ItemDetail[] }[];
-      // Required specific individual items
+      // Individual-only extras. All optional — verified against the
+      // branch's `required` array in openapi.json.
       eoriNr?: string;
       eoriNrReceiver?: string;
       vatRegistrationNumberReceiver?: string;
-      invoiceNr: string;
-      invoiceDate: string; // YYYY-MM-DD
-      invoice: string; // Base64
+      invoiceNr?: string;
+      invoiceDate?: string; // YYYY-MM-DD
+      invoice?: string; // Base64
       customAgreements?: {
         notProhibitedGoods: true;
         notRestrictedGoods: true;
@@ -178,12 +179,36 @@ export interface ShippingEstimatePayload {
 ### Business Validation Rules:
 
 - If `pickup.countryCode == dropoff.countryCode` (Domestic): `customs` is fully optional.
-- If `pickup.countryCode != dropoff.countryCode` (International): **`customs` is absolutely mandatory**. Ensure you collect inputs from the user regarding `customsType` (business Nip vs simplified declarations).
+- If `pickup.countryCode != dropoff.countryCode` (International): **`customs` is absolutely mandatory**.
+
+> **Superseded as of API v4.3 — do not ask the user for `customsType`.**
+>
+> This guide previously told you to collect `customsType` from the user. That
+> step is gone. The account records whether it is a business or a private
+> individual at sign-up, and the branch is derived from it:
+>
+> ```ts
+> const customsType = user.accountType === "BUSINESS" ? "S" : "I";
+> ```
+>
+> In this client the rule lives in `utils/account-type.ts` and nowhere else.
+> See `docs/account-type-and-business-profile-guide.md` and
+> `docs/signupandshipmentflowsv4.3.md` for the full field tables.
+>
+> Two other corrections to the interfaces below, both confirmed against
+> `openapi.json`, which is authoritative:
+>
+> - `nipNr` is **required on the business (`"S"`) branch** and **not accepted at
+>   all** on the individual (`"I"`) branch. An earlier revision of this guide had
+>   that requirement on the wrong branch.
+> - `invoiceNr`, `invoiceDate` and `invoice` on the individual branch are
+>   **optional**. They were never required — check the branch's `required` array.
 
 > **Best Practices for the Frontend**:
 >
-> - Hide the complex questions (like HS Codes and NIP numbers) behind an "International Details" toggle/wizard screen.
-> - Fields like `vatRegistrationNumber` and `customAgreements` are currently marked optional as they are injected via backend API defaults, but your frontend must definitely provide exact arrays of `customsItem` (the cart) and their respective `tariffCode`.
+> - Hide the complex questions (like HS Codes) behind an "International Details" toggle/wizard screen.
+> - `vatRegistrationNumber` is injected via backend API defaults, but your frontend must definitely provide exact arrays of `customsItem` (the cart) and their respective `tariffCode`.
+> - `customAgreements` is optional as a whole, but it is all-or-nothing: send it and every key in that branch is required (4 on `"S"`, 2 on `"I"`). `notProhibitedGoods` and `notRestrictedGoods` are typed `enum [true]` — the schema rejects `false`, so block submit rather than sending an unticked box.
 
 ### JSON Example (Strict Individual Clearance)
 

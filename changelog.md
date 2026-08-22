@@ -5,6 +5,92 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.0] - 2026-08-22 - Account type at sign-up drives the customs declaration
+API v4.3 records at sign-up whether an account belongs to a business or a private individual, so the shipment flow no longer has to ask. The per-shipment "Business or Individual?" toggle is gone; the customs branch is derived from the account.
+- Added: **Account type at sign-up** (`components/auth/register-form.tsx`, `types/auth.ts`)
+  - Segmented Individual / Business control. Choosing Business reveals optional `companyName` and `nip` inputs.
+  - Both company fields are omitted from the payload entirely on an individual account — the server rejects them rather than dropping them, and its minimum length is 1, so empty strings are not an option either. Switching back to Individual clears them.
+  - A `409` now offers "sign in instead" rather than a generic failure.
+  - `User` gains `accountType`, `companyName` and `nip`; `defaultCustomsType` is removed, having never existed server-side.
+- Added: **`utils/account-type.ts`** — the single home for `accountType → customsType` and the per-branch customs category lists. One copy of the rule, so the customs form and the estimate step cannot disagree.
+- Changed: **Customs form derives its branch** (`components/shipment/customs-form.tsx`)
+  - Deleted the Business/Individual toggle. The declaration type is shown read-only, sourced from the account.
+  - `customsType` is no longer form state. It was frozen at mount, so a profile arriving from the background session refresh after the form rendered would show one branch and submit the other — the exact stale-account-type failure this release exists to prevent.
+  - `nipNr` is prefilled from `user.nip` and its input hidden when the profile already has one; it is still required, and still never sent, on the individual branch.
+  - Category options follow the branch — `31` and `91` are business-only. A selection that the branch stops accepting resets rather than being submitted and rejected.
+  - `firstName` / `secondaryName` now enforce the schema's 30-character cap, which an auto-filled package description could breach.
+- Added: **Shipper declarations** (`components/shipment/customs-form.tsx`)
+  - `customAgreements` was never sent. It now renders as checkboxes — four on the business branch, two on the individual one — and blocks submit until confirmed.
+  - `notProhibitedGoods` and `notRestrictedGoods` are typed `enum [true]` server-side, so an unticked box blocks rather than sending `false`. Enforced with `z.literal(true)` in the same validator as every other field.
+- Changed: **Profile shows account type, not a customs preference** (`components/account/ProfileForm.tsx`)
+  - Replaced the "Default Customs Entity" dropdown, which the server never accepted, with a read-only account type and editable company name / NIP for business accounts.
+  - The PATCH body is now built explicitly rather than posting the whole form, so company details never reach a non-business account.
+- Fixed: **Session refresh on app open** (`app/app/layout.tsx`) — `getCurrentUser()` ran only when the store was empty, and the store is persisted, so a returning user was served a cached profile indefinitely. `accountType` decides which customs declaration is filed and an admin can change it between sessions. It now refreshes on every mount, behind the cached profile so first paint is unaffected, and a failed refresh no longer logs a warm session out.
+- Changed: **`docs/client-shipping-endpoints-guide.md`** — it still instructed the reader to collect `customsType` from the user, which is exactly the step this release removes. Marked superseded with the derivation, and corrected two interface errors the v4.3 guides call out: `nipNr` belongs on the business branch only, and `invoiceNr` / `invoiceDate` / `invoice` were never required. `types/shipping.ts` already had these right; only its comment said otherwise.
+- Fixed: **Unverified accounts got a generic error** (`app/app/shipments/new/page.tsx`) — the server refuses them in the service layer, so the throw arrives as a `500` rather than a `403`. Matched on the message and routed to email verification.
+
+## [1.46.0] - 2026-08-21 - Freight partnership landing page
+The Momentum freight-partnership campaign page (`docs/new-landing-page/`) is now the site's front door at `/`. It shipped as a self-unpacking single-file React bundle; its sections were decoded and re-implemented as Next.js components against the existing UI kit and design tokens.
+- Added: **Landing sections** (`components/landing/`)
+  - `landing-hero.tsx`, `landing-video.tsx`, `landing-partners.tsx`, `landing-inquiry-form.tsx`, `landing-company.tsx`, `landing-sustainability.tsx`, plus `eyebrow.tsx`, `marker-heading.tsx` and `stat-tile.tsx` primitives.
+  - Inline styles converted to Tailwind against the existing theme tokens; the bundle's runtime `lucide.createIcons()` wrapper dropped in favour of `lucide-react` imports.
+  - Reuses `components/ui/button`, `components/ui/select` and `components/shared/container` rather than duplicating them. `FAQSection` is appended unchanged.
+- Added: **Live inquiry submission** (`types/inquiry.ts`, `api/inquiries/index.ts`, `hooks/inquiries/use-inquiries.ts`)
+  - "Become a partner" posts to `POST /inquiries` via the shared `apiClient`, so the request carries the configured base URL plus the `X-Guest-ID` / `X-MLS-Key` headers. Replaces the bundle's hardcoded `fetch` to a production URL.
+  - The freight `Select` emits lowercase; the payload boundary maps it to the API's uppercase `freightTypes` enum array.
+  - Errors surface through `handleApiError`. Added a client-side guard on freight type — the custom select is not covered by native `required` validation, so an empty selection previously cost a round trip to be rejected.
+- Added: **Bilingual landing copy** (`components/landing/translations.ts`, `store/language-store.ts`, `hooks/use-landing-copy.ts`)
+  - Full EN/PL dictionary ported from the bundle. The Polish table is typed against the English one, so a missing translation is a compile error.
+  - Copy that the original scattered across inline `lang === "pl" ? ... : ...` ternaries and a thrice-duplicated `getCtaLabel()` is folded into the dictionary as real keys.
+  - Preference persists to `sessionStorage`; rehydration is read via `useSyncExternalStore` so a stored Polish preference does not trigger a hydration mismatch.
+- Added: **EN | PL toggle in the header** (`components/landing/language-toggle.tsx`, `components/layout/header.tsx`)
+  - Rendered on `/` only, since only the landing sections are translated. Held to `lg` and up on desktop — at exactly `md` the nav, country selector and CTA already fill the header row. Below `md` it appears in the mobile menu.
+- Changed: **`components/ui/input.tsx`** — optional `label` prop matching the label treatment in `components/ui/select.tsx`. Backwards compatible with every existing call site.
+- Changed: **`app/globals.css`** — added `--color-success`, `--color-success-bg`, `--color-success-fg` tokens for the sustainability section.
+- Changed: **Quote CTAs point at the real quote engine.** The header's "Get a Quote" and the hero's primary CTA both route to `/shipping-estimate`; only the hero's secondary CTA scrolls to the enquiry form. The two journeys stay distinct.
+- Added: **`/legacy-home`** — the previous landing page, preserved verbatim behind `robots: noindex, nofollow` and unlinked from the app. Every `components/home/*` file is untouched and still importable.
+- Added: Landing assets under `public/images/landing/`, `public/images/partners/` and `public/videos/`. The 6.4 MB company video carries a generated poster and `preload="none"`, so it only downloads on play.
+
+## [1.45.0] - 2026-08-08 - MLS API v4 Migration (Rate Tiering & Post-Payment Fulfillment)
+**Breaking.** The server no longer accepts the previous `create-shipment` contract, so every booking attempt was being rejected until this change.
+- Added: **Rate tier selection** (`components/shipment/tier-selection.tsx`, `types/shipping.ts`, `store/shipment-store.ts`)
+  - Replaced the per-service rate list with Fastest / Balanced / Economy tiers. Handles fewer than three tiers, since a route with one viable option returns one.
+  - The customer picks a price and a delivery window; the server picks the carrier. `carrierSlug` and the client-asserted price are gone.
+  - Store now holds `estimateId` + `selectedTier`; removed `selectedRate`. Deleted `components/shipment/service-selection.tsx`.
+  - Surfaces per-tier `warnings[]` and carrier `errors[]`, neither of which was previously rendered.
+- Added: **Post-payment fulfillment** (`components/shipment/fulfillment-panel.tsx`, `hooks/shipments/use-fulfillment.ts`)
+  - Courier pickup and drop-off moved off the creation form and onto the shipment page, where the carrier and leg are known. Reachable from both post-payment return pages.
+  - Renders controls only per `/fulfillment-options`; capability is never inferred from the carrier name.
+  - Polls while the label generates, so arriving straight from checkout resolves without a manual refresh.
+  - A refused pickup keeps both options open; a refused cancellation never clears local state.
+- Added: **Shared status vocabulary** (`utils/shipment-status.ts`)
+  - The 15 real server statuses with labels, tones and action gates. Replaces scattered string comparisons, including a drop-off control gated on `"LABEL_CREATED"` — a status the server has never emitted.
+- Changed: **Create-shipment payload** (`utils/create-shipment-payload.ts`, `app/app/shipments/new/page.tsx`, `components/invoice/UpdateShipmentModal.tsx`)
+  - Sends `estimateId` + `routingRef`; drops `carrierSlug`, `rate`, `fulfillmentType`, `pickupDetails`, `dropoffCenterId`.
+  - Handles `409 Quote Expired` by re-quoting instead of retrying, and discards a quote whenever the shipment changes — a stale `estimateId` still resolves server-side and would book the previous quote at a price the customer never saw.
+  - Added the PayU/EUR guard to the update modal, which the creation drawer already had.
+- Changed: **Tracking status** (`components/tracking/TrackingOverview.tsx`, `types/shipping.ts`)
+  - Branch on `shipmentStatus`; the carrier's own wording is shown separately as `carrierStatus`. Previously the carrier's text shadowed the real status, which is why paid shipments looked "in transit" immediately.
+- Fixed: **Pickup scheduling never worked** (`components/shipment/pickup-schedule-form.tsx`)
+  - It posted a flat address to an endpoint expecting the nested shape, failed every time, and silently fell back to locally-generated dates — showing collection dates no carrier had confirmed. Now driven by the carrier's real `availableDates`, with `accessTime` treated as a duration and `remarks` capped at the carrier's 60 characters.
+- Fixed: Dashboard "active" count included unpaid and failed shipments (`hooks/shipments/use-shipments.ts`).
+- Fixed: Carrier names leaked through unbranded error text on the quote screen.
+
+## [1.44.13] - 2026-07-30 - Courier Pickup & Drop-off Center Flow Enhancements
+- Added: **Fulfillment Mode Selection & Toggle UI** (`components/shipment/fulfillment-type-toggle.tsx`, `components/shipment/fulfillment-info-modal.tsx`)
+  - Added segmented toggle switch for choosing between Courier Pickup and Center Drop-off during shipment creation.
+  - Provided info triggers launching modals with detailed guidelines and process descriptions for both fulfillment options.
+- Added: **Pickup Scheduling & Validation** (`components/shipment/pickup-schedule-form.tsx`, `hooks/shipments/use-shipments.ts`, `api/shipments/index.ts`)
+  - Integrated `POST /api/shipments/pickup-availability` to dynamically fetch valid carrier business dates (Mon–Fri only, excluding past dates).
+  - Added ready time and close time inputs with validation.
+- Added: **Drop-off Center Discovery** (`components/shipment/dropoff-center-list.tsx`, `hooks/locations/use-locations.ts`, `api/location/index.ts`)
+  - Integrated `POST /api/locations/dropoff-centers` to search nearby FedEx sorting centers based on origin address with distance (km) and operating hours.
+- Added: **Post-Creation Guidance** (`components/shipment/shipment-preparation-instructions.tsx`)
+  - Added step-by-step label download, printing, package attachment, and handover instructions to payment success view (`app/app/shipments/payment-success/page.tsx`).
+- Changed: **Shipment Details Management** (`app/app/shipments/[id]/page.tsx`)
+  - Added fulfillment mode badge, scheduled pickup date/time details, and missed pickup warning banner with support trigger.
+  - Added dynamic "View Available Drop-off Centers" action button for drop-off shipments that automatically hides once package status changes to `IN_TRANSIT` or `PICKED_UP`.
+
 ## [1.44.12] - 2026-07-19 - Update NIP Number Requirement for Customs Clearance
 - Changed: **Customs Form Validation & Types** (`components/shipment/customs-form.tsx` and `types/shipping.ts`)
   - Switched the NIP number (`nipNr`) requirement from Individual (`I`) to Simplified/Business (`S`) clearance to align with backend changes.

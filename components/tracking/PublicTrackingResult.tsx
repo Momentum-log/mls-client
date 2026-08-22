@@ -11,6 +11,12 @@ import {
 } from "react-icons/fa";
 import Link from "next/link";
 import Button from "@/components/ui/button";
+import {
+  getProgress,
+  getStatusLabel,
+  isTerminalFailure,
+  isUnpaid,
+} from "@/utils/shipment-status";
 
 interface PublicTrackingResultProps {
   data: TrackingResponse;
@@ -30,7 +36,7 @@ export default function PublicTrackingResult({
   }
 
   // Handle CREATED (Unpaid) Status specifically
-  if (shipment.shipmentStatus === "CREATED") {
+  if (isUnpaid(shipment.shipmentStatus)) {
     return (
       <div className="bg-white rounded-3xl shadow-sm border border-brand-yellow/30 overflow-hidden text-center p-8 md:p-12 animate-in fade-in zoom-in duration-500">
         <div className="w-20 h-20 bg-brand-yellow/10 text-brand-yellow rounded-full flex items-center justify-center mx-auto mb-6">
@@ -69,28 +75,8 @@ export default function PublicTrackingResult({
 
   const latestEvent = timeline && timeline.length > 0 ? timeline[0] : null;
 
-  // Determine progress based on status (simple mapping)
-  const getProgress = (status: string) => {
-    switch (status) {
-      case "CREATED":
-        return 25;
-      case "IN_TRANSIT":
-        return 50;
-      case "OUT_FOR_DELIVERY":
-        return 75;
-      case "DELIVERED":
-        return 100;
-      case "FAILED":
-        return 100; // Full bar but red
-      case "CANCELLED":
-        return 100; // Full bar but gray
-      default:
-        return 25;
-    }
-  };
-
   const progress = getProgress(shipment.shipmentStatus);
-  const isError = ["FAILED", "CANCELLED"].includes(shipment.shipmentStatus);
+  const isError = isTerminalFailure(shipment.shipmentStatus);
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-500">
@@ -111,7 +97,7 @@ export default function PublicTrackingResult({
               } flex items-center gap-3`}
             >
               {isError ? <FaBoxOpen /> : <FaTruck />}
-              {shipment.shipmentStatus.replace(/_/g, " ")}
+              {getStatusLabel(shipment.shipmentStatus)}
             </h2>
           </div>
           <div className="text-right hidden md:block">

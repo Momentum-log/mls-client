@@ -1,12 +1,5 @@
 import { ShippingEstimateResponse } from "@/types/shipping";
-import {
-  CreateShipmentPayload,
-  CustomsData,
-  InternationalShipmentPayload,
-  LocalShipmentPayload,
-  ShipmentMutationPayload,
-  ShippingEstimatePayload,
-} from "@/types/shipping";
+import { CustomsData, ShippingEstimatePayload } from "@/types/shipping";
 import {
   deepBrandCarrierDisplay,
   toDisplayCarrierName,
@@ -106,10 +99,6 @@ interface EstimatePackageInput {
   };
 }
 
-type CreatePayloadInput = Omit<ShipmentMutationPayload, "customs"> & {
-  customs?: CustomsData;
-};
-
 /**
  * Checks if a shipment is international based on country codes.
  */
@@ -119,37 +108,6 @@ export const checkIfInternational = (
 ): boolean => {
   if (!pickupCountry || !dropoffCountry) return false;
   return pickupCountry.toUpperCase() !== dropoffCountry.toUpperCase();
-};
-
-/**
- * Constructs the payload for creating a shipment.
- * Enforces 'customs' only for international routes.
- */
-export const getPayload = (
-  isInternational: boolean,
-  data: CreatePayloadInput,
-): CreateShipmentPayload => {
-  if (isInternational) {
-    if (!data.customs) {
-      throw new Error(
-        "Customs data is required for international shipment payloads.",
-      );
-    }
-
-    const payload: InternationalShipmentPayload = {
-      ...data,
-      customs: data.customs,
-    };
-    return payload;
-  } else {
-    // For local shipments, customs MUST be absent
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { customs, ...rest } = data;
-    const payload: LocalShipmentPayload = {
-      ...rest,
-    };
-    return payload;
-  }
 };
 
 /**

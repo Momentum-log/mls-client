@@ -14,11 +14,23 @@ import { useToast } from "@/hooks/use-toast";
 import { PhoneInputComponent } from "@/components/ui/phone-input";
 import VerifyPhoneModal from "./VerifyPhoneModal";
 import EmailChangeModal from "./EmailChangeModal";
+import { accountTypeLabel, isBusinessAccount } from "@/utils/account-type";
+
+interface ProfileFormValues {
+  name: string;
+  phone: string;
+  companyName?: string;
+  nip?: string;
+}
 
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().min(1, "Phone is required"),
-  defaultCustomsType: z.enum(["S", "I"]).optional(),
+  companyName: z
+    .string()
+    .max(100, "Company name must be 100 characters or fewer")
+    .optional(),
+  nip: z.string().max(20, "NIP must be 20 characters or fewer").optional(),
 });
 
 /**
@@ -40,11 +52,33 @@ const ProfileForm = () => {
     }
   }, [searchParams]);
 
+  const isBusiness = isBusinessAccount(user);
+
+  /**
+   * Builds the PATCH body explicitly rather than sending the form values.
+   *
+   * `companyName` and `nip` are rejected with a 400 on a non-business account,
+   * and the server's minimum length is 1, so both must be absent unless this is
+   * a business account that actually has a value for them.
+   */
+  const buildProfilePayload = (values: ProfileFormValues) => {
+    const companyName = values.companyName?.trim() ?? "";
+    const nip = values.nip?.trim() ?? "";
+
+    return {
+      name: values.name,
+      phone: values.phone,
+      ...(isBusiness && companyName ? { companyName } : {}),
+      ...(isBusiness && nip ? { nip } : {}),
+    };
+  };
+
   const formik = useFormik({
     initialValues: {
       name: user?.name || "",
       phone: user?.phone || "",
-      defaultCustomsType: user?.defaultCustomsType || "S",
+      companyName: user?.companyName || "",
+      nip: user?.nip || "",
     },
     enableReinitialize: !isEditing,
     validationSchema: toFormikValidationSchema(profileSchema),
@@ -54,7 +88,7 @@ const ProfileForm = () => {
       const isPhoneChanged = values.phone !== user?.phone;
 
       try {
-        const response = await updateProfile(values);
+        const response = await updateProfile(buildProfilePayload(values));
         if (response.data?.user) {
           updateUser(response.data.user);
 
@@ -91,11 +125,11 @@ const ProfileForm = () => {
   });
 
   const handleSave = async (
-    values: any,
+    values: ProfileFormValues,
     setSubmitting: (val: boolean) => void,
   ) => {
     try {
-      const response = await updateProfile(values);
+      const response = await updateProfile(buildProfilePayload(values));
       if (response.data?.user) {
         updateUser(response.data.user);
         addToast({
@@ -235,26 +269,70 @@ const ProfileForm = () => {
 
         <div className="space-y-4 pt-4 border-t border-gray-50">
           <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-            Customs Preferences
+            Account Type
           </h4>
+
+          {/* Read-only by design. The account type decides which customs
+              declaration the user files, so only an admin can change it. */}
           <div className="space-y-2">
-            <Label htmlFor="defaultCustomsType">Default Customs Entity</Label>
-            <select
-              id="defaultCustomsType"
-              name="defaultCustomsType"
-              value={formik.values.defaultCustomsType}
-              onChange={formik.handleChange}
-              onBlur={formik.handleBlur}
-              disabled={!isEditing || formik.isSubmitting}
-              className="w-full text-sm font-semibold h-12 rounded-xl bg-gray-50 border-gray-200 outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent px-4 py-2 transition-all text-gray-900 disabled:opacity-50"
-            >
-              <option value="S">Business (Simplified)</option>
-              <option value="I">Individual</option>
-            </select>
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold ${
+                  isBusiness
+                    ? "bg-brand-blue text-white"
+                    : "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {user?.accountType ? accountTypeLabel(user.accountType) : "—"}
+              </span>
+            </div>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-              Used automatically when creating international shipments
+              Set at sign-up. Contact support to change it
             </p>
           </div>
+
+          {isBusiness && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Company Name</Label>
+                <Input
+                  id="companyName"
+                  name="companyName"
+                  value={formik.values.companyName}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  disabled={!isEditing || formik.isSubmitting}
+                  placeholder="Kowalski Sp. z o.o."
+                />
+                {formik.touched.companyName && formik.errors.companyName && (
+                  <p className="text-xs text-red-500">
+                    {formik.errors.companyName as string}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nip">NIP Number</Label>
+                <Input
+                  id="nip"
+                  name="nip"
+                  value={formik.values.nip}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  disabled={!isEditing || formik.isSubmitting}
+                  placeholder="1234563218"
+                />
+                {formik.touched.nip && formik.errors.nip && (
+                  <p className="text-xs text-red-500">
+                    {formik.errors.nip as string}
+                  </p>
+                )}
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                  Prefilled on international customs declarations
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {isEditing && (

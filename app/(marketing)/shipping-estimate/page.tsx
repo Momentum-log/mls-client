@@ -581,13 +581,11 @@ function ShippingEstimateContent() {
                             <p className="text-[10px] uppercase font-bold text-white/40 mb-2">
                               Carrier Feedback
                             </p>
-                            {estimateData.errors.map(
-                              (err: { details: string }, i: number) => (
-                                <p key={i} className="text-xs text-white/80">
-                                  • {err.details}
-                                </p>
-                              ),
-                            )}
+                            {estimateData.errors.map((err, i) => (
+                              <p key={i} className="text-xs text-white/80">
+                                • {err.details}
+                              </p>
+                            ))}
                           </div>
                         )}
                       <Button
