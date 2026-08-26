@@ -5,6 +5,20 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.47.1] - 2026-08-26 - Remove mandatory location gate; address self-correction; payment auto-redirect
+
+Client feedback on the shipment-creation flow: users were being hard-blocked behind a browser geolocation prompt before they could even see the form, the address fields didn't let people correct an auto-filled State/Province, and a successful payment dumped users on a page full of buttons instead of just taking them to their shipment.
+- Removed: **Mandatory location-permission gate** (`app/app/shipments/new/page.tsx`)
+  - Deleted the `permission === "denied"` overlay and the `permission !== "granted"` spinner that blocked the entire multi-step form from rendering until the browser's geolocation prompt was answered. The form now renders immediately regardless of location-permission state.
+  - Deleted `hooks/use-location-permission.ts` and `components/ui/location-permission-overlay.tsx` — both were introduced in 1.35.0 for this gate and have no other callers.
+  - There is no notification-permission gate anywhere in this codebase to remove alongside it; the only "Notification"-named code is an unrelated in-app toast hook.
+- Changed: **Address fields allow manual correction, plus a non-blocking accuracy nudge** (`components/shared/address-fields.tsx`, `components/shipment/address-form.tsx`)
+  - State/Province now has `allowCustom` (mirroring the City field), so a user can type over an auto-filled or wrong-looking state instead of being limited to the fetched options list. Country stays a strict dropdown since it drives the state/city lookups and the phone-country match validation.
+  - Added a small, persistent, non-blocking hint in the "Physical Address" section of the pickup/drop-off forms asking users to double-check name, street, postal code, and state/city are accurate — it never gates the "Continue" button and adds no new validation rules.
+- Changed: **Payment verification success auto-redirects into the shipment** (`app/app/shipments/new/verify/page.tsx`)
+  - Replaced the "Download Label / Arrange Collection / Track / Dashboard" button block with a brief "Redirecting you to your shipment…" state; a new effect pushes to `/app/shipments/{shipmentId}` ~1.8s after a successful verification (falls back to `/app/shipments` if `shipmentId` is somehow absent from the URL).
+  - The failure branch ("Try Again" / "Return to Dashboard") is unchanged.
+
 ## [1.47.0] - 2026-08-22 - Account type at sign-up drives the customs declaration
 API v4.3 records at sign-up whether an account belongs to a business or a private individual, so the shipment flow no longer has to ask. The per-shipment "Business or Individual?" toggle is gone; the customs branch is derived from the account.
 - Added: **Account type at sign-up** (`components/auth/register-form.tsx`, `types/auth.ts`)

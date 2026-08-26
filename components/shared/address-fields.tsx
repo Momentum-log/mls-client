@@ -263,6 +263,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
           className={stateTouched && stateError ? "border-red-500" : ""}
           disabled={!countryValue}
           searchable
+          allowCustom
         />
         {stateTouched && stateError && (
           <p className="text-red-500 text-xs mt-1 font-semibold">

@@ -8,11 +8,8 @@ import Button from "@/components/ui/button";
 import {
   FiCheckCircle,
   FiXCircle,
-  FiTruck,
-  FiDownload,
   FiAlertCircle,
   FiArrowRight,
-  FiHome,
 } from "react-icons/fi";
 import CopyButton from "@/components/ui/copy-button";
 import Link from "next/link";
@@ -74,6 +71,18 @@ export default function VerifyPage() {
   // Defensive Check: Valid success means STATUS is SUCCESS AND Tracking Number exists
   const isSuccess = result?.status === "SUCCESS" && !!result?.trackingNumber;
 
+  // Give the user a moment to see the confirmation, then take them straight
+  // into the shipment they just paid for.
+  useEffect(() => {
+    if (!isSuccess) return;
+
+    const timer = setTimeout(() => {
+      router.push(shipmentId ? `/app/shipments/${shipmentId}` : "/app/shipments");
+    }, 1800);
+
+    return () => clearTimeout(timer);
+  }, [isSuccess, shipmentId, router]);
+
   if (!hasSession) {
     return (
       <div className="flex items-center justify-center py-2">
@@ -128,7 +137,7 @@ export default function VerifyPage() {
               Shipment Confirmed!
             </h1>
             <p className="text-gray-500 mb-8 font-medium">
-              Print your label, then choose how to send it.
+              Taking you to your shipment now.
             </p>
 
             {/* Tracking Info Card */}
@@ -149,62 +158,11 @@ export default function VerifyPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              {result?.labelUrl ? (
-                <a
-                  href={result.labelUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block w-full"
-                >
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    className="w-full h-14 rounded-xl text-lg shadow-lg shadow-brand-blue/20"
-                  >
-                    <FiDownload className="mr-2" /> Download Label
-                  </Button>
-                </a>
-              ) : (
-                <div className="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-sm font-medium">
-                  Label generation pending. Please check &quot;My Shipments&quot; shortly.
-                </div>
-              )}
-
-              {/*
-                Fulfillment lives on the shipment page. The gateway decides
-                which return page the customer lands on, so both carry this
-                CTA — a link on only one strands half of them.
-              */}
-              {shipmentId && (
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={() =>
-                    router.push(`/app/shipments/${shipmentId}#fulfillment`)
-                  }
-                  className="w-full h-14 rounded-xl text-base border-brand-blue/30 text-brand-blue hover:bg-brand-blue/5"
-                >
-                  <FiTruck className="mr-2" /> Arrange Collection
-                </Button>
-              )}
-
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/app/shipments")}
-                  className="h-12 rounded-xl border-gray-200 hover:border-brand-blue text-gray-600 hover:text-brand-blue"
-                >
-                  <FiTruck className="mr-2" /> Track
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={() => router.push("/app/dashboard")}
-                  className="h-12 rounded-xl text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-                >
-                  <FiHome className="mr-2" /> Dashboard
-                </Button>
-              </div>
+            <div className="flex flex-col items-center gap-3 text-gray-400">
+              <div className="h-6 w-6 border-2 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm font-medium">
+                Redirecting you to your shipment&hellip;
+              </p>
             </div>
           </div>
         ) : (
