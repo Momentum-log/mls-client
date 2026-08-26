@@ -4,7 +4,7 @@ import React from "react";
 import { useFormik, FormikProvider } from "formik";
 import { z } from "zod";
 import Button from "@/components/ui/button";
-import { FiArrowRight, FiArrowLeft } from "react-icons/fi";
+import { FiArrowRight, FiArrowLeft, FiInfo } from "react-icons/fi";
 import { Address } from "@/store/shipment-store";
 import AddressFields from "@/components/shared/address-fields";
 import { Input } from "@/components/ui/input";
@@ -184,6 +184,16 @@ export default function AddressForm({
                 Physical Address
               </span>
               <div className="h-px flex-1 bg-gray-100" />
+            </div>
+
+            <div className="flex items-start gap-2 mb-6 text-xs text-gray-500">
+              <FiInfo className="h-4 w-4 shrink-0 mt-0.5 text-brand-blue/60" />
+              <p>
+                Double-check that the name, street address, postal code, and
+                state/city are correct and as close to the real shipping
+                address as possible &mdash; any field can be edited or typed
+                over if a suggested value looks wrong.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

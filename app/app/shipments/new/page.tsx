@@ -42,8 +42,6 @@ import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
 import { deepTransformData } from "@/utils/data-transform";
 import { buildCreateShipmentPayload } from "@/utils/create-shipment-payload";
 
-import { useLocationPermission } from "@/hooks/use-location-permission";
-import { LocationPermissionOverlay } from "@/components/ui/location-permission-overlay";
 import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
 import { useVerification } from "@/hooks/shipments/useVerification";
 import { extractApiError } from "@/utils/error-handler";
@@ -99,7 +97,6 @@ export default function NewShipmentPage() {
     useState(false);
   const { addToast } = useToast();
 
-  const { permission, requestPermission } = useLocationPermission();
   const { isVerificationRequired, error, triggerVerification } =
     useVerification();
 
@@ -123,13 +120,6 @@ export default function NewShipmentPage() {
     () => (selectedTier ? deepTransformData(selectedTier) : null),
     [selectedTier],
   );
-
-  // Auto-request location permission if in prompt state
-  useEffect(() => {
-    if (permission === "prompt") {
-      requestPermission();
-    }
-  }, [permission, requestPermission]);
 
   // Rate calculation mutation
   const { mutate: getRates, isPending: isCalculatingRates } =
@@ -605,21 +595,6 @@ export default function NewShipmentPage() {
       },
     });
   };
-
-  if (permission === "denied") {
-    return <LocationPermissionOverlay onRetry={requestPermission} />;
-  }
-
-  if (permission !== "granted") {
-    return (
-      <div className="flex h-[50vh] flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-blue border-t-transparent mb-4"></div>
-        <p className="text-gray-500 font-medium">
-          Waiting for location permission...
-        </p>
-      </div>
-    );
-  }
 
   return (
     <>
