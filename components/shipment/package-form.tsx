@@ -97,6 +97,14 @@ export default function PackageForm({
     return match ? match.id : "custom";
   };
 
+  // Explicit preset choice per package. Dimensions alone can't distinguish
+  // "Custom" from a preset whose dims happen to match, so remember the click.
+  const [selectedPresets, setSelectedPresets] = React.useState<Record<string, string>>({});
+
+  const setPresetSelection = (pkgId: string, presetId: string) => {
+    setSelectedPresets((prev) => ({ ...prev, [pkgId]: presetId }));
+  };
+
   // Sync with store in real-time (Requirement: "I want that to be updating every time I update")
   const lastEmailedValues = React.useRef<string>("");
 
@@ -218,7 +226,7 @@ export default function PackageForm({
           render={(arrayHelpers) => (
             <div className="space-y-8">
               {formik.values.packages.map((pkg, index) => {
-                const pkgPreset = findPresetId(pkg);
+                const pkgPreset = selectedPresets[pkg.id] ?? findPresetId(pkg);
                 const errorsBag = (formik.errors.packages as Array<FormikErrors<Package> | undefined>)?.[index] || {};
                 const touchedBag = (formik.touched.packages as Array<FormikTouched<Package> | undefined>)?.[index] || {};
 
@@ -253,7 +261,7 @@ export default function PackageForm({
                             key={preset.id}
                             type="button"
                             onClick={() => {
-                              formik.setFieldValue(`packages.${index}.selectedPreset`, preset.id);
+                              setPresetSelection(pkg.id, preset.id);
                               if (preset.id !== "custom") {
                                 formik.setFieldValue(`packages.${index}.length`, preset.dims.length);
                                 formik.setFieldValue(`packages.${index}.width`, preset.dims.width);
