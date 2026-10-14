@@ -58,7 +58,7 @@ const MissionVision: React.FC = () => {
             {/* Text Content */}
             <div className="order-2 text-center lg:text-left">
               <span className="text-brand-yellow font-bold text-sm uppercase tracking-wider mb-2 block">
-                Where We're Going
+                Where We&apos;re Going
               </span>
               <h2 className="font-work-sans font-black text-4xl md:text-5xl text-gray-900 mb-6">
                 Our Vision
@@ -134,7 +134,7 @@ const MissionVision: React.FC = () => {
                 </div>
                 <h3 className="font-bold text-2xl mb-3">Partnership</h3>
                 <p className="text-white/80 leading-relaxed">
-                  We don't just move boxes; we build lasting relationships with
+                  We don&apos;t just move boxes; we build lasting relationships with
                   our clients.
                 </p>
               </div>

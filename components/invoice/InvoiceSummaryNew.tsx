@@ -10,7 +10,7 @@
 "use client";
 
 import React from "react";
-import { Invoice, PdfGenerationStatus, InvoiceLineItem } from "@/types/invoice";
+import { Invoice, PdfGenerationStatus } from "@/types/invoice";
 import {
   formatAmount,
   formatInvoiceDate,

@@ -9,7 +9,6 @@
  */
 
 import apiClient from "../index";
-import { AxiosError } from "axios";
 import {
   Invoice,
   InvoicePaymentLink,
@@ -23,18 +22,13 @@ import {
   GetInvoiceResponse,
 } from "@/types/invoice";
 
-export interface InvoiceBusinessFilterParams {
+/**
+ * `GET /invoices` paginates only. It has no status, amount or sort filters, so
+ * those are applied client-side on the returned page.
+ */
+export interface InvoiceListParams {
   limit: number;
   offset: number;
-  status?: string;
-  invoiceNumber?: string;
-  customerEmail?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
 }
 
 interface InvoiceListApiItem {
@@ -163,64 +157,19 @@ const normalizeInvoicesListResponse = (
 };
 
 /**
- * Fetches a paginated list of invoices with optional filtering by status.
+ * Fetches a page of the signed-in customer's invoices.
  *
- * @param params - Query parameters
- * @param params.limit - Number of invoices per page
+ * @param params.limit - Number of invoices per page (the server caps it at 100)
  * @param params.offset - Pagination offset
- * @param params.status - Optional invoice status filter (e.g., "PENDING", "PAID")
  * @returns Promise resolving to paginated invoices list
- *
- * @example
- * ```ts
- * const result = await getInvoices({ limit: 10, offset: 0, status: "PENDING" });
- * ```
  */
 export const getInvoices = async (
-  params: InvoiceBusinessFilterParams,
+  params: InvoiceListParams,
 ): Promise<ListInvoicesResponse> => {
-  const query = new URLSearchParams({
-    limit: String(params.limit),
-    offset: String(params.offset),
-    ...(params.status && params.status !== "all" && { status: params.status }),
-    ...(params.invoiceNumber && { invoiceNumber: params.invoiceNumber }),
-    ...(params.customerEmail && { customerEmail: params.customerEmail }),
-    ...(params.dateFrom && { dateFrom: params.dateFrom }),
-    ...(params.dateTo && { dateTo: params.dateTo }),
-    ...(params.minAmount !== undefined && {
-      minAmount: String(params.minAmount),
-    }),
-    ...(params.maxAmount !== undefined && {
-      maxAmount: String(params.maxAmount),
-    }),
-    ...(params.sortBy && { sortBy: params.sortBy }),
-    ...(params.sortOrder && { sortOrder: params.sortOrder }),
-  });
-
-  try {
-    const response = await apiClient.get<
-      ListInvoicesResponse | InvoiceListApiEnvelope
-    >(`/invoices/business/filter?${query.toString()}`);
-    return normalizeInvoicesListResponse(response.data, {
-      limit: params.limit,
-      offset: params.offset,
-    });
-  } catch (error) {
-    const axiosError = error as AxiosError;
-
-    // Fallback for environments where the business filter route is not enabled yet.
-    if (axiosError.response?.status === 404) {
-      const response = await apiClient.get<
-        ListInvoicesResponse | InvoiceListApiEnvelope
-      >(`/invoices?${query.toString()}`);
-      return normalizeInvoicesListResponse(response.data, {
-        limit: params.limit,
-        offset: params.offset,
-      });
-    }
-
-    throw error;
-  }
+  const response = await apiClient.get<
+    ListInvoicesResponse | InvoiceListApiEnvelope
+  >("/invoices", { params: { limit: params.limit, offset: params.offset } });
+  return normalizeInvoicesListResponse(response.data, params);
 };
 
 /**

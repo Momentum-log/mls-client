@@ -14,7 +14,6 @@ import {
   formatInvoiceAmount,
   formatDate,
   getInvoiceStatusLabel,
-  getInvoiceStatusColor,
 } from "@/utils/invoice-helper";
 import { InvoiceStatusBadge } from "./InvoiceStatusBadge";
 import { useInvoiceStore } from "@/store/invoice-store";

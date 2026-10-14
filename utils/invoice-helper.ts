@@ -8,7 +8,6 @@
  */
 
 import {
-  Invoice,
   InvoiceLineItem,
   InvoiceStatus,
   TaxBreakdown,

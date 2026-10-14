@@ -1,10 +1,15 @@
 import apiClient from "..";
 import {
   CancelPickupResponse,
+  CancelShipmentResponse,
+  CollectionFeePaymentLinkResponse,
   ContinueToPayResponse,
   FulfillmentOptions,
   GetShipmentResponse,
+  HsCodeMatchRequest,
+  HsCodeMatchResponse,
   PickupAvailability,
+  RequestCollectionResponse,
   RequestPickupPayload,
   RequestPickupResponse,
   ShipmentMutationPayload,
@@ -35,6 +40,19 @@ export const getShippingEstimate = async (payload: ShippingEstimatePayload) => {
 export const getShippingQuote = async (payload: ShippingEstimatePayload) => {
   const response = await apiClient.post(
     "/shipments/get-shipping-quote",
+    payload,
+  );
+  return response.data;
+};
+
+/**
+ * Suggests HS (customs tariff) codes for item descriptions. Vague descriptions
+ * come back `VALIDATION_FAILED` with suggestions rather than a guess; Polish
+ * descriptions are translated server-side.
+ */
+export const matchHsCodes = async (payload: HsCodeMatchRequest) => {
+  const response = await apiClient.post<HsCodeMatchResponse>(
+    "/shipments/hs-codes/match",
     payload,
   );
   return response.data;
@@ -131,6 +149,68 @@ export const getShipmentDropoffCenters = async (
 export const cancelPickup = async (id: string) => {
   const response = await apiClient.delete<CancelPickupResponse>(
     `/shipments/${id}/pickup`,
+  );
+  return response.data;
+};
+
+/**
+ * Asks MLS to collect the parcel (`handoverMode: MLS_COLLECTION` only).
+ *
+ * Answers `CONFIRMED` when no fee is due, or `PAYMENT_REQUIRED` with the fee,
+ * which is then paid through `createCollectionFeePaymentLink`.
+ *
+ * @param id - Shipment ID.
+ */
+export const requestCollection = async (id: string) => {
+  const response = await apiClient.post<RequestCollectionResponse>(
+    `/shipments/${id}/request-collection`,
+  );
+  return response.data;
+};
+
+/**
+ * Checkout link for the collection fee. The gateway returns the customer to
+ * `/app/shipments/{id}?collection_fee=verify&…`.
+ *
+ * @param id - Shipment ID.
+ * @param gateway - PayU is unavailable for EUR; the fee itself is in PLN.
+ */
+export const createCollectionFeePaymentLink = async (
+  id: string,
+  gateway: "stripe" | "payu" = "stripe",
+) => {
+  const response = await apiClient.post<CollectionFeePaymentLinkResponse>(
+    `/shipments/${id}/collection-fee/payment-link`,
+    { gateway },
+  );
+  return response.data;
+};
+
+/**
+ * Cancels an unpaid shipment at once (`200`, `CANCELLED`), or opens a request
+ * for staff on a paid one still with the customer (`202`, `REQUESTED`).
+ * Anything later, or a second open request, answers `409` with a message to
+ * show as is.
+ *
+ * @param id - Shipment ID (not the tracking number).
+ * @param reason - Optional, up to 500 characters.
+ */
+export const cancelShipment = async (id: string, reason?: string) => {
+  const response = await apiClient.post<CancelShipmentResponse>(
+    `/shipments/${id}/cancel`,
+    reason ? { reason } : {},
+  );
+  return response.data;
+};
+
+/**
+ * Withdraws the shipment's open cancellation request. `404` when none is open.
+ *
+ * @param id - Shipment ID.
+ */
+export const withdrawCancellation = async (id: string) => {
+  const response = await apiClient.delete<{ message: string }>(
+    `/shipments/${id}/cancel`,
   );
   return response.data;
 };

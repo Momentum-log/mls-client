@@ -3,24 +3,20 @@
 import React, { useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { InvoiceReceipt } from "@/components/invoice";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle } from "lucide-react";
-import {
-  usePaymentInvoice,
-  useRequestShipmentInvoice,
-} from "@/hooks/payments/use-payments";
+import { usePaymentInvoice } from "@/hooks/payments/use-payments";
 
 /**
  * Payment Success Page
  *
  * Displays after a successful payment is completed.
- * Shows invoice receipt and provides options to request invoice processing or view full invoice.
+ * Shows the invoice receipt with a link to the full invoice. The invoice is
+ * created with the shipment, so there is nothing to request here.
  */
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
 
   const shipmentId = searchParams.get("shipmentId");
   const invoiceId = searchParams.get("invoiceId");
@@ -33,44 +29,6 @@ export default function PaymentSuccessPage() {
     isLoading,
     error: invoiceError,
   } = usePaymentInvoice(invoiceId || "", Boolean(invoiceId));
-
-  // Request shipment invoice mutation
-  const { mutateAsync: requestInvoice, isPending: isRequestingInvoice } =
-    useRequestShipmentInvoice();
-
-  /**
-   * Handle shipment invoice request
-   */
-  const handleRequestShipmentInvoice = useCallback(async () => {
-    if (!shipmentId) {
-      toast({
-        title: "Request Error",
-        message: "Shipment ID is missing. Unable to request invoice.",
-        type: "error",
-      });
-      return;
-    }
-
-    try {
-      await requestInvoice({ shipmentId });
-
-      toast({
-        title: "Request Submitted",
-        message:
-          "Your shipment invoice request has been submitted successfully.",
-        type: "success",
-      });
-    } catch (err) {
-      toast({
-        title: "Request Error",
-        message:
-          err instanceof Error
-            ? err.message
-            : "Failed to submit shipment invoice request",
-        type: "error",
-      });
-    }
-  }, [shipmentId, requestInvoice, toast]);
 
   /**
    * Handle view full invoice
@@ -162,9 +120,7 @@ export default function PaymentSuccessPage() {
         invoice={invoice}
         transactionId={transactionId || undefined}
         paymentMethod={paymentMethod}
-        onRequestShipmentInvoice={handleRequestShipmentInvoice}
         onViewDetails={handleViewInvoice}
-        isRequestingShipmentInvoice={isRequestingInvoice}
       />
 
       {/* Arrange collection — the next step, on the shipment page */}

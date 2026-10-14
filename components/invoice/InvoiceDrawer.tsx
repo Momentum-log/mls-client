@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiExternalLink } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { Invoice } from "@/types/invoice";
+import { UserAddress } from "@/types/auth";
 import { InvoiceReceiptView } from "@/components/invoice/InvoiceReceiptView";
 
 /**
@@ -34,7 +35,7 @@ interface InvoiceDrawerProps {
   /** Optional recipient name from user profile (for invoice population) */
   recipientName?: string;
   /** Optional recipient address from user profile (for invoice population) */
-  recipientAddress?: any;
+  recipientAddress?: UserAddress | null;
   /** Optional item quantity from shipment (for invoice population) */
   itemQuantity?: number;
   /** Optional service description (auto-generated from shipment data) */

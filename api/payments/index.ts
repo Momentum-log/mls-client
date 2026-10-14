@@ -2,8 +2,6 @@ import apiClient from "..";
 import {
   PaymentInvoiceModel,
   PaymentInvoiceResponse,
-  RequestShipmentInvoiceRequest,
-  RequestShipmentInvoiceResponse,
   VerifyPaymentResponse,
 } from "@/types/payments";
 
@@ -78,20 +76,4 @@ export const getPaymentInvoice = async (
     `/invoices/${invoiceId}`,
   );
   return normalizePaymentInvoice(response.data);
-};
-
-/**
- * Requests shipment invoice processing.
- *
- * @param payload - Shipment identifier payload
- * @returns API response envelope
- */
-export const requestShipmentInvoice = async (
-  payload: RequestShipmentInvoiceRequest,
-): Promise<RequestShipmentInvoiceResponse> => {
-  const response = await apiClient.post<RequestShipmentInvoiceResponse>(
-    `/shipments/${payload.shipmentId}/request-invoice`,
-  );
-
-  return response.data;
 };

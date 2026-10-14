@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/button";
 import { sendVerificationCode } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
 import VerifyEmailModal from "./VerifyEmailModal";
-import VerifyPhoneModal from "./VerifyPhoneModal";
 import { useAuthStore } from "@/store/auth-store";
-import { useSendPhoneOTP } from "@/hooks/auth/use-auth";
+import { extractApiError } from "@/utils/error-handler";
 import { useSearchParams } from "next/navigation";
 
 /**
@@ -15,17 +14,13 @@ import { useSearchParams } from "next/navigation";
  */
 const VerificationBanner = () => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const { user } = useAuthStore();
   const { addToast } = useToast();
   const searchParams = useSearchParams();
   const hasAutoTriggeredRef = useRef(false);
 
-  const { mutateAsync: sendPhoneOTP, isPending: isSendingPhone } =
-    useSendPhoneOTP();
-
-  const handleVerifyEmail = async () => {
+  const handleVerifyEmail = useCallback(async () => {
     setIsSendingEmail(true);
     try {
       await sendVerificationCode();
@@ -35,52 +30,17 @@ const VerificationBanner = () => {
         type: "success",
       });
       setIsEmailModalOpen(true);
-    } catch (error: any) {
+    } catch (error) {
       addToast({
         title: "Error",
         message:
-          error.response?.data?.error || "Failed to send verification code",
+          extractApiError(error).message || "Failed to send verification code",
         type: "error",
       });
     } finally {
       setIsSendingEmail(false);
     }
-  };
-
-  const handleVerifyPhone = async () => {
-    try {
-      await sendPhoneOTP({});
-      addToast({
-        title: "Code Sent",
-        message: "A verification code has been sent to your phone.",
-        type: "success",
-      });
-      setIsPhoneModalOpen(true);
-    } catch (error: any) {
-      addToast({
-        title: "Error",
-        message: error.response?.data?.message || "Failed to send code",
-        type: "error",
-      });
-    }
-  };
-
-  const handleResendCode = async () => {
-    try {
-      await sendVerificationCode();
-      addToast({
-        title: "Success",
-        message: "Verification code sent to your email!",
-        type: "success",
-      });
-    } catch (error) {
-      addToast({
-        title: "Error",
-        message: "Failed to send verification code",
-        type: "error",
-      });
-    }
-  };
+  }, [addToast]);
 
   useEffect(() => {
     const shouldAutoOpen = searchParams.get("openVerifyEmail") === "1";
@@ -94,7 +54,7 @@ const VerificationBanner = () => {
       hasAutoTriggeredRef.current = true;
       void handleVerifyEmail();
     }
-  }, [searchParams, user]);
+  }, [searchParams, user, handleVerifyEmail]);
 
   // Only show banner if email is not verified (phone verification is optional)
   if (!user || user.is_verified) return null;
@@ -146,10 +106,6 @@ const VerificationBanner = () => {
       <VerifyEmailModal
         isOpen={isEmailModalOpen}
         onClose={() => setIsEmailModalOpen(false)}
-      />
-      <VerifyPhoneModal
-        isOpen={isPhoneModalOpen}
-        onClose={() => setIsPhoneModalOpen(false)}
       />
     </>
   );

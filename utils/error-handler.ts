@@ -7,7 +7,7 @@
  * @module utils/error-handler
  */
 
-import { ErrorResponse, TypedApiError } from "@/types/invoice";
+import { ErrorResponse } from "@/types/invoice";
 
 /**
  * Error categories for different error types
@@ -148,10 +148,12 @@ const getUserFriendlyMessage = (
 export const handleApiError = (error: unknown): UserFriendlyError => {
   // Handle typed API error
   if (error && typeof error === "object" && "response" in error) {
-    const errorObj = error as any;
+    const errorObj = error as {
+      response?: { status?: number; data?: ErrorResponse & { error?: string } };
+    };
     const status = errorObj.response?.status;
-    const errorData = errorObj.response?.data as ErrorResponse | undefined;
-    const errorMessage = errorData?.message || (errorData as any)?.error;
+    const errorData = errorObj.response?.data;
+    const errorMessage = errorData?.message || errorData?.error;
 
     const category = categorizeError(status, errorMessage);
     const isRetryable = isErrorRetryable(category, status);
@@ -247,8 +249,8 @@ export const handleValidationError = (
 ): Record<string, string> | null => {
   try {
     if (error && typeof error === "object" && "response" in error) {
-      const errorObj = error as any;
-      const errorData = errorObj.response?.data as ErrorResponse | undefined;
+      const errorObj = error as { response?: { data?: ErrorResponse } };
+      const errorData = errorObj.response?.data;
 
       // Check if it's a validation error with field-specific errors
       if (errorData?.details && typeof errorData.details === "object") {

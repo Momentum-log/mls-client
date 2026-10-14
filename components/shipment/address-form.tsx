@@ -77,8 +77,8 @@ export default function AddressForm({
       try {
         schema.parse(values);
         return {};
-      } catch (error: any) {
-        let formikErrors: Record<string, string> = {};
+      } catch (error) {
+        const formikErrors: Record<string, string> = {};
         if (error instanceof z.ZodError) {
           const fieldErrors = error.flatten().fieldErrors as Record<
             string,

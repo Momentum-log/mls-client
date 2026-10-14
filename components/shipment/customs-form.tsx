@@ -16,6 +16,7 @@ import {
 } from "@/types/shipping";
 import { Package, Address } from "@/store/shipment-store";
 import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
+import HsCodeSuggestion from "@/components/shipment/hs-code-suggestion";
 import { useVerification } from "@/hooks/shipments/useVerification";
 import {
   customsTypeForUser,
@@ -122,6 +123,8 @@ interface CustomsFormProps {
   initialValues?: CustomsData | null;
   packages: Package[];
   sender: Address | null;
+  /** Recipient country (ISO alpha-2), for HS code suggestions. */
+  destinationCountry?: string;
   currency?: string;
   onSubmit: (values: CustomsData) => void;
   onBack?: () => void;
@@ -131,6 +134,7 @@ export default function CustomsForm({
   initialValues,
   packages = [],
   sender,
+  destinationCountry,
   currency = "EUR",
   onSubmit,
   onBack,
@@ -542,6 +546,17 @@ export default function CustomsForm({
                                   {(errorBag as ItemDetail).tariffCode}
                                 </span>
                               )}
+                            <HsCodeSuggestion
+                              description={item.nameEn}
+                              destinationCountry={destinationCountry}
+                              originCountry={sender?.country}
+                              onPick={(code) =>
+                                formik.setFieldValue(
+                                  `customsItem.${index}.tariffCode`,
+                                  code,
+                                )
+                              }
+                            />
                           </div>
                         </div>
                       </div>

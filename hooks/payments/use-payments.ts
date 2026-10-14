@@ -1,13 +1,10 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getPaymentInvoice,
-  requestShipmentInvoice,
   verifyPayment,
 } from "@/api/payments";
 import {
   PaymentInvoiceModel,
-  RequestShipmentInvoiceRequest,
-  RequestShipmentInvoiceResponse,
   VerifyPaymentResponse,
 } from "@/types/payments";
 
@@ -31,21 +28,6 @@ export const usePaymentInvoice = (invoiceId: string, enabled = true) => {
     enabled,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
-  });
-};
-
-/**
- * Requests shipment invoice processing.
- *
- * @returns Mutation for shipment invoice request
- */
-export const useRequestShipmentInvoice = () => {
-  return useMutation<
-    RequestShipmentInvoiceResponse,
-    Error,
-    RequestShipmentInvoiceRequest
-  >({
-    mutationFn: requestShipmentInvoice,
   });
 };
 

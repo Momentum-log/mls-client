@@ -3,7 +3,6 @@
 import React from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
-import { toFormikValidationSchema } from "zod-formik-adapter";
 import { useRegister } from "@/hooks/auth/use-auth";
 import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/ui/password-input";
@@ -84,7 +83,7 @@ const RegisterForm = () => {
       try {
         registerSchema.parse(values);
         return {};
-      } catch (error: any) {
+      } catch (error) {
         if (error instanceof z.ZodError) {
           const formikErrors: Record<string, string> = {};
           error.issues.forEach((issue) => {

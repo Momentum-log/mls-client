@@ -30,7 +30,7 @@ const AboutHero: React.FC = () => {
               <span className="text-brand-blue">Logistics for Everyone</span>
             </h1>
             <p className="text-gray-600 text-xl md:text-2xl font-light leading-relaxed max-w-2xl mx-auto lg:mx-0">
-              We're building the future of shipping—where speed, transparency,
+              We&apos;re building the future of shipping—where speed, transparency,
               and reliability come standard.
             </p>
           </div>

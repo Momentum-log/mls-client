@@ -9,7 +9,7 @@ import { useCountryStore } from "@/store/country-store";
  * Renders nothing - just triggers the detection.
  */
 export default function CountryDetector() {
-  const { detectCountry, isDetected, isManualOverride } = useCountryStore();
+  const { detectCountry } = useCountryStore();
 
   useEffect(() => {
     // Attempt detection on mount

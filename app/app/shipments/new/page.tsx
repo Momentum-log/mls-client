@@ -794,6 +794,7 @@ export default function NewShipmentPage() {
                 initialValues={customs}
                 packages={packages}
                 sender={sender}
+                destinationCountry={recipient?.country}
                 currency={activeCurrency}
                 onSubmit={handleCustomsSubmit}
                 onBack={() => setExpandedSection("package")}
