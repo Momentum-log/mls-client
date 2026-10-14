@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import LoginForm from "@/components/auth/login-form";
 import AuthShowcase from "@/components/auth/auth-showcase";
 
@@ -18,7 +19,11 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <LoginForm />
+          {/* The form reads `?reason=` / `?redirect=` via useSearchParams, which
+              needs a boundary so this page can still be prerendered. */}
+          <Suspense fallback={<div className="h-96" />}>
+            <LoginForm />
+          </Suspense>
         </div>
       </div>
 

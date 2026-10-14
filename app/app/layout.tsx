@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { useRouter } from "next/navigation";
 import { getAccessToken } from "@/utils/auth-helper";
 import { cn } from "@/utils/cn";
+import { classifyAuthError } from "@/utils/auth-failure";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, updateUser } = useAuthStore();
@@ -30,7 +31,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       const token = getAccessToken();
       if (!token) {
         setIsLoading(false);
-        router.push("/login");
+        // Carry the return path — the login form reads `?redirect=` and would
+        // otherwise drop the user on the dashboard instead of where they were.
+        router.push(
+          `/login?redirect=${encodeURIComponent(
+            window.location.pathname + window.location.search,
+          )}`,
+        );
         return;
       }
 
@@ -50,9 +57,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           console.error(
             "Backend API is unreachable. Please ensure the server is running on port 8000.",
           );
+        } else if (classifyAuthError(error) === "SIGN_OUT") {
+          // The interceptor already cleared credentials and started a redirect
+          // carrying the server's `reason`. Pushing our own here would win the
+          // race and strip the explanation off the login page.
+          console.error("Session ended", error);
         } else if (!hasCachedUser.current) {
           console.error("Auth check failed", error);
-          router.push("/login");
+          router.push(
+            `/login?redirect=${encodeURIComponent(
+              window.location.pathname + window.location.search,
+            )}`,
+          );
         } else {
           // A failed refresh behind a cached profile is not worth throwing the
           // user out over; the next call that needs a live token will 401.
