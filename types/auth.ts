@@ -40,10 +40,64 @@ export interface User {
   updatedAt: string;
 }
 
+/**
+ * Session metadata returned by login and refresh (server v6.0.0).
+ */
+export interface SessionInfo {
+  /** Absolute 7-day deadline, ISO string. A refresh rotation does not move it. */
+  expiresAt: string;
+  /**
+   * e.g. `"iPhone · Safari"`. Derived from the User-Agent server-side and
+   * meant only for showing a human which device a session belongs to. It is
+   * trivially spoofable and is never used for an authorization decision. Absent
+   * from the refresh response, which only returns `expiresAt`.
+   */
+  deviceLabel?: string;
+}
+
+/**
+ * The `reason` a 401 (or the 403 `USER_RESTRICTED`) carries since v6.0.0. It is
+ * what separates "refresh and retry" from "sign the user out".
+ *
+ * @remarks Both spellings of the revoked and expired cases are listed on
+ * purpose: `docs/user-session-guide.md` documents `REVOKED`/`EXPIRED` while the
+ * OpenAPI description documents `SESSION_REVOKED`/`SESSION_EXPIRED`. They mean
+ * the same thing and are handled identically.
+ */
+export type AuthFailureReason =
+  | "TOKEN_UPGRADE_REQUIRED"
+  | "NO_TOKEN"
+  | "INVALID_TOKEN"
+  | "REVOKED"
+  | "SESSION_REVOKED"
+  | "EXPIRED"
+  | "SESSION_EXPIRED"
+  | "NOT_FOUND"
+  | "REUSE_DETECTED"
+  | "USER_RESTRICTED";
+
+/** The error body every authenticated endpoint returns on a 401 or 403. */
+export interface AuthErrorBody {
+  error: string;
+  code: number;
+  details?: string | null;
+  reason?: AuthFailureReason;
+}
+
 export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
+  /** Absent on tokens issued before v6.0.0. */
+  session?: SessionInfo;
+}
+
+export interface RefreshResponse {
+  accessToken: string;
+  /** Rotated on every call — the old one must be replaced with this. */
+  refreshToken: string;
+  /** The session id is unchanged by a rotation; only `expiresAt` is echoed. */
+  session: SessionInfo;
 }
 
 export interface LoginData {

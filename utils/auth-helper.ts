@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 export const GUEST_ID_COOKIE_NAME = "mls_guest_id";
 export const ACCESS_TOKEN_COOKIE_NAME = "mls_access_token";
 export const REFRESH_TOKEN_COOKIE_NAME = "mls_refresh_token";
+export const SESSION_INFO_COOKIE_NAME = "mls_session";
 
 /**
  * Retrieves the existing guest ID from cookies or generates a new one if it doesn't exist.
@@ -51,6 +52,7 @@ import {
   decryptData,
   getPersistencePreference,
 } from "./secure-storage";
+import { SessionInfo } from "@/types/auth";
 
 export const getAccessToken = () => {
   const val = Cookies.get(ACCESS_TOKEN_COOKIE_NAME);
@@ -62,27 +64,59 @@ export const getRefreshToken = () => {
   return val ? decryptData(val) : undefined;
 };
 
-export const setTokens = (accessToken: string, refreshToken: string) => {
-  const encAccess = encryptData(accessToken);
-  const encRefresh = encryptData(refreshToken);
-
-  const type = getPersistencePreference();
+/**
+ * Cookie attributes shared by every credential cookie we write.
+ *
+ * If "local" (Remember Me), cookies expire in 7 days — matching the refresh
+ * token's own lifetime. If "session", `expires` is omitted so the cookie dies
+ * with the browser session.
+ */
+const cookieOptions = (): Cookies.CookieAttributes => {
   const options: Cookies.CookieAttributes = {
     sameSite: "Strict",
     secure: window.location.protocol === "https:",
   };
 
-  // If "local" (Remember Me), set cookies to expire in 7 days.
-  // If "session", do NOT set expires (browser session only).
-  if (type === "local") {
+  if (getPersistencePreference() === "local") {
     options.expires = 7;
   }
 
-  Cookies.set(ACCESS_TOKEN_COOKIE_NAME, encAccess, options);
-  Cookies.set(REFRESH_TOKEN_COOKIE_NAME, encRefresh, options);
+  return options;
+};
+
+export const setTokens = (accessToken: string, refreshToken: string) => {
+  const options = cookieOptions();
+  Cookies.set(ACCESS_TOKEN_COOKIE_NAME, encryptData(accessToken), options);
+  Cookies.set(REFRESH_TOKEN_COOKIE_NAME, encryptData(refreshToken), options);
+};
+
+/**
+ * Stores the session metadata returned by login and refresh. Display only —
+ * see {@link SessionInfo.deviceLabel}.
+ */
+export const setSessionInfo = (session: SessionInfo) => {
+  Cookies.set(
+    SESSION_INFO_COOKIE_NAME,
+    encryptData(JSON.stringify(session)),
+    cookieOptions(),
+  );
+};
+
+export const getSessionInfo = (): SessionInfo | null => {
+  const val = Cookies.get(SESSION_INFO_COOKIE_NAME);
+  if (!val) return null;
+
+  try {
+    const decoded = decryptData(val);
+    return decoded ? (JSON.parse(decoded) as SessionInfo) : null;
+  } catch {
+    // A malformed cookie is not worth throwing over; the store holds a copy.
+    return null;
+  }
 };
 
 export const clearTokens = () => {
   Cookies.remove(ACCESS_TOKEN_COOKIE_NAME);
   Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
+  Cookies.remove(SESSION_INFO_COOKIE_NAME);
 };

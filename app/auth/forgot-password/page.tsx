@@ -4,11 +4,24 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { forgotPassword, resetPassword } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/store/auth-store";
 import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/button";
 import Link from "next/link";
+
+/**
+ * Pulls the server's message out of an axios error. Reading `error.message`
+ * alone yields "Request failed with status code 400" and throws away the
+ * explanation the API actually sent.
+ */
+const readError = (error: unknown, fallback: string): string => {
+  const body = (error as { response?: { data?: { error?: string } } })?.response
+    ?.data;
+  if (body?.error) return body.error;
+  return error instanceof Error ? error.message : fallback;
+};
 
 /**
  * Unified Forgot Password page.
@@ -41,8 +54,7 @@ export default function ForgotPasswordPage() {
     } catch (error: unknown) {
       addToast({
         title: "Error",
-        message:
-          error instanceof Error ? error.message : "Failed to send reset code",
+        message: readError(error, "Failed to send reset code"),
         type: "error",
       });
     } finally {
@@ -66,6 +78,10 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     try {
       await resetPassword({ code, newPassword });
+      // A reset is the "I have lost control of this account" flow, so the
+      // server ends *every* session including whichever one asked for it.
+      // Clear locally too rather than leaving dead tokens behind.
+      useAuthStore.getState().logout();
       addToast({
         title: "Success",
         message: "Password reset successfully! You can now login.",
@@ -75,8 +91,7 @@ export default function ForgotPasswordPage() {
     } catch (error: unknown) {
       addToast({
         title: "Error",
-        message:
-          error instanceof Error ? error.message : "Failed to reset password",
+        message: readError(error, "Failed to reset password"),
         type: "error",
       });
     } finally {
