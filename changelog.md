@@ -26,9 +26,11 @@ Brings the customer app in line with the server's v7.1 contract (mls-server PR #
   - `AWAITING_MLS_COLLECTION` ("Awaiting Collection") and `AT_HUB` ("In Transit") join the status vocabulary.
 - Added: **HS code suggestions** (`components/shipment/hs-code-suggestion.tsx`)
   - "Suggest a code" on each customs item calls `POST /shipments/hs-codes/match`, fills the six-digit code and offers up to three alternatives. Vague descriptions show the server's tips instead of a guess.
-- Fixed: **Lint** — 117 problems down to 4 in live code (`api/index.ts`, `components/account/LogoutAction.tsx`, left alone because the uncommitted session-security work rewrites both), plus those in modules nothing imports.
+- Fixed: **Lint** — 117 problems down to 4 (`api/index.ts`, `components/account/LogoutAction.tsx`, left alone because the uncommitted session-security work rewrites both).
   - Escaped JSX entities, removed unused imports and handlers, replaced `any` with real types, and moved state out of effects (`toast`, `select`, `toast-provider`, `VerifyPhoneModal`, `VerificationBanner`).
   - The About page map dots used `Math.random()` during render, which differs between server and client; they are now fixed positions.
+- Removed: **Code nothing imports** — the legacy invoice hooks (`hooks/invoices/useInvoices.ts`, `use-invoices.ts`, `usePdfStatus.ts` and friends, plus their barrel), the unused invoice components (`InvoicePreview`, `InvoiceDetailModal`, `EmailInvoiceModal`, `InvoiceListPage`, `InvoiceActionsNew`, `InvoiceCardNew`, `InvoiceSummaryNew`, `InvoicesListNew`) and `store/invoice-store.ts`, the old `profile-form`, `rate-selection` and `estimate-form`, the address-verification screens, `stepper`, `badge`, `table`, `useNotification`, six unused utils, and the `generateInvoice` / `confirmInvoice` / `regeneratePaymentLink` API calls only they used. Several of these still called routes the server does not serve.
+  - Also removed the stray `patch_page.js` and the stale `lint-errors.json` / `docs/lint-errors-reference.md` report. `components/ui/spinner.tsx` and `utils/auth-debug.ts` are unused too but kept, in case the session-security work picks them up.
 
 ## [1.47.1] - 2026-08-26 - Remove mandatory location gate; address self-correction; payment auto-redirect
 

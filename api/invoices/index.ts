@@ -13,12 +13,6 @@ import {
   Invoice,
   InvoicePaymentLink,
   ListInvoicesResponse,
-  GenerateInvoiceRequest,
-  GenerateInvoiceResponse,
-  ConfirmInvoiceRequest,
-  ConfirmInvoiceResponse,
-  RegeneratePaymentLinkRequest,
-  RegeneratePaymentLinkResponse,
   GetInvoiceResponse,
 } from "@/types/invoice";
 
@@ -195,63 +189,6 @@ export const getInvoice = async (
 };
 
 /**
- * Generates a new invoice from a shipment.
- *
- * @param data - Invoice generation request
- * @param data.shipmentId - The shipment to invoice
- * @param data.deliveryMethod - How to deliver the invoice
- * @param data.recipientEmail - Email recipient (required if delivery includes email)
- * @param data.paymentGateway - Payment gateway to use
- * @returns Promise resolving to invoice generation response
- *
- * @example
- * ```ts
- * const response = await generateInvoice({
- *   shipmentId: "ship-123",
- *   deliveryMethod: "email",
- *   recipientEmail: "customer@example.com",
- * });
- * ```
- */
-export const generateInvoice = async (
-  data: GenerateInvoiceRequest,
-): Promise<GenerateInvoiceResponse> => {
-  const response = await apiClient.post<GenerateInvoiceResponse>(
-    "/invoices/generate",
-    data,
-  );
-  return response.data;
-};
-
-/**
- * Confirms an invoice and generates a payment link.
- *
- * Called after user selects payment method before making payment.
- *
- * @param data - Invoice confirmation request
- * @param data.invoiceId - The invoice to confirm
- * @param data.paymentMethod - Selected payment method
- * @returns Promise resolving to confirmed invoice with payment link
- *
- * @example
- * ```ts
- * const response = await confirmInvoice({
- *   invoiceId: "inv-123",
- *   paymentMethod: "PAYU",
- * });
- * ```
- */
-export const confirmInvoice = async (
-  data: ConfirmInvoiceRequest,
-): Promise<ConfirmInvoiceResponse> => {
-  const response = await apiClient.post<ConfirmInvoiceResponse>(
-    `/invoices/${data.invoiceId}/confirm`,
-    data,
-  );
-  return response.data;
-};
-
-/**
  * Downloads the invoice PDF as a blob.
  *
  * @param invoiceId - The invoice to download
@@ -293,26 +230,3 @@ export const sendInvoiceEmail = async (
   return response.data;
 };
 
-/**
- * Regenerates an expired payment link for an invoice.
- *
- * @param data - Payment link regeneration request
- * @param data.invoiceId - The invoice to regenerate link for
- * @returns Promise resolving to new payment link details
- *
- * @example
- * ```ts
- * const response = await regeneratePaymentLink({
- *   invoiceId: "inv-123",
- * });
- * ```
- */
-export const regeneratePaymentLink = async (
-  data: RegeneratePaymentLinkRequest,
-): Promise<RegeneratePaymentLinkResponse> => {
-  const response = await apiClient.post<RegeneratePaymentLinkResponse>(
-    `/invoices/${data.invoiceId}/payment-link/regenerate`,
-    data,
-  );
-  return response.data;
-};
