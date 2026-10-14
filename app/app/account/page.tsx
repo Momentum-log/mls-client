@@ -6,6 +6,7 @@ import AccountStack, { AccountCard } from "@/components/account/AccountStack";
 import VerificationBanner from "@/components/account/VerificationBanner";
 import LogoutAction from "@/components/account/LogoutAction";
 import ChangePasswordForm from "@/components/account/ChangePasswordForm";
+import SessionSecurityCard from "@/components/account/SessionSecurityCard";
 import { useAuthStore } from "@/store/auth-store";
 
 /**
@@ -46,13 +47,18 @@ export default function AccountPage() {
           <ProfileForm />
         </AccountCard>
 
-
-
         <AccountCard
           title="Security"
           description="Manage your password and security settings."
         >
           <ChangePasswordForm />
+        </AccountCard>
+
+        <AccountCard
+          title="Sessions"
+          description="Where you're signed in, and how to sign out everywhere."
+        >
+          <SessionSecurityCard />
         </AccountCard>
 
         <LogoutAction />

@@ -1,38 +1,14 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
-import { logout as apiLogout } from "@/api/auth";
-import { useToast } from "@/hooks/use-toast";
+import { useLogout } from "@/hooks/auth/use-auth";
 
 /**
- * Logout action component.
- * Handles both backend revocation and local state clearing.
+ * Signs the user out of this device. The revocation and local cleanup both live
+ * in `useLogout` so there is one logout path in the app.
  */
 const LogoutAction = () => {
-  const { logout, refreshToken } = useAuthStore();
-  const { addToast } = useToast();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      if (refreshToken) {
-        await apiLogout(refreshToken);
-      }
-      logout();
-      addToast({
-        title: "Success",
-        message: "Logged out successfully",
-        type: "success",
-      });
-      router.push("/login");
-    } catch (error) {
-      // Still logout locally even if backend fails
-      logout();
-      router.push("/login");
-    }
-  };
+  const handleLogout = useLogout();
 
   return (
     <button

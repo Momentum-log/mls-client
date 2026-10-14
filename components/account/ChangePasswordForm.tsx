@@ -46,9 +46,12 @@ const ChangePasswordForm = () => {
           oldPassword: values.currentPassword,
           newPassword: values.newPassword,
         });
+        // The server keeps *this* session alive and ends all the others, so
+        // the user stays signed in here but is dropped everywhere else.
         addToast({
           title: "Success",
-          message: "Password changed successfully",
+          message:
+            "Password changed. You've been signed out on all other devices.",
           type: "success",
         });
         resetForm();

@@ -1,4 +1,10 @@
-import { LoginData, RegisterData, VerifyPhoneData } from "@/types/auth";
+import {
+  AuthResponse,
+  LoginData,
+  RefreshResponse,
+  RegisterData,
+  VerifyPhoneData,
+} from "@/types/auth";
 import {
   AddressStatusResponse,
   AddressUpdateRequestPayload,
@@ -16,14 +22,41 @@ export const register = (data: RegisterData) => {
  * Logins a user.
  */
 export const login = (data: LoginData) => {
-  return apiClient.post("/auth/login-user", data);
+  return apiClient.post<AuthResponse>("/auth/login-user", data);
 };
 
 /**
  * Logouts the current user and revokes refresh token.
+ *
+ * @remarks Ends this device's session only. Takes effect immediately since
+ * v6.0.0 — the access token stops working on the very next request rather than
+ * coasting for its remaining ~15 minutes.
  */
 export const logout = (refreshToken: string) => {
-  return apiClient.post("/auth/logout-user", { refreshToken });
+  return apiClient.post<{ message: string }>("/auth/logout-user", {
+    refreshToken,
+  });
+};
+
+/**
+ * Ends every session for the signed-in customer, the current device included.
+ * Takes effect immediately on all devices.
+ */
+export const logoutAll = () => {
+  return apiClient.post("/auth/logout-all");
+};
+
+/**
+ * Exchanges a refresh token for a fresh pair.
+ *
+ * @remarks The axios interceptor in `api/index.ts` calls the endpoint directly
+ * with a bare `axios` so a failing refresh cannot re-enter itself. This export
+ * is for any deliberate, non-interceptor refresh.
+ */
+export const refreshSession = (refreshToken: string) => {
+  return apiClient.post<RefreshResponse>("/auth/refresh-token", {
+    refreshToken,
+  });
 };
 
 /**
