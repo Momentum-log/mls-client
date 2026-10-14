@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FaGlobe, FaSignal, FaWifi } from "react-icons/fa6";
+import { FaGlobe, FaWifi } from "react-icons/fa6";
 
 const VisionShowcase: React.FC = () => {
   return (

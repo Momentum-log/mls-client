@@ -40,17 +40,15 @@ export const InvoicesSidebar: React.FC<InvoicesSidebarProps> = ({
 
   // Fetch invoices
   const { data: invoicesResponse, isLoading } = useGetInvoices({
-    limit: 50,
+    limit: 100,
     offset: 0,
-    status: filterStatus === "ALL" ? "all" : filterStatus,
   });
-
-  const invoices = invoicesResponse?.invoices || [];
 
   // Filter and search invoices
   const filteredInvoices = useMemo(() => {
+    const invoices = invoicesResponse?.invoices || [];
     return invoices.filter((invoice: Invoice) => {
-      // Status filter fallback (keeps filtering working even if backend returns unfiltered list)
+      // The server has no status filter, so it is applied here.
       if (filterStatus !== "ALL" && invoice.status !== filterStatus) {
         return false;
       }
@@ -66,7 +64,7 @@ export const InvoicesSidebar: React.FC<InvoicesSidebarProps> = ({
 
       return true;
     });
-  }, [invoices, searchQuery, filterStatus]);
+  }, [invoicesResponse, searchQuery, filterStatus]);
 
   const handleInvoiceClick = (invoiceId: string) => {
     onInvoiceSelect?.(invoiceId);

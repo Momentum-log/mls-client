@@ -27,14 +27,10 @@ interface InvoiceReceiptProps {
   transactionId?: string;
   /** Optional payment method (e.g., "Credit Card", "PayU") */
   paymentMethod?: string;
-  /** Callback for shipment invoice request button */
-  onRequestShipmentInvoice?: () => void;
   /** Callback for view details button */
   onViewDetails?: () => void;
   /** Optional CSS classes */
   className?: string;
-  /** Optional loading state for shipment invoice request button */
-  isRequestingShipmentInvoice?: boolean;
 }
 
 /**
@@ -51,10 +47,8 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
   invoice,
   transactionId,
   paymentMethod,
-  onRequestShipmentInvoice,
   onViewDetails,
   className = "",
-  isRequestingShipmentInvoice = false,
 }) => {
   const currency = invoice.currency === "EUR" ? "EUR" : "PLN";
   const buyerAddress = buildAddressString(
@@ -202,20 +196,6 @@ export const InvoiceReceipt: React.FC<InvoiceReceiptProps> = ({
       {/* Action Buttons */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row gap-2">
-          {onRequestShipmentInvoice && (
-            <Button
-              onClick={onRequestShipmentInvoice}
-              disabled={isRequestingShipmentInvoice}
-              variant="default"
-              size="sm"
-              className="flex-1"
-            >
-              {isRequestingShipmentInvoice
-                ? "Requesting..."
-                : "Request Shipment Invoice"}
-            </Button>
-          )}
-
           {onViewDetails && (
             <Button
               onClick={onViewDetails}

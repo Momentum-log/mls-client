@@ -59,14 +59,14 @@ const HeavyFreightSection: React.FC = () => {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-work-sans font-black text-foreground mb-6">
               <span className="text-brand-blue">Heavy Cargo?</span>
               <br />
-              We've Got You Covered
+              We&apos;ve Got You Covered
             </h2>
 
             {/* Description */}
             <p className="text-lg text-foreground/70 mb-8 leading-relaxed">
               For shipments weighing 70kg and above, our logistics experts
               provide personalized solutions. From full truck loads to sea
-              freight, we handle the heavy lifting so you don't have to.
+              freight, we handle the heavy lifting so you don&apos;t have to.
             </p>
 
             {/* Feature Grid */}

@@ -4,31 +4,14 @@ import {
   downloadInvoicePdf,
   sendInvoiceEmail,
   getInvoice,
+  InvoiceListParams,
 } from "@/api/invoices";
-import { InvoiceStatus } from "@/types/invoice";
 
-interface GetInvoicesParams {
-  limit: number;
-  offset: number;
-  status?: InvoiceStatus | "all";
-  invoiceNumber?: string;
-  customerEmail?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-}
-
-export const useGetInvoices = (params: GetInvoicesParams) => {
+/** One page of invoices. Status and search filtering happen in the caller. */
+export const useGetInvoices = (params: InvoiceListParams) => {
   return useQuery({
     queryKey: ["get-invoices", params],
-    queryFn: () =>
-      getInvoices({
-        ...params,
-        status: params.status === "all" ? undefined : params.status,
-      }),
+    queryFn: () => getInvoices(params),
   });
 };
 

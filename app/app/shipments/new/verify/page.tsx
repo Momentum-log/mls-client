@@ -3,16 +3,21 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { verifyPayment } from "@/api/payments";
-import { VerifyPaymentResponse } from "@/types/shipping";
+import { VerifyPaymentResponse } from "@/types/payments";
 import Button from "@/components/ui/button";
 import {
   FiCheckCircle,
   FiXCircle,
   FiAlertCircle,
   FiArrowRight,
+  FiClock,
 } from "react-icons/fi";
 import CopyButton from "@/components/ui/copy-button";
+import { extractApiError } from "@/utils/error-handler";
 import Link from "next/link";
+
+/** PayU can sit in PENDING for a while; stop polling after about two minutes. */
+const MAX_PENDING_POLLS = 24;
 
 export default function VerifyPage() {
   const searchParams = useSearchParams();
@@ -23,53 +28,83 @@ export default function VerifyPage() {
 
   const hasSession = !!sessionId || !!shipmentId || !!orderId;
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(hasSession);
   const [result, setResult] = useState<VerifyPaymentResponse | null>(null);
+  const [pollsExhausted, setPollsExhausted] = useState(false);
 
   // Prevent double invocation in strict mode
   const hasCalled = useRef(false);
+  const pendingPolls = useRef(0);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Re-usable verification handler
-  const handleVerify = useCallback(async () => {
-    if (!hasSession) return;
+  useEffect(
+    () => () => {
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+    },
+    [],
+  );
 
-    setLoading(true);
-    try {
-      const queryString = searchParams.toString();
-      const data = await verifyPayment(queryString ? `?${queryString}` : "");
+  // Verifies, polling while PayU answers PENDING. PENDING means PayU is still
+  // processing and the customer may already have paid, so it is asked again
+  // after the delay the server gives and never shown as a failure.
+  const runVerification = useCallback(async (): Promise<void> => {
+    for (;;) {
+      let data: VerifyPaymentResponse;
+      try {
+        const queryString = searchParams.toString();
+        data = await verifyPayment(queryString ? `?${queryString}` : "");
+      } catch (err: unknown) {
+        console.error("Verification failed:", err);
+        const { message } = extractApiError(err);
+        data = {
+          status: "FAILED",
+          paymentStatus: "unknown",
+          shipmentStatus: "FAILED",
+          message: message || "Verification request failed.",
+        };
+      }
       setResult(data);
-    } catch (err: unknown) {
-      console.error("Verification failed:", err);
-      const error = err as { response?: { data?: { message?: string; details?: string; error?: string } } };
-      const responseData = error.response?.data;
-      const errorMessage = responseData?.message || responseData?.details || responseData?.error || "Verification request failed.";
-      setResult({
-        status: "FAILED",
-        paymentStatus: "unknown",
-        shipmentStatus: "FAILED",
-        message: errorMessage,
-        trackingNumber: undefined,
-        labelUrl: "",
-      } as VerifyPaymentResponse);
-    } finally {
-      setLoading(false);
+
+      if (data.status !== "PENDING") break;
+      if (pendingPolls.current >= MAX_PENDING_POLLS) {
+        setPollsExhausted(true);
+        break;
+      }
+      pendingPolls.current += 1;
+      // A cleared timer (unmount, or a manual re-check) never resolves, which
+      // ends this loop.
+      await new Promise((resolve) => {
+        pollTimer.current = setTimeout(
+          resolve,
+          (data.retryAfterSeconds ?? 5) * 1000,
+        );
+      });
     }
-  }, [hasSession, searchParams]);
+    setLoading(false);
+  }, [searchParams]);
+
+  // "Try Again" / "Check Again": start a fresh round of polling.
+  const handleVerify = useCallback(() => {
+    if (pollTimer.current) clearTimeout(pollTimer.current);
+    pendingPolls.current = 0;
+    setPollsExhausted(false);
+    setLoading(true);
+    runVerification();
+  }, [runVerification]);
 
   useEffect(() => {
-    if (!hasSession) {
-      setLoading(false);
-      return;
-    }
-
-    if (hasCalled.current) return;
+    if (!hasSession || hasCalled.current) return;
     hasCalled.current = true;
 
-    handleVerify();
-  }, [hasSession, handleVerify]);
+    runVerification();
+  }, [hasSession, runVerification]);
 
   // Defensive Check: Valid success means STATUS is SUCCESS AND Tracking Number exists
   const isSuccess = result?.status === "SUCCESS" && !!result?.trackingNumber;
+  const isPending = result?.status === "PENDING";
+  // Stripe returns only `session_id`; the tracking number opens the same
+  // shipment, since get-shipment accepts either.
+  const shipmentRef = shipmentId || result?.trackingNumber;
 
   // Give the user a moment to see the confirmation, then take them straight
   // into the shipment they just paid for.
@@ -77,11 +112,11 @@ export default function VerifyPage() {
     if (!isSuccess) return;
 
     const timer = setTimeout(() => {
-      router.push(shipmentId ? `/app/shipments/${shipmentId}` : "/app/shipments");
+      router.push(shipmentRef ? `/app/shipments/${shipmentRef}` : "/app/shipments");
     }, 1800);
 
     return () => clearTimeout(timer);
-  }, [isSuccess, shipmentId, router]);
+  }, [isSuccess, shipmentRef, router]);
 
   if (!hasSession) {
     return (
@@ -102,6 +137,46 @@ export default function VerifyPage() {
               Go to Dashboard
             </Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center py-2">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center border border-gray-100">
+          {pollsExhausted ? (
+            <FiClock className="w-12 h-12 text-brand-blue mx-auto mb-4" />
+          ) : (
+            <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          )}
+          <h2 className="text-xl font-black text-gray-900 tracking-tight">
+            {pollsExhausted
+              ? "Payment Still Processing"
+              : "Confirming Your Payment..."}
+          </h2>
+          <p className="text-gray-500 mt-2 font-medium">
+            {pollsExhausted
+              ? "PayU hasn't confirmed it yet. Don't pay again: we'll email you as soon as it's through, and your shipment will update on its own."
+              : "PayU is still processing your payment. This page updates by itself."}
+          </p>
+          {pollsExhausted && (
+            <div className="mt-6 space-y-3">
+              <Button
+                variant="primary"
+                className="w-full rounded-xl"
+                onClick={handleVerify}
+              >
+                Check Again
+              </Button>
+              <Link href={shipmentRef ? `/app/shipments/${shipmentRef}` : "/app/shipments"}>
+                <Button variant="ghost" className="w-full rounded-xl">
+                  Go to My Shipment
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );

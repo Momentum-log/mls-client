@@ -100,11 +100,15 @@ export async function proxy(request: NextRequest) {
   }
 
   // If user is authenticated and visits a tracking URL with an ID, redirect to internal shipment details
-  // Matches /track-shipment/ANYTHING but not just /track-shipment
+  // Matches /track-shipment/ANYTHING but not just /track-shipment.
+  // `?view=public` opts out: the details page sends a signed-in customer here
+  // when the shipment isn't theirs, and redirecting back would loop.
   const trackShipmentMatch = request.nextUrl.pathname.match(
     /^\/track-shipment\/(.+)$/,
   );
-  if (token && trackShipmentMatch) {
+  const wantsPublicView =
+    request.nextUrl.searchParams.get("view") === "public";
+  if (token && trackShipmentMatch && !wantsPublicView) {
     const trackingId = trackShipmentMatch[1];
     return NextResponse.redirect(
       new URL(`/app/shipments/${trackingId}`, request.url),

@@ -22,14 +22,14 @@ export const useDuplicateShipment = () => {
       const mappedData = mapShipmentToStore(shipment);
 
       // 3. Populate store
-      setSender(mappedData.sender as any); // Type assertion if needed validation matches stricter store type
-      setRecipient(mappedData.recipient as any);
+      setSender(mappedData.sender);
+      setRecipient(mappedData.recipient);
       setPackages(mappedData.packages);
 
       // 3.5. Set customs data if available
       const { setCustoms } = useShipmentStore.getState();
       if (mappedData.customs) {
-        setCustoms(mappedData.customs as any);
+        setCustoms(mappedData.customs);
       }
 
       // 4. Mark sections as completed to reveal them in the UI

@@ -4,13 +4,13 @@ import React, { useEffect, useState, useRef } from "react";
 import Button from "@/components/ui/button";
 import { trackShipment } from "@/api/shipments";
 import { deepTransformData } from "@/utils/data-transform";
-import { FiSearch, FiPackage, FiAlertCircle } from "react-icons/fi";
+import { FiPackage, FiAlertCircle } from "react-icons/fi";
 import Container from "@/components/shared/container";
 import PublicTrackingResult from "@/components/tracking/PublicTrackingResult";
 import { TrackingResponse } from "@/types/shipping";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { buildUnpaidTrackingResponse } from "@/utils/tracking-fallbacks";
@@ -20,6 +20,9 @@ export default function TrackShipmentByIdPage() {
   const router = useRouter();
   const { id } = params;
   const trackingId = Array.isArray(id) ? id[0] : id; // Handle potential array
+  // A signed-in customer lands here with `?view=public` when the shipment
+  // isn't in their account; sending them back to the dashboard would loop.
+  const forcePublic = useSearchParams().get("view") === "public";
 
   const [trackingData, setTrackingData] = useState<TrackingResponse | null>(
     null
@@ -27,7 +30,8 @@ export default function TrackShipmentByIdPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
-  const { isAuthenticated } = useAuthStore();
+  const isSignedIn = useAuthStore((state) => state.isAuthenticated);
+  const isAuthenticated = isSignedIn && !forcePublic;
   const hasTrackedRef = useRef(false);
 
   // 1. Auth Check & Redirect

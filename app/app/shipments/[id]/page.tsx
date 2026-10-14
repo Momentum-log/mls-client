@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useMemo, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { AxiosError } from "axios";
 import { useGetShipment } from "@/hooks/shipments/use-shipments";
 import { useDuplicateShipment } from "@/hooks/shipments/use-duplicate-shipment";
+import { useCollectionFeeReturn } from "@/hooks/shipments/use-collection-fee-return";
 import { useAuth } from "@/hooks/useAuth";
 import { deepTransformData } from "@/utils/data-transform";
 import TrackingOverview from "@/components/tracking/TrackingOverview";
@@ -16,6 +18,7 @@ import { CreateShipmentResponse } from "@/types/invoice";
 import Button from "@/components/ui/button";
 import FulfillmentPanel from "@/components/shipment/fulfillment-panel";
 import ShipmentPreparationInstructions from "@/components/shipment/shipment-preparation-instructions";
+import ShipmentCancellation from "@/components/shipment/shipment-cancellation";
 import {
   getStatusLabel,
   hasNoJourney,
@@ -28,6 +31,7 @@ import {
   FiDownload,
   FiFileText,
   FiAlertTriangle,
+  FiLoader,
 } from "react-icons/fi";
 
 /**
@@ -44,6 +48,9 @@ export default function ShipmentDetailsPage() {
   const { data: rawData, isLoading, error } = useGetShipment(id);
   const { duplicateShipment } = useDuplicateShipment();
   const { user } = useAuth();
+  const { isVerifying: isVerifyingCollectionFee } = useCollectionFeeReturn(
+    rawData?.id,
+  );
 
   // Invoice drawer & update modal state
   const [isInvoiceDrawerOpen, setIsInvoiceDrawerOpen] = useState(false);
@@ -126,6 +133,33 @@ export default function ShipmentDetailsPage() {
             </div>
             <div className="h-64 bg-gray-100 rounded-2xl"></div>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // The server only returns the caller's own shipments: anyone else's ID or
+  // tracking number is a 404. A tracking number can still be followed on the
+  // public page, which shows no personal details.
+  const errorStatus = (error as AxiosError | null)?.response?.status;
+  if (errorStatus === 404) {
+    return (
+      <div className="container mx-auto py-20 max-w-lg px-4 text-center">
+        <div className="bg-gray-50 border border-gray-100 p-10 rounded-3xl">
+          <div className="w-20 h-20 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <FiInfo className="w-10 h-10" />
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2">
+            Not in Your Account
+          </h3>
+          <p className="text-gray-600 font-medium mb-6">
+            We couldn&apos;t find this shipment among yours. If it&apos;s a
+            tracking number someone shared with you, you can still follow it on
+            the public tracking page.
+          </p>
+          <Link href={`/track-shipment/${encodeURIComponent(id)}?view=public`}>
+            <Button variant="primary">Track Publicly</Button>
+          </Link>
         </div>
       </div>
     );
@@ -230,6 +264,15 @@ export default function ShipmentDetailsPage() {
                         : "Tracking information is unavailable for this shipment. Please contact support if you believe this is an error."}
                     </p>
                   </div>
+                </div>
+              )}
+
+              {isVerifyingCollectionFee && (
+                <div className="border border-brand-blue/15 bg-brand-blue/5 p-4 rounded-2xl flex items-center gap-3">
+                  <FiLoader className="w-5 h-5 text-brand-blue animate-spin shrink-0" />
+                  <p className="text-sm font-medium text-gray-700">
+                    Confirming your collection fee payment...
+                  </p>
                 </div>
               )}
 
@@ -376,6 +419,12 @@ export default function ShipmentDetailsPage() {
               View Invoice
             </Button>
           )}
+
+          <ShipmentCancellation
+            shipmentId={shipment.id}
+            shipmentStatus={shipment.shipmentStatus}
+            cancellation={rawData?.cancellation}
+          />
 
           <div id="support-center" className="bg-brand-blue/5 p-8 rounded-3xl border border-brand-blue/10">
             <h4 className="font-black text-brand-blue mb-2 text-lg">

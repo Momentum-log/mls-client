@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { cn } from "@/utils/cn";
 
-interface PasswordInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
   ({ className, ...props }, ref) => {

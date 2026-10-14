@@ -4,12 +4,12 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/button";
 import { changePassword } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
+import { extractApiError } from "@/utils/error-handler";
 
 const passwordSchema = z
   .object({
@@ -55,9 +55,9 @@ const ChangePasswordForm = () => {
           type: "success",
         });
         resetForm();
-      } catch (error: any) {
+      } catch (error) {
         const errorMsg =
-          error.response?.data?.error || "Failed to change password";
+          extractApiError(error).message || "Failed to change password";
         setServerError(errorMsg);
         addToast({
           title: "Error",

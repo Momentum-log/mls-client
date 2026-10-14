@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import Button from "@/components/ui/button";
 import { useSendPhoneOTP, useVerifyPhoneOTP } from "@/hooks/auth/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/auth-store";
+import { extractApiError } from "@/utils/error-handler";
 
 interface VerifyPhoneModalProps {
   isOpen: boolean;
@@ -34,12 +35,6 @@ const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
     useVerifyPhoneOTP();
 
   useEffect(() => {
-    if (isOpen && tempPhone) {
-      handleSendOTP();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
     let timer: NodeJS.Timeout;
     if (cooldown > 0) {
       timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
@@ -47,7 +42,7 @@ const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
     return () => clearTimeout(timer);
   }, [cooldown]);
 
-  const handleSendOTP = async () => {
+  const handleSendOTP = useCallback(async () => {
     try {
       await sendOTP(tempPhone ? { phone: tempPhone } : undefined);
       addToast({
@@ -56,14 +51,24 @@ const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
         type: "success",
       });
       setCooldown(60);
-    } catch (error: any) {
+    } catch (error) {
       addToast({
         title: "Error",
-        message: error.response?.data?.message || "Failed to send code",
+        message: extractApiError(error).message || "Failed to send code",
         type: "error",
       });
     }
-  };
+  }, [sendOTP, tempPhone, addToast]);
+
+  // Opening the modal for a just-changed number sends its code straight away.
+  useEffect(() => {
+    if (isOpen && tempPhone) {
+      // The send is the external call this effect exists for; its state
+      // updates land after the request resolves, not synchronously.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void handleSendOTP();
+    }
+  }, [isOpen, tempPhone, handleSendOTP]);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,10 +95,10 @@ const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
 
       if (onVerified) onVerified();
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       addToast({
         title: "Error",
-        message: error.response?.data?.message || "Verification failed",
+        message: extractApiError(error).message || "Verification failed",
         type: "error",
       });
     }

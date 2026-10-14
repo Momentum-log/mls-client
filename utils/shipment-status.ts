@@ -20,6 +20,8 @@ export const SHIPMENT_STATUSES = [
   "AWAITING_HUB_CONFIRMATION",
   "LEG2_PENDING",
   "LEG2_CREATED",
+  "AWAITING_MLS_COLLECTION",
+  "AT_HUB",
   "CANCELLED",
   "IN_TRANSIT",
   "DELIVERED",
@@ -51,6 +53,8 @@ export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
   AWAITING_HUB_CONFIRMATION: "In Transit",
   LEG2_PENDING: "In Transit",
   LEG2_CREATED: "In Transit",
+  AWAITING_MLS_COLLECTION: "Awaiting Collection",
+  AT_HUB: "In Transit",
   CANCELLED: "Cancelled",
   IN_TRANSIT: "In Transit",
   DELIVERED: "Delivered",
@@ -69,6 +73,8 @@ export const SHIPMENT_STATUS_TONES: Record<ShipmentStatus, StatusTone> = {
   AWAITING_HUB_CONFIRMATION: "info",
   LEG2_PENDING: "info",
   LEG2_CREATED: "info",
+  AWAITING_MLS_COLLECTION: "info",
+  AT_HUB: "info",
   CANCELLED: "neutral",
   IN_TRANSIT: "info",
   DELIVERED: "success",
@@ -149,11 +155,14 @@ export const isActive = matches(
   "AWAITING_HUB_CONFIRMATION",
   "LEG2_PENDING",
   "LEG2_CREATED",
+  "AWAITING_MLS_COLLECTION",
+  "AT_HUB",
   "IN_TRANSIT",
 );
 
 /** The parcel has moved; a carrier timeline is worth showing. */
 export const hasTracking = matches(
+  "AT_HUB",
   "AWAITING_HUB_CONFIRMATION",
   "LEG2_PENDING",
   "LEG2_CREATED",
@@ -170,6 +179,19 @@ export const canManageFulfillment = matches(
   "AWAITING_FULFILLMENT",
   "PICKUP_SCHEDULED",
   "AWAITING_DROPOFF",
+);
+
+/**
+ * Paid and the parcel is still with the customer, so a cancellation request
+ * can be opened. Mirrors the server's `REQUESTABLE_STATUSES`; an unpaid
+ * `CREATED` shipment cancels at once instead.
+ */
+export const canRequestCancellation = matches(
+  "PAID",
+  "AWAITING_FULFILLMENT",
+  "AWAITING_DROPOFF",
+  "PICKUP_SCHEDULED",
+  "AWAITING_MLS_COLLECTION",
 );
 
 /** Paid but no label — the one state that always needs a human. */
@@ -191,7 +213,8 @@ export const isTerminalFailure = matches("FAILED", "CANCELLED");
 export const getProgress = (status: string): number => {
   if (isUnpaid(status)) return 10;
   if (isLabelPending(status)) return 25;
-  if (canManageFulfillment(status)) return 40;
+  if (canManageFulfillment(status) || status === "AWAITING_MLS_COLLECTION")
+    return 40;
   if (matches("DELIVERED", "COMPLETED")(status)) return 100;
   if (matches("FAILED", "CANCELLED", "PAYMENT_FAILED", "CREATION_FAILED")(status))
     return 100;

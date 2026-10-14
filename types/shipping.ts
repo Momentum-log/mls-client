@@ -331,9 +331,41 @@ export type FulfillmentType = "PICKUP" | "DROPOFF";
  * adapter, and it varies as carriers are added. Never infer it from the
  * carrier's name.
  */
+/**
+ * `CARRIER`: the customer chooses pickup or drop-off. `MLS_COLLECTION`: MLS
+ * collects the parcel and hands it to the carrier at the hub (DHL eCommerce
+ * exports); pickup and drop-off are both unavailable.
+ */
+export type HandoverMode = "CARRIER" | "MLS_COLLECTION";
+
+export type CollectionFeeStatus = "PENDING_PAYMENT" | "PAID" | "WAIVED";
+
+export interface CollectionFee {
+  /** Always PLN. */
+  amount: number;
+  currency: "PLN";
+  waived: boolean;
+  /** A non-zero fee that has not been waived. */
+  payable: boolean;
+}
+
+export interface CollectionState {
+  canRequest: boolean;
+  requested: boolean;
+  confirmed: boolean;
+  /** The fee is due: offer payment via `collection-fee/payment-link`. */
+  canPayFee: boolean;
+  fee: CollectionFee & { status: CollectionFeeStatus | null };
+}
+
 export interface FulfillmentOptions {
   shipmentId: string;
   currentFulfillment: "NONE" | FulfillmentType;
+  handoverMode: HandoverMode;
+  /** Present with `MLS_COLLECTION`: shown instead of pickup and drop-off. */
+  handoverMessage?: string;
+  /** Present with `MLS_COLLECTION`. */
+  collection?: CollectionState;
   pickupSupported: boolean;
   dropoffSupported: boolean;
   pickupStatus: PickupStatus;
@@ -383,6 +415,90 @@ export interface CancelPickupResponse {
   pickupStatus: PickupStatus;
   shipmentStatus: ShipmentStatus;
   message: string;
+}
+
+export interface RequestCollectionResponse {
+  shipmentId: string;
+  collectionStatus: "CONFIRMED" | "PAYMENT_REQUIRED";
+  fee: CollectionFee;
+  shipmentStatus: ShipmentStatus;
+  message: string;
+}
+
+export interface CollectionFeePaymentLinkResponse {
+  shipmentId: string;
+  paymentLink: string;
+  paymentGateway: "STRIPE" | "PAYU";
+  invoiceId: string;
+  invoiceNumber: string;
+  amount: number;
+  currency: string;
+}
+
+export type CancellationRequestStatus =
+  | "OPEN"
+  | "APPROVED"
+  | "REJECTED"
+  | "WITHDRAWN";
+
+/** The latest cancellation request on a shipment, as get-shipment returns it. */
+export interface ShipmentCancellation {
+  status: CancellationRequestStatus;
+  reason: string | null;
+  requestedAt: string;
+  decidedAt: string | null;
+  /** Staff notes, filled only on `REJECTED`. */
+  decisionNotes: string | null;
+}
+
+export interface CancelShipmentResponse {
+  /** `CANCELLED`: unpaid, cancelled at once. `REQUESTED`: staff will decide. */
+  outcome: "CANCELLED" | "REQUESTED";
+  shipmentStatus: ShipmentStatus;
+  requestId?: string;
+  message: string;
+}
+
+export interface HsCodeMatchRequest {
+  /** ISO 3166-1 alpha-2. */
+  destinationCountry: string;
+  originCountry?: string;
+  items: { itemIndex: number; description: string }[];
+}
+
+export interface HsCodeCandidate {
+  tariffCode: string;
+  description: string;
+  /** 0 to 1. */
+  confidence: number;
+}
+
+export interface HsCodeMatchResult {
+  itemIndex: number;
+  inputDescription: string;
+  /**
+   * `VALIDATION_FAILED`: the description is too vague (or names a prohibited
+   * term); `error.suggestions` says how to improve it.
+   */
+  status: "MATCHED" | "VALIDATION_FAILED" | "LOOKUP_FAILED";
+  /** Six-digit HS heading, dotted, e.g. `6109.10`. */
+  tariffCode: string | null;
+  fullTariffCode: string | null;
+  confidence: number | null;
+  standardDescription: string | null;
+  candidates?: HsCodeCandidate[];
+  error?: {
+    code: string;
+    message: string;
+    reasons: string[];
+    suggestions: string[];
+  };
+}
+
+export interface HsCodeMatchResponse {
+  success: boolean;
+  summary: { total: number; matched: number; rejected: number };
+  results: HsCodeMatchResult[];
 }
 
 /** Carrier limit on the free-text driver instruction. */
@@ -459,17 +575,6 @@ export type ShipmentMutationPayload = CreateShipmentPayload & {
   shipmentId?: string;
   invoiceId?: string;
 };
-
-// --- Verify Response ---
-
-export interface VerifyPaymentResponse {
-  status: "SUCCESS" | "FAILED";
-  paymentStatus: string;
-  shipmentStatus: string;
-  trackingNumber?: string;
-  labelUrl?: string;
-  message?: string;
-}
 
 export interface TrackingTimeline {
   date: string;
@@ -576,6 +681,8 @@ export interface Shipment {
   invoice?: Invoice; // ShipmentInvoice type from invoice.ts
   invoiceId?: string;
   tracking?: CarrierTrackingData;
+  /** Latest cancellation request, or null when none was ever made. */
+  cancellation?: ShipmentCancellation | null;
 }
 
 export interface ShipmentStats {

@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import { verifyEmail } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/auth-store";
+import { extractApiError } from "@/utils/error-handler";
 
 interface VerifyEmailModalProps {
   isOpen: boolean;
@@ -48,10 +49,10 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
         updateUser({ ...user, is_verified: true });
       }
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       addToast({
         title: "Error",
-        message: error.response?.data?.error || "Verification failed",
+        message: extractApiError(error).message || "Verification failed",
         type: "error",
       });
     } finally {
@@ -90,7 +91,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
         </Button>
 
         <p className="text-[10px] text-center text-gray-400 uppercase font-black tracking-widest">
-          Check your spam folder if you don't see it
+          Check your spam folder if you don&apos;t see it
         </p>
       </form>
     </Modal>

@@ -60,9 +60,9 @@ export const mapShipmentToStore = (shipment: Shipment) => {
     company: addr.contact?.companyName || "",
     phone: addr.contact?.phoneNumber || "",
     street: addr.streetLines?.join(" ") || "",
-    city: addr.city,
-    postalCode: addr.postalCode,
-    country: addr.countryCode,
+    city: addr.city || "",
+    postalCode: addr.postalCode || "",
+    country: addr.countryCode || "",
     stateOrProvinceCode: addr.stateOrProvinceCode,
   });
 

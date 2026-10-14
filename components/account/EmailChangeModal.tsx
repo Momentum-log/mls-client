@@ -7,6 +7,7 @@ import Button from "@/components/ui/button";
 import { initiateEmailChange, confirmEmailChange } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/store/auth-store";
+import { extractApiError } from "@/utils/error-handler";
 
 interface EmailChangeModalProps {
   isOpen: boolean;
@@ -41,10 +42,10 @@ const EmailChangeModal: React.FC<EmailChangeModalProps> = ({
         type: "success",
       });
       setStep("confirm");
-    } catch (error: any) {
+    } catch (error) {
       addToast({
         title: "Error",
-        message: error.response?.data?.error || "Failed to initiate change",
+        message: extractApiError(error).message || "Failed to initiate change",
         type: "error",
       });
     } finally {
@@ -68,10 +69,10 @@ const EmailChangeModal: React.FC<EmailChangeModalProps> = ({
         updateUser({ ...user, email: newEmail });
       }
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       addToast({
         title: "Error",
-        message: error.response?.data?.error || "Invalid code",
+        message: extractApiError(error).message || "Invalid code",
         type: "error",
       });
     } finally {
@@ -85,7 +86,7 @@ const EmailChangeModal: React.FC<EmailChangeModalProps> = ({
         <form onSubmit={handleRequest} className="space-y-6">
           <div className="space-y-2">
             <p className="text-sm text-gray-500">
-              Enter your new email address. We'll send a code to verify it.
+              Enter your new email address. We&apos;ll send a code to verify it.
             </p>
           </div>
 

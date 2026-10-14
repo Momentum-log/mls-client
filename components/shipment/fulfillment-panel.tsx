@@ -14,6 +14,7 @@ import Button from "@/components/ui/button";
 import PickupScheduleForm from "./pickup-schedule-form";
 import DropoffCenterList from "./dropoff-center-list";
 import FulfillmentInfoModal from "./fulfillment-info-modal";
+import MlsCollectionPanel from "./mls-collection-panel";
 import {
   useCancelPickup,
   useFulfillmentOptions,
@@ -243,6 +244,18 @@ export default function FulfillmentPanel({
             : "Sending Options Unavailable"}
         </h3>
         <p className="text-sm text-gray-600 font-medium">{parsed.userMessage}</p>
+      </Shell>
+    );
+  }
+
+  if (options.handoverMode === "MLS_COLLECTION") {
+    return (
+      <Shell tone="info">
+        <MlsCollectionPanel
+          shipmentId={shipmentId}
+          handoverMessage={options.handoverMessage}
+          collection={options.collection}
+        />
       </Shell>
     );
   }

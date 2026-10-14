@@ -25,9 +25,9 @@ import RecentShipments from "@/components/tracking/RecentShipments";
  * Features a search form, recent history in empty state, and a detailed timeline.
  */
 
-import Link from "next/link";
 import Button from "@/components/ui/button";
 import { isFailed, isUnpaid } from "@/utils/shipment-status";
+import { extractApiError } from "@/utils/error-handler";
 
 // ... existing imports
 
@@ -109,10 +109,10 @@ export default function TrackShipmentPage() {
       setTrackingResponse(cleanedResponse);
 
       if (idToTrack) setTrackingId(idToTrack);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Tracking error:", err);
       setError(
-        err.response?.data?.message || "Shipment not found or access denied.",
+        extractApiError(err).message || "Shipment not found or access denied.",
       );
       addToast({
         message: "Could not find shipment details.",
