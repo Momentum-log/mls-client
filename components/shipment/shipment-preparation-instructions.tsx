@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FiPrinter, FiDownload, FiPackage } from "react-icons/fi";
+import { getLabelLinkProps } from "@/utils/label-link";
 
 interface ShipmentPreparationInstructionsProps {
   labelUrl?: string | null;
@@ -32,9 +33,7 @@ export default function ShipmentPreparationInstructions({
 
         {labelUrl && (
           <a
-            href={labelUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...getLabelLinkProps(labelUrl)}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-blue text-white text-xs font-bold shadow-sm hover:bg-brand-blue/90 transition-colors"
           >
             <FiDownload className="w-4 h-4" /> Download Label

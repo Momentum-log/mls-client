@@ -19,6 +19,7 @@ import Button from "@/components/ui/button";
 import FulfillmentPanel from "@/components/shipment/fulfillment-panel";
 import ShipmentPreparationInstructions from "@/components/shipment/shipment-preparation-instructions";
 import ShipmentCancellation from "@/components/shipment/shipment-cancellation";
+import { getLabelLinkProps } from "@/utils/label-link";
 import {
   getStatusLabel,
   hasNoJourney,
@@ -79,14 +80,6 @@ export default function ShipmentDetailsPage() {
 
     // Apply branding transformation (FedEx -> MLS)
     const cleanedData = deepTransformData(rawData);
-
-    // FIX: Ensure label URL points to FedEx (replace mls.com with fedex.com if present)
-    if (cleanedData.labelUrl) {
-      cleanedData.labelUrl = cleanedData.labelUrl.replace(
-        "mls.com",
-        "fedex.com",
-      );
-    }
 
     // Failed, cancelled or unpaid shipments have no carrier journey to show.
     if (hasNoJourney(cleanedData.shipmentStatus)) {
@@ -200,9 +193,10 @@ export default function ShipmentDetailsPage() {
         <div className="flex gap-3">
           {shipment.labelUrl && (
             <a
-              href={shipment.labelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...getLabelLinkProps(
+                shipment.labelUrl,
+                `label-${shipment.customTrackingNumber ?? shipment.id}`,
+              )}
             >
               <Button variant="outline" className="shrink-0 bg-white">
                 <FiDownload className="mr-2" /> Download Label
