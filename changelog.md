@@ -5,6 +5,12 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.48.1] - 2026-10-15 - DHL labels download as a PDF
+
+- Fixed: **DHL "Download Label" did nothing** (`utils/label-link.ts`, `app/app/shipments/[id]/page.tsx`, `components/shipment/shipment-preparation-instructions.tsx`)
+  - DHL eCommerce returns the label PDF itself, which the server stores in `labelUrl` as `data:application/pdf;base64,…`. The button opened it in a new tab, and browsers block data URLs there. A data URL label now downloads as `label-<tracking number>.pdf`; FedEx's hosted https link still opens in a new tab.
+  - `labelUrl` is now skipped by the carrier-branding pass (`utils/carrier-branding.ts`). Branding rewrote `fedex.com` to `mls.com` inside the URL, which the page then undid with a string replace (now removed), and it could equally rewrite bytes of a base64 PDF.
+
 ## [1.48.0] - 2026-10-14 - Server contract alignment, shipment cancellation, MLS collection, HS code suggestions
 
 Brings the customer app in line with the server's v7.1 contract (mls-server PR #16) and adds the customer screens the engine already supports.
