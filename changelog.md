@@ -5,6 +5,10 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.48.2] - 2026-10-15 - DHL label file named after the tracking number
+
+- Changed: **Downloaded DHL labels are named `MLS-<TRACKING NUMBER>.pdf`, all uppercase** (`utils/label-link.ts`). Both buttons now use the MLS tracking number; the one in Shipment Preparation Instructions used to save as `shipping-label.pdf`. FedEx labels open from FedEx's own link, so their name is still FedEx's.
+
 ## [1.48.1] - 2026-10-15 - DHL labels download as a PDF
 
 - Fixed: **DHL "Download Label" did nothing** (`utils/label-link.ts`, `app/app/shipments/[id]/page.tsx`, `components/shipment/shipment-preparation-instructions.tsx`)

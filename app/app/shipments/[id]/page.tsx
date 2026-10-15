@@ -195,7 +195,7 @@ export default function ShipmentDetailsPage() {
             <a
               {...getLabelLinkProps(
                 shipment.labelUrl,
-                `label-${shipment.customTrackingNumber ?? shipment.id}`,
+                shipment.customTrackingNumber,
               )}
             >
               <Button variant="outline" className="shrink-0 bg-white">
@@ -303,6 +303,7 @@ export default function ShipmentDetailsPage() {
               {shipment.labelUrl && (
                 <ShipmentPreparationInstructions
                   labelUrl={shipment.labelUrl}
+                  trackingNumber={shipment.customTrackingNumber}
                 />
               )}
 
