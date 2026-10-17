@@ -25,7 +25,7 @@ import {
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
-import { isActive, isDelivered } from "@/utils/shipment-status";
+import { isActive, isDelivered, isTerminal } from "@/utils/shipment-status";
 import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
@@ -99,6 +99,12 @@ export const useGetShipment = (trackingNumber: string) => {
     queryKey: ["shipment", trackingNumber],
     queryFn: () => getShipment(trackingNumber),
     enabled: !!trackingNumber.trim(),
+    // Staff move shipments on from the admin console; re-read while the page
+    // is open so the actions offered follow the real status.
+    refetchInterval: (query) => {
+      const status = query.state.data?.shipmentStatus;
+      return status && isTerminal(status) ? false : 60_000;
+    },
     retry: (failureCount, error) => {
       const status = (error as AxiosError).response?.status;
       if (status === 401 || status === 404) return false;

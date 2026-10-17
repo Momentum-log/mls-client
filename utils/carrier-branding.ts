@@ -25,6 +25,8 @@ const DEFAULT_SKIP_KEYS = new Set([
   "pickupLocationCode",
   "customTrackingNumber",
   "carrierTrackingNumber",
+  // A hosted URL (fedex.com) or a base64 PDF; either breaks if rewritten.
+  "labelUrl",
 ]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {

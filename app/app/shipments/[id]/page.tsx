@@ -17,8 +17,10 @@ import { InvoiceDrawer, UpdateShipmentModal } from "@/components/invoice";
 import { CreateShipmentResponse } from "@/types/invoice";
 import Button from "@/components/ui/button";
 import FulfillmentPanel from "@/components/shipment/fulfillment-panel";
+import SupportOptions from "@/components/shipment/support-options";
 import ShipmentPreparationInstructions from "@/components/shipment/shipment-preparation-instructions";
 import ShipmentCancellation from "@/components/shipment/shipment-cancellation";
+import { getLabelLinkProps } from "@/utils/label-link";
 import {
   getStatusLabel,
   hasNoJourney,
@@ -79,14 +81,6 @@ export default function ShipmentDetailsPage() {
 
     // Apply branding transformation (FedEx -> MLS)
     const cleanedData = deepTransformData(rawData);
-
-    // FIX: Ensure label URL points to FedEx (replace mls.com with fedex.com if present)
-    if (cleanedData.labelUrl) {
-      cleanedData.labelUrl = cleanedData.labelUrl.replace(
-        "mls.com",
-        "fedex.com",
-      );
-    }
 
     // Failed, cancelled or unpaid shipments have no carrier journey to show.
     if (hasNoJourney(cleanedData.shipmentStatus)) {
@@ -200,9 +194,10 @@ export default function ShipmentDetailsPage() {
         <div className="flex gap-3">
           {shipment.labelUrl && (
             <a
-              href={shipment.labelUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...getLabelLinkProps(
+                shipment.labelUrl,
+                shipment.customTrackingNumber,
+              )}
             >
               <Button variant="outline" className="shrink-0 bg-white">
                 <FiDownload className="mr-2" /> Download Label
@@ -309,6 +304,7 @@ export default function ShipmentDetailsPage() {
               {shipment.labelUrl && (
                 <ShipmentPreparationInstructions
                   labelUrl={shipment.labelUrl}
+                  trackingNumber={shipment.customTrackingNumber}
                 />
               )}
 
@@ -431,12 +427,10 @@ export default function ShipmentDetailsPage() {
               Support Center
             </h4>
             <p className="text-sm text-gray-600 mb-6 font-medium leading-relaxed">
-              Have questions about this shipment? Our team is available 24/7 to
-              assist you.
+              Have questions about this shipment? Reach our team by email,
+              WhatsApp or phone.
             </p>
-            <button className="w-full py-3 bg-white border-2 border-brand-blue/10 text-brand-blue rounded-2xl font-bold text-sm hover:bg-brand-blue hover:text-white hover:border-brand-blue transition-all">
-              Contact Support
-            </button>
+            <SupportOptions trackingNumber={shipment.customTrackingNumber} />
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Modal from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import Button from "@/components/ui/button";
@@ -25,6 +26,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const { user, updateUser } = useAuthStore();
   const { addToast } = useToast();
+  const router = useRouter();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +51,14 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
         updateUser({ ...user, is_verified: true });
       }
       onClose();
+      // The shipment form was reached through a redirect that marked the
+      // account unverified. Refresh drops that cached route, so the customer
+      // is not asked to verify again until they reload.
+      const next = new URLSearchParams(window.location.search).get("next");
+      if (next && next.startsWith("/app/")) {
+        router.push(next);
+      }
+      router.refresh();
     } catch (error) {
       addToast({
         title: "Error",

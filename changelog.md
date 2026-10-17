@@ -5,6 +5,23 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.49.0] - 2026-10-17 - Post-demo fixes
+
+- Fixed: **Verifying your email took a reload to count** (`app/app/shipments/new/page.tsx`, `components/account/VerifyEmailModal.tsx`). The new-shipment page trusted the `verificationRequired=1` flag left in the URL by the guard redirect, even after the account was verified. Once the user is loaded, live account state decides and the stale flags are removed from the URL. After verifying, the modal follows `next` and refreshes the route cache.
+- Fixed: **City search ignores Polish diacritics** (`utils/search-text.ts`, `components/ui/select.tsx`). "Lodz" finds Łódź, "krakow" finds Kraków. When the typed text matches a listed city apart from accents, the listed spelling is offered instead of a custom "Use …" entry.
+- Fixed: **Actions follow the status staff set** (`components/shipment/fulfillment-panel.tsx`, `hooks/shipments/use-shipments.ts`, `utils/shipment-status.ts`). Once a shipment has moved past collection (In Transit, At Hub, Delivered…), the page shows "Collection Settled" instead of pickup and drop-off choices. The shipment is re-read every 60 seconds while it is active, and fulfilment options are re-read whenever its status changes. `canManageFulfillment` now includes `AWAITING_MLS_COLLECTION`, matching the server.
+- Fixed: **"Contact Support" on the shipment page did nothing** (`components/shipment/support-options.tsx`). The Support Center now offers email and WhatsApp, both prefilled with the tracking number, and a phone call.
+
+## [1.48.2] - 2026-10-15 - DHL label file named after the tracking number
+
+- Changed: **Downloaded DHL labels are named `MLS-<TRACKING NUMBER>.pdf`, all uppercase** (`utils/label-link.ts`). Both buttons now use the MLS tracking number; the one in Shipment Preparation Instructions used to save as `shipping-label.pdf`. FedEx labels open from FedEx's own link, so their name is still FedEx's.
+
+## [1.48.1] - 2026-10-15 - DHL labels download as a PDF
+
+- Fixed: **DHL "Download Label" did nothing** (`utils/label-link.ts`, `app/app/shipments/[id]/page.tsx`, `components/shipment/shipment-preparation-instructions.tsx`)
+  - DHL eCommerce returns the label PDF itself, which the server stores in `labelUrl` as `data:application/pdf;base64,…`. The button opened it in a new tab, and browsers block data URLs there. A data URL label now downloads as `label-<tracking number>.pdf`; FedEx's hosted https link still opens in a new tab.
+  - `labelUrl` is now skipped by the carrier-branding pass (`utils/carrier-branding.ts`). Branding rewrote `fedex.com` to `mls.com` inside the URL, which the page then undid with a string replace (now removed), and it could equally rewrite bytes of a base64 PDF.
+
 ## [1.48.0] - 2026-10-14 - Server contract alignment, shipment cancellation, MLS collection, HS code suggestions
 
 Brings the customer app in line with the server's v7.1 contract (mls-server PR #16) and adds the customer screens the engine already supports.

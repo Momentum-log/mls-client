@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   FiTruck,
@@ -16,6 +17,7 @@ import DropoffCenterList from "./dropoff-center-list";
 import FulfillmentInfoModal from "./fulfillment-info-modal";
 import MlsCollectionPanel from "./mls-collection-panel";
 import {
+  fulfillmentKeys,
   useCancelPickup,
   useFulfillmentOptions,
   usePickupAvailability,
@@ -29,7 +31,14 @@ import {
 import { extractApiError, parseFulfillmentError } from "@/utils/error-handler";
 import { formatCurrency } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
-import { isLabelPending, isUnpaid, needsSupport } from "@/utils/shipment-status";
+import {
+  canManageFulfillment,
+  isDelivered,
+  isLabelPending,
+  isTerminalFailure,
+  isUnpaid,
+  needsSupport,
+} from "@/utils/shipment-status";
 import { useToast } from "@/hooks/use-toast";
 
 interface FulfillmentPanelProps {
@@ -91,14 +100,30 @@ export default function FulfillmentPanel({
 
   const labelPending = isLabelPending(shipmentStatus);
   const unpaid = isUnpaid(shipmentStatus);
+  // Past collection (an admin moved it on, or the carrier scanned it): the
+  // choice is settled and the endpoints answer 409, so don't offer it.
+  const settled =
+    !unpaid &&
+    !labelPending &&
+    !needsSupport(shipmentStatus) &&
+    !canManageFulfillment(shipmentStatus);
+
+  // The shipment is re-read while the page is open. When its status moves,
+  // what the carrier allows moves with it.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    void queryClient.invalidateQueries({
+      queryKey: fulfillmentKeys.options(shipmentId),
+    });
+  }, [queryClient, shipmentId, shipmentStatus]);
 
   const {
     data: options,
     isPending: optionsLoading,
     error: optionsError,
   } = useFulfillmentOptions(shipmentId, {
-    // Unpaid shipments have nothing to arrange, and the endpoint 409s.
-    enabled: !unpaid,
+    // Unpaid and settled shipments have nothing to arrange; the endpoint 409s.
+    enabled: !unpaid && !settled,
     // `PAID` means "paid, label still generating" — it resolves on its own.
     pollWhilePending: labelPending,
   });
@@ -210,6 +235,20 @@ export default function FulfillmentPanel({
             </p>
           </div>
         </div>
+      </Shell>
+    );
+  }
+
+  if (settled) {
+    if (isTerminalFailure(shipmentStatus)) return null;
+    return (
+      <Shell tone="neutral">
+        <h3 className="font-bold text-gray-900 mb-1">Collection Settled</h3>
+        <p className="text-sm text-gray-600 font-medium">
+          {isDelivered(shipmentStatus)
+            ? "This parcel has been delivered."
+            : "This parcel is already on its way, so pickup and drop-off can no longer be changed."}
+        </p>
       </Shell>
     );
   }
