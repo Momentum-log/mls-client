@@ -17,6 +17,7 @@ import { InvoiceDrawer, UpdateShipmentModal } from "@/components/invoice";
 import { CreateShipmentResponse } from "@/types/invoice";
 import Button from "@/components/ui/button";
 import FulfillmentPanel from "@/components/shipment/fulfillment-panel";
+import SupportOptions from "@/components/shipment/support-options";
 import ShipmentPreparationInstructions from "@/components/shipment/shipment-preparation-instructions";
 import ShipmentCancellation from "@/components/shipment/shipment-cancellation";
 import { getLabelLinkProps } from "@/utils/label-link";
@@ -426,12 +427,10 @@ export default function ShipmentDetailsPage() {
               Support Center
             </h4>
             <p className="text-sm text-gray-600 mb-6 font-medium leading-relaxed">
-              Have questions about this shipment? Our team is available 24/7 to
-              assist you.
+              Have questions about this shipment? Reach our team by email,
+              WhatsApp or phone.
             </p>
-            <button className="w-full py-3 bg-white border-2 border-brand-blue/10 text-brand-blue rounded-2xl font-bold text-sm hover:bg-brand-blue hover:text-white hover:border-brand-blue transition-all">
-              Contact Support
-            </button>
+            <SupportOptions trackingNumber={shipment.customTrackingNumber} />
           </div>
         </div>
       </div>
