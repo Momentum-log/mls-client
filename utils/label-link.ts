@@ -4,7 +4,7 @@ import type { AnchorHTMLAttributes } from "react";
  * Props for a "download label" link.
  *
  * Carriers hand labels back in two shapes. FedEx returns a hosted https URL,
- * which opens in a new tab. DHL eCommerce returns the PDF itself, which the
+ * which opens in a new tab. DHL eCommerce and DPD return the PDF itself, which the
  * server stores as `data:application/pdf;base64,…`. Browsers refuse to open a
  * data URL in a new tab, so that one is downloaded as a file instead, named
  * `MLS-<REFERENCE>.pdf` in uppercase (the reference is the tracking number).
