@@ -6,6 +6,7 @@ import { FaChevronDown, FaMagnifyingGlass } from "react-icons/fa6";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "framer-motion";
+import { foldForSearch, matchesSearch } from "@/utils/search-text";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -86,7 +87,7 @@ export const Select: React.FC<SelectProps> = ({
   };
 
   const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+    matchesSearch(option.label, searchTerm),
   );
 
   return (
@@ -188,9 +189,10 @@ export const Select: React.FC<SelectProps> = ({
               ) : null}
               {allowCustom &&
                 searchTerm.trim() !== "" &&
+                // "Lodz" is Łódź: offer the listed spelling, not a custom copy.
                 !options.some(
                   (opt) =>
-                    opt.label.toLowerCase() === searchTerm.trim().toLowerCase(),
+                    foldForSearch(opt.label) === foldForSearch(searchTerm),
                 ) && (
                   <div
                     onClick={() => {

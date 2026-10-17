@@ -179,6 +179,7 @@ export const canManageFulfillment = matches(
   "AWAITING_FULFILLMENT",
   "PICKUP_SCHEDULED",
   "AWAITING_DROPOFF",
+  "AWAITING_MLS_COLLECTION",
 );
 
 /**
