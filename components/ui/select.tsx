@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { cva } from "class-variance-authority";
 import { FaChevronDown, FaMagnifyingGlass } from "react-icons/fa6";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "framer-motion";
+import { foldForSearch, matchesSearch } from "@/utils/search-text";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -62,6 +63,7 @@ export const Select: React.FC<SelectProps> = ({
         !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setSearchTerm("");
       }
     };
 
@@ -69,20 +71,23 @@ export const Select: React.FC<SelectProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Reset search term when dropdown closes
+  // Focus search input when opening
   useEffect(() => {
-    if (!isOpen) {
-      setSearchTerm("");
-    } else if (searchable && searchInputRef.current) {
-      // Focus search input when opening
+    if (isOpen && searchable && searchInputRef.current) {
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
     }
   }, [isOpen, searchable]);
 
+  // Closing always clears the search, so the next opening starts fresh.
+  const closeMenu = () => {
+    setIsOpen(false);
+    setSearchTerm("");
+  };
+
   const filteredOptions = options.filter((option) =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+    matchesSearch(option.label, searchTerm),
   );
 
   return (
@@ -93,7 +98,11 @@ export const Select: React.FC<SelectProps> = ({
         </label>
       )}
       <div
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => {
+          if (disabled) return;
+          if (isOpen) closeMenu();
+          else setIsOpen(true);
+        }}
         className={cn(selectTriggerVariants(), className, {
           "ring-2 ring-brand-blue ring-offset-2 border-brand-blue": isOpen,
           "opacity-50 cursor-not-allowed": disabled,
@@ -156,7 +165,7 @@ export const Select: React.FC<SelectProps> = ({
                     key={option.value}
                     onClick={() => {
                       onChange(option.value);
-                      setIsOpen(false);
+                      closeMenu();
                     }}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg cursor-pointer transition-colors",
@@ -180,14 +189,15 @@ export const Select: React.FC<SelectProps> = ({
               ) : null}
               {allowCustom &&
                 searchTerm.trim() !== "" &&
+                // "Lodz" is Łódź: offer the listed spelling, not a custom copy.
                 !options.some(
                   (opt) =>
-                    opt.label.toLowerCase() === searchTerm.trim().toLowerCase(),
+                    foldForSearch(opt.label) === foldForSearch(searchTerm),
                 ) && (
                   <div
                     onClick={() => {
                       onChange(searchTerm.trim());
-                      setIsOpen(false);
+                      closeMenu();
                     }}
                     className="flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg cursor-pointer transition-colors hover:bg-gray-50 text-gray-700"
                   >

@@ -15,7 +15,13 @@ import PhoneInput from "@/components/ui/phone-input";
 
 import { PlaceDetails } from "@/types/location";
 import { cn } from "@/utils/cn";
-import { FaEnvelope, FaPhone } from "react-icons/fa6";
+import { FaEnvelope } from "react-icons/fa6";
+
+/**
+ * The form this sits in: flat, or with the address nested under `prefix`.
+ * Field names vary by caller, so values are read by key.
+ */
+type AddressFormValues = Record<string, unknown>;
 
 interface AddressFieldsProps {
   prefix?: string; // e.g. "pickup" or "dropoff" or undefined for flat structure
@@ -23,7 +29,7 @@ interface AddressFieldsProps {
 
 const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   const { values, setFieldValue, errors, touched, handleBlur } =
-    useFormikContext<any>();
+    useFormikContext<AddressFormValues>();
 
   // Helper to get field name with optional prefix
   const getFieldName = (name: string) => (prefix ? `${prefix}.${name}` : name);
@@ -37,22 +43,25 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
   const emailKey = "email";
   const phoneKey = "phoneNumber";
 
-  const countryValue = prefix
-    ? values[prefix]?.[countryKey]
-    : values[countryKey];
-  const stateValue = prefix ? values[prefix]?.[stateKey] : values[stateKey];
-  const cityValue = prefix ? values[prefix]?.[cityKey] : values[cityKey];
-  const zipValue = prefix ? values[prefix]?.[zipKey] : values[zipKey];
-  const streetValue = prefix ? values[prefix]?.[streetKey] : values[streetKey];
-  const emailValue = prefix ? values[prefix]?.[emailKey] : values[emailKey];
-  const phoneValue = prefix ? values[prefix]?.[phoneKey] : values[phoneKey];
+  const readValue = (key: string) => {
+    const bag = (prefix ? values[prefix] : values) as
+      | Record<string, string | undefined>
+      | undefined;
+    return bag?.[key];
+  };
+
+  const countryValue = readValue(countryKey);
+  const stateValue = readValue(stateKey);
+  const cityValue = readValue(cityKey);
+  const zipValue = readValue(zipKey);
+  const streetValue = readValue(streetKey);
+  const emailValue = readValue(emailKey);
+  const phoneValue = readValue(phoneKey);
 
   // React Query Hooks
-  const { data: countries = [], isLoading: isLoadingCountries } =
-    useCountries();
-  const { data: states = [], isLoading: isLoadingStates } =
-    useStates(countryValue);
-  const { data: cities = [], isLoading: isLoadingCities } = useCities(
+  const { data: countries = [] } = useCountries();
+  const { data: states = [] } = useStates(countryValue);
+  const { data: cities = [] } = useCities(
     countryValue,
     stateValue,
   );
@@ -122,17 +131,13 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
 
   // Errors/Touched
   const getFieldError = (name: string) => {
-    if (prefix) {
-      return (errors[prefix] as any)?.[name];
-    }
-    return (errors as any)?.[name];
+    const bag = prefix ? errors[prefix] : errors;
+    return (bag as Record<string, string | undefined> | undefined)?.[name];
   };
 
   const getFieldTouched = (name: string) => {
-    if (prefix) {
-      return (touched[prefix] as any)?.[name];
-    }
-    return (touched as any)?.[name];
+    const bag = prefix ? touched[prefix] : touched;
+    return (bag as Record<string, boolean | undefined> | undefined)?.[name];
   };
 
   const countryError = getFieldError(countryKey);

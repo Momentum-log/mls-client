@@ -4,12 +4,12 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import { z } from "zod";
 import { toFormikValidationSchema } from "zod-formik-adapter";
-import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/button";
 import { changePassword } from "@/api/auth";
 import { useToast } from "@/hooks/use-toast";
+import { extractApiError } from "@/utils/error-handler";
 
 const passwordSchema = z
   .object({
@@ -46,15 +46,18 @@ const ChangePasswordForm = () => {
           oldPassword: values.currentPassword,
           newPassword: values.newPassword,
         });
+        // The server keeps *this* session alive and ends all the others, so
+        // the user stays signed in here but is dropped everywhere else.
         addToast({
           title: "Success",
-          message: "Password changed successfully",
+          message:
+            "Password changed. You've been signed out on all other devices.",
           type: "success",
         });
         resetForm();
-      } catch (error: any) {
+      } catch (error) {
         const errorMsg =
-          error.response?.data?.error || "Failed to change password";
+          extractApiError(error).message || "Failed to change password";
         setServerError(errorMsg);
         addToast({
           title: "Error",

@@ -80,7 +80,7 @@ export default function CookiesPage() {
             </h2>
             <p>
               We may update this Cookie Policy from time to time. Changes will
-              be posted on this page with a revised "Last updated" date.
+              be posted on this page with a revised &quot;Last updated&quot; date.
             </p>
 
             <h2 className="text-lg font-bold text-gray-900">7. Contact Us</h2>

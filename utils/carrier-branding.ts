@@ -5,7 +5,7 @@
  * Raw values from the backend must remain unchanged when sent back to APIs.
  */
 
-const CARRIER_NAME_PATTERN = /\b(fedex|dhl|inpost)\b/gi;
+const CARRIER_NAME_PATTERN = /\b(fedex|dhl|dpd|inpost)\b/gi;
 
 /**
  * Keys whose values are identifiers, not prose.
@@ -25,6 +25,8 @@ const DEFAULT_SKIP_KEYS = new Set([
   "pickupLocationCode",
   "customTrackingNumber",
   "carrierTrackingNumber",
+  // A hosted URL (fedex.com) or a base64 PDF; either breaks if rewritten.
+  "labelUrl",
 ]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {

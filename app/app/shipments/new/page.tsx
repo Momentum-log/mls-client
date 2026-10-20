@@ -97,7 +97,7 @@ export default function NewShipmentPage() {
     useState(false);
   const { addToast } = useToast();
 
-  const { isVerificationRequired, error, triggerVerification } =
+  const { user, isVerificationRequired, error, triggerVerification } =
     useVerification();
 
   const lastFetchedEstimateSignatureRef = useRef<string | null>(null);
@@ -154,15 +154,33 @@ export default function NewShipmentPage() {
     searchParams.get("verificationRequired") === "1";
   const guardParam = searchParams.get("guard");
 
-  const requiresEmailVerification =
-    error?.type === "EMAIL_NOT_VERIFIED" ||
-    error?.type === "BOTH" ||
-    guardParam === "email" ||
-    guardParam === "both";
+  // The guard params come from the proxy redirect and outlive the state they
+  // describe: after verifying in the account page, the cached URL still says
+  // `verificationRequired=1`. Once the user is loaded, live state decides.
+  const requiresEmailVerification = user
+    ? error?.type === "EMAIL_NOT_VERIFIED" || error?.type === "BOTH"
+    : guardParam === "email" || guardParam === "both";
 
-  const shouldShowVerificationModal =
-    isVerificationRequired ||
-    verificationRequiredParam;
+  const shouldShowVerificationModal = user
+    ? isVerificationRequired
+    : verificationRequiredParam;
+
+  useEffect(() => {
+    if (!user || isVerificationRequired) return;
+    if (!verificationRequiredParam && !guardParam) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("verificationRequired");
+    params.delete("guard");
+    const query = params.toString();
+    router.replace(`/app/shipments/new${query ? `?${query}` : ""}`);
+  }, [
+    user,
+    isVerificationRequired,
+    verificationRequiredParam,
+    guardParam,
+    searchParams,
+    router,
+  ]);
 
   const handleVerifyEmail = () => {
     router.push("/app/account?openVerifyEmail=1&next=/app/shipments/new");
@@ -794,6 +812,7 @@ export default function NewShipmentPage() {
                 initialValues={customs}
                 packages={packages}
                 sender={sender}
+                destinationCountry={recipient?.country}
                 currency={activeCurrency}
                 onSubmit={handleCustomsSubmit}
                 onBack={() => setExpandedSection("package")}

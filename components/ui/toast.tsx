@@ -40,19 +40,12 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast }) => {
   const [isPaused, setIsPaused] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
   const startTimeRef = React.useRef<number>(0);
-  const remainingTimeRef = React.useRef<number>(toast.duration || 5000);
-
-  const [msgDuration, setMsgDuration] = React.useState<number>(
-    toast.duration || Math.max(5000, (toast.message?.length || 0) * 50)
-  );
-
-  useEffect(() => {
-    // Re-eval if props change, though usually toast instance is static
-    const calcDuration =
-      toast.duration || Math.max(5000, (toast.message?.length || 0) * 50);
-    remainingTimeRef.current = calcDuration;
-    setMsgDuration(calcDuration);
-  }, [toast.duration, toast.message]);
+  // Longer messages stay up longer, unless the caller set a duration. A toast
+  // never changes after it is created, so this is read once.
+  const initialDuration =
+    toast.duration || Math.max(5000, (toast.message?.length || 0) * 50);
+  const remainingTimeRef = React.useRef<number>(initialDuration);
+  const [msgDuration, setMsgDuration] = React.useState(initialDuration);
 
   useEffect(() => {
     if (isPaused) {

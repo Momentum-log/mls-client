@@ -15,6 +15,7 @@ import { PhoneInputComponent } from "@/components/ui/phone-input";
 import VerifyPhoneModal from "./VerifyPhoneModal";
 import EmailChangeModal from "./EmailChangeModal";
 import { accountTypeLabel, isBusinessAccount } from "@/utils/account-type";
+import { extractApiError } from "@/utils/error-handler";
 
 interface ProfileFormValues {
   name: string;
@@ -43,7 +44,7 @@ const ProfileForm = () => {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [pendingValues, setPendingValues] = useState<any>(null);
+  const [pendingValues, setPendingValues] = useState<ProfileFormValues | null>(null);
   const searchParams = useSearchParams();
 
   React.useEffect(() => {
@@ -109,9 +110,9 @@ const ProfileForm = () => {
             setIsEditing(false);
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         setServerError(
-          error.response?.data?.error || "Update failed. Please try again.",
+          extractApiError(error).message || "Update failed. Please try again.",
         );
         addToast({
           title: "Error",
@@ -123,35 +124,6 @@ const ProfileForm = () => {
       }
     },
   });
-
-  const handleSave = async (
-    values: ProfileFormValues,
-    setSubmitting: (val: boolean) => void,
-  ) => {
-    try {
-      const response = await updateProfile(buildProfilePayload(values));
-      if (response.data?.user) {
-        updateUser(response.data.user);
-        addToast({
-          title: "Success",
-          message: "Profile updated successfully",
-          type: "success",
-        });
-        setIsEditing(false);
-      }
-    } catch (error: any) {
-      setServerError(
-        error.response?.data?.error || "Update failed. Please try again.",
-      );
-      addToast({
-        title: "Error",
-        message: "Failed to update profile",
-        type: "error",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handlePhoneVerified = () => {
     setIsEditing(false);

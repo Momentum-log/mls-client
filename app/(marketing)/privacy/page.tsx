@@ -22,7 +22,7 @@ export default function PrivacyPage() {
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700 text-sm leading-relaxed">
             <h2 className="text-lg font-bold text-gray-900">1. Introduction</h2>
             <p>
-              Momentum Logistics Service ("we," "our," or "us") is committed to
+              Momentum Logistics Service (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to
               protecting your privacy. This Privacy Policy explains how we
               collect, use, disclose, and safeguard your information when you
               use our website and services.
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
             </h2>
             <p>
               We may update this Privacy Policy from time to time. Changes will
-              be posted on this page with a revised "Last updated" date.
+              be posted on this page with a revised &quot;Last updated&quot; date.
             </p>
 
             <h2 className="text-lg font-bold text-gray-900">9. Contact Us</h2>

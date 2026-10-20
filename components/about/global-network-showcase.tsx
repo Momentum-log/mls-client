@@ -10,6 +10,15 @@ import {
   FaLocationDot,
 } from "react-icons/fa6";
 
+/**
+ * Scattered dot positions for the abstract map, fixed so the server render and
+ * the client render agree.
+ */
+const MAP_DOTS = Array.from({ length: 20 }, (_, i) => ({
+  top: (i * 37 + 11) % 100,
+  left: (i * 61 + 23) % 100,
+}));
+
 const GlobalNetworkShowcase: React.FC = () => {
   return (
     <div className="relative w-full max-w-lg mx-auto">
@@ -35,13 +44,13 @@ const GlobalNetworkShowcase: React.FC = () => {
           <div className="relative h-full bg-gray-50 p-6 overflow-hidden">
             {/* Abstract Map Dots */}
             <div className="absolute inset-0 opacity-10">
-              {[...Array(20)].map((_, i) => (
+              {MAP_DOTS.map((dot, i) => (
                 <div
                   key={i}
                   className="absolute w-1 h-1 bg-brand-blue rounded-full"
                   style={{
-                    top: `${Math.random() * 100}%`,
-                    left: `${Math.random() * 100}%`,
+                    top: `${dot.top}%`,
+                    left: `${dot.left}%`,
                   }}
                 ></div>
               ))}

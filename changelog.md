@@ -5,6 +5,55 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.50.0] - 2026-10-17 - DPD
+
+- Added: **DPD shipments display like the other carriers** (`utils/carrier-branding.ts`). "DPD" in service names is shown as "MLS", as FedEx and DHL already are. DPD labels arrive as a PDF and download as `MLS-<TRACKING>.pdf` through the existing path (`utils/label-link.ts`).
+- Fixed: **Drop-off for carriers without a location search** (`components/shipment/dropoff-center-list.tsx`, `components/shipment/fulfillment-panel.tsx`). When the server reports `dropoffSupported: false` (DPD for now), "I'll drop it off" explains that any of the carrier's pickup points or parcel shops takes the parcel, instead of calling the search and showing its "Not Supported" error.
+
+## [1.49.0] - 2026-10-17 - Post-demo fixes
+
+- Fixed: **Verifying your email took a reload to count** (`app/app/shipments/new/page.tsx`, `components/account/VerifyEmailModal.tsx`). The new-shipment page trusted the `verificationRequired=1` flag left in the URL by the guard redirect, even after the account was verified. Once the user is loaded, live account state decides and the stale flags are removed from the URL. After verifying, the modal follows `next` and refreshes the route cache.
+- Fixed: **City search ignores Polish diacritics** (`utils/search-text.ts`, `components/ui/select.tsx`). "Lodz" finds Łódź, "krakow" finds Kraków. When the typed text matches a listed city apart from accents, the listed spelling is offered instead of a custom "Use …" entry.
+- Fixed: **Actions follow the status staff set** (`components/shipment/fulfillment-panel.tsx`, `hooks/shipments/use-shipments.ts`, `utils/shipment-status.ts`). Once a shipment has moved past collection (In Transit, At Hub, Delivered…), the page shows "Collection Settled" instead of pickup and drop-off choices. The shipment is re-read every 60 seconds while it is active, and fulfilment options are re-read whenever its status changes. `canManageFulfillment` now includes `AWAITING_MLS_COLLECTION`, matching the server.
+- Fixed: **"Contact Support" on the shipment page did nothing** (`components/shipment/support-options.tsx`). The Support Center now offers email and WhatsApp, both prefilled with the tracking number, and a phone call.
+
+## [1.48.2] - 2026-10-15 - DHL label file named after the tracking number
+
+- Changed: **Downloaded DHL labels are named `MLS-<TRACKING NUMBER>.pdf`, all uppercase** (`utils/label-link.ts`). Both buttons now use the MLS tracking number; the one in Shipment Preparation Instructions used to save as `shipping-label.pdf`. FedEx labels open from FedEx's own link, so their name is still FedEx's.
+
+## [1.48.1] - 2026-10-15 - DHL labels download as a PDF
+
+- Fixed: **DHL "Download Label" did nothing** (`utils/label-link.ts`, `app/app/shipments/[id]/page.tsx`, `components/shipment/shipment-preparation-instructions.tsx`)
+  - DHL eCommerce returns the label PDF itself, which the server stores in `labelUrl` as `data:application/pdf;base64,…`. The button opened it in a new tab, and browsers block data URLs there. A data URL label now downloads as `label-<tracking number>.pdf`; FedEx's hosted https link still opens in a new tab.
+  - `labelUrl` is now skipped by the carrier-branding pass (`utils/carrier-branding.ts`). Branding rewrote `fedex.com` to `mls.com` inside the URL, which the page then undid with a string replace (now removed), and it could equally rewrite bytes of a base64 PDF.
+
+## [1.48.0] - 2026-10-14 - Server contract alignment, shipment cancellation, MLS collection, HS code suggestions
+
+Brings the customer app in line with the server's v7.1 contract (mls-server PR #16) and adds the customer screens the engine already supports.
+- Fixed: **Calls to routes the server does not serve**
+  - The invoice list now calls `GET /invoices?limit&offset`. `/invoices/business/filter` never existed; status and search filtering stay client-side, since the server has neither.
+  - Removed `POST /shipments/:id/request-invoice` and its "Request Shipment Invoice" button on the payment-success receipt. The invoice is created with the shipment, so there was nothing to request.
+- Changed: **Shipment details require the owner** (`app/app/shipments/[id]/page.tsx`, `hooks/shipments/use-shipments.ts`)
+  - `get-shipment` now answers 404 for anyone else's shipment. The page shows "Not in your account" with a link to public tracking instead of a red error, and 401/404 are no longer retried.
+  - `/track-shipment/{id}?view=public` opts out of the signed-in redirect in `proxy.ts` and on the page itself, so that link cannot loop back.
+- Fixed: **PayU payments still processing read as failed** (`app/app/shipments/new/verify/page.tsx`)
+  - `verify-payment` answers `PENDING` with `retryAfterSeconds` while PayU is processing. The page now says it is confirming and polls, for about two minutes, before telling the customer not to pay again and that it will update by itself.
+  - After a Stripe payment the page now opens the paid shipment by its tracking number rather than the shipments list.
+- Added: **Shipment cancellation** (`components/shipment/shipment-cancellation.tsx`)
+  - Unpaid shipments cancel at once. Paid shipments still with the customer open a request for staff, with an optional reason; an open request can be withdrawn. Approved and rejected outcomes show on the shipment, rejected with the staff note.
+  - The 409 messages the server writes for the customer are shown as they come.
+- Added: **MLS collection for DHL eCommerce exports** (`components/shipment/mls-collection-panel.tsx`, `hooks/shipments/use-collection-fee-return.ts`)
+  - When `fulfillment-options` reports `handoverMode: MLS_COLLECTION`, the fulfillment panel shows the server's handover message and a "Request collection" action instead of pickup and drop-off.
+  - A due fee is paid by card (Stripe) or PayU. On return the shipment page verifies the payment, polls a PayU `PENDING`, toasts the outcome and clears the query string.
+  - `AWAITING_MLS_COLLECTION` ("Awaiting Collection") and `AT_HUB` ("In Transit") join the status vocabulary.
+- Added: **HS code suggestions** (`components/shipment/hs-code-suggestion.tsx`)
+  - "Suggest a code" on each customs item calls `POST /shipments/hs-codes/match`, fills the six-digit code and offers up to three alternatives. Vague descriptions show the server's tips instead of a guess.
+- Fixed: **Lint** — 117 problems down to 0 (the last 4, in `api/index.ts` and `components/account/LogoutAction.tsx`, cleared once the session-security work from #34 was merged in).
+  - Escaped JSX entities, removed unused imports and handlers, replaced `any` with real types, and moved state out of effects (`toast`, `select`, `toast-provider`, `VerifyPhoneModal`, `VerificationBanner`).
+  - The About page map dots used `Math.random()` during render, which differs between server and client; they are now fixed positions.
+- Removed: **Code nothing imports** — the legacy invoice hooks (`hooks/invoices/useInvoices.ts`, `use-invoices.ts`, `usePdfStatus.ts` and friends, plus their barrel), the unused invoice components (`InvoicePreview`, `InvoiceDetailModal`, `EmailInvoiceModal`, `InvoiceListPage`, `InvoiceActionsNew`, `InvoiceCardNew`, `InvoiceSummaryNew`, `InvoicesListNew`) and `store/invoice-store.ts`, the old `profile-form`, `rate-selection` and `estimate-form`, the address-verification screens, `stepper`, `badge`, `table`, `useNotification`, seven unused utils, and the `generateInvoice` / `confirmInvoice` / `regeneratePaymentLink` API calls only they used. Several of these still called routes the server does not serve.
+  - Also removed the stray `patch_page.js` and the stale `lint-errors.json` / `docs/lint-errors-reference.md` report. `components/ui/spinner.tsx` and `utils/auth-debug.ts` were removed after confirming the session-security work doesn't use them either.
+
 ## [1.47.1] - 2026-08-26 - Remove mandatory location gate; address self-correction; payment auto-redirect
 
 Client feedback on the shipment-creation flow: users were being hard-blocked behind a browser geolocation prompt before they could even see the form, the address fields didn't let people correct an auto-filled State/Province, and a successful payment dumped users on a page full of buttons instead of just taking them to their shipment.

@@ -4,8 +4,6 @@ import React from "react";
 import RegisterForm from "@/components/auth/register-form";
 import AuthShowcase from "@/components/auth/auth-showcase";
 import Link from "next/link";
-import Image from "next/image";
-import logoLandscape from "@/public/images/logo-landscape.svg";
 
 export default function RegisterPage() {
   return (

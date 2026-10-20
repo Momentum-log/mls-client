@@ -1,15 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelPickup,
+  createCollectionFeePaymentLink,
   getFulfillmentOptions,
   getPickupAvailability,
   getShipmentDropoffCenters,
+  requestCollection,
   requestPickup,
 } from "@/api/shipments";
 import {
   CancelPickupResponse,
+  CollectionFeePaymentLinkResponse,
   FulfillmentOptions,
   PickupAvailability,
+  RequestCollectionResponse,
   RequestPickupPayload,
   RequestPickupResponse,
 } from "@/types/shipping";
@@ -118,5 +122,35 @@ export const useCancelPickup = (shipmentId: string) => {
       });
       queryClient.invalidateQueries({ queryKey: ["shipment", shipmentId] });
     },
+  });
+};
+
+/**
+ * Asks MLS to collect the parcel. The fulfillment options and the shipment are
+ * refreshed from the server either way, since a confirmed collection moves the
+ * shipment to `AWAITING_MLS_COLLECTION`.
+ */
+export const useRequestCollection = (shipmentId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<RequestCollectionResponse, Error, void>({
+    mutationFn: () => requestCollection(shipmentId),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: fulfillmentKeys.options(shipmentId),
+      });
+      queryClient.invalidateQueries({ queryKey: ["shipment"] });
+    },
+  });
+};
+
+/** Checkout link for the collection fee; the caller redirects to it. */
+export const useCollectionFeePaymentLink = (shipmentId: string) => {
+  return useMutation<
+    CollectionFeePaymentLinkResponse,
+    Error,
+    "stripe" | "payu"
+  >({
+    mutationFn: (gateway) => createCollectionFeePaymentLink(shipmentId, gateway),
   });
 };

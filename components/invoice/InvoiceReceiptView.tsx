@@ -15,7 +15,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Invoice,
   InvoiceLineItem,
@@ -35,6 +35,7 @@ import {
 import { formatCurrency } from "@/utils/currency-formatter";
 import { toDisplayCarrierName } from "@/utils/carrier-branding";
 import { useToast } from "@/hooks/use-toast";
+import { UserAddress } from "@/types/auth";
 import Button from "@/components/ui/button";
 import { FiCreditCard, FiRefreshCw, FiCheckCircle } from "react-icons/fi";
 
@@ -57,7 +58,7 @@ interface InvoiceReceiptViewProps {
   /** Optional recipient name from user profile (for invoice population) */
   recipientName?: string;
   /** Optional recipient address from user profile (for invoice population) */
-  recipientAddress?: any;
+  recipientAddress?: UserAddress | null;
   /** Optional item quantity from shipment (for invoice population) */
   itemQuantity?: number;
   /** Optional service description (auto-generated from shipment data) */
@@ -82,7 +83,6 @@ interface InvoiceReceiptViewProps {
  */
 export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   invoice,
-  shipmentId,
   condensed = false,
   onUpdateShipment,
   onPayNow,
@@ -92,6 +92,8 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   itemQuantity,
   serviceDescription,
 }) => {
+  // Read once per mount: rendering must not depend on the clock.
+  const [now] = useState(() => Date.now());
   const { addToast } = useToast();
 
   // Guard against missing invoice data
@@ -247,7 +249,7 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   /** Whether the payment link is expired */
   const isLinkExpired =
     paymentLinkExpiresAt &&
-    new Date(paymentLinkExpiresAt).getTime() < Date.now();
+    new Date(paymentLinkExpiresAt).getTime() < now;
 
   return (
     <div className={`space-y-6 ${className}`}>

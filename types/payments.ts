@@ -6,15 +6,23 @@ import {
 import { Shipment } from "./shipping";
 
 /**
- * Response payload for payment verification.
+ * Response payload for `GET /payments/verify-payment`.
+ *
+ * `PENDING` is PayU-only: the order is still processing and the customer may
+ * already have paid, so it must never be shown as a failure. Call again after
+ * `retryAfterSeconds`.
  */
 export interface VerifyPaymentResponse {
-  status: "SUCCESS" | "FAILED";
+  status: "SUCCESS" | "PENDING" | "FAILED";
   paymentStatus: string;
   shipmentStatus: string;
   trackingNumber?: string;
   labelUrl?: string;
   message?: string;
+  retryAfterSeconds?: number;
+  /** Set when the payment was a collection fee rather than the shipment. */
+  purpose?: "COLLECTION_FEE";
+  paymentGateway?: string;
 }
 
 /**
@@ -36,21 +44,6 @@ export interface PaymentInvoiceResponse {
   status: "success" | "error";
   data: PaymentInvoiceResponseData;
   message: string;
-}
-
-/**
- * Request payload to request a shipment invoice.
- */
-export interface RequestShipmentInvoiceRequest {
-  shipmentId: string;
-}
-
-/**
- * Response payload for shipment invoice request endpoint.
- */
-export interface RequestShipmentInvoiceResponse {
-  status?: string;
-  message?: string;
 }
 
 /**

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useSearchParams } from "next/navigation";
 import { useFormik } from "formik";
 import { z } from "zod";
 // import { toFormikValidationSchema } from "zod-formik-adapter";
@@ -20,10 +21,50 @@ import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { setPersistencePreference } from "@/utils/secure-storage";
 
+/**
+ * Turns the `reason` a forced sign-out redirected with into something worth
+ * reading. Falls back to the server's own `details` string, which is the more
+ * specific message whenever it sent one.
+ *
+ * Both spellings of revoked/expired appear because the guide and the OpenAPI
+ * description disagree; they mean the same thing.
+ */
+const signOutMessage = (
+  reason: string | null,
+  details: string | null,
+): string | null => {
+  if (!reason) return null;
+
+  switch (reason) {
+    case "REVOKED":
+    case "SESSION_REVOKED":
+      return (
+        details ||
+        "You were signed out because your password changed. Please sign in again."
+      );
+    case "EXPIRED":
+    case "SESSION_EXPIRED":
+    case "NOT_FOUND":
+      return "Your session expired. Please sign in again.";
+    case "REUSE_DETECTED":
+      return "We ended your session for security reasons. Please sign in again.";
+    case "USER_RESTRICTED":
+      return details || "This account is not currently active.";
+    default:
+      return details || "Your session ended. Please sign in again.";
+  }
+};
+
 const LoginForm = () => {
   const { mutateAsync: login } = useLogin();
   const router = useRouter();
   const { addToast } = useToast();
+  const searchParams = useSearchParams();
+
+  const notice = signOutMessage(
+    searchParams.get("reason"),
+    searchParams.get("details"),
+  );
 
   const formik = useFormik({
     initialValues: {
@@ -98,7 +139,11 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-5">
-      {/* Removed inline error display */}
+      {notice && (
+        <div className="p-4 text-sm text-amber-800 bg-amber-50 rounded-xl border border-amber-100">
+          {notice}
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="identifier">Email or Phone Number</Label>

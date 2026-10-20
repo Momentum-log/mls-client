@@ -11,7 +11,6 @@ import {
   FaLocationDot,
   FaWhatsapp,
   FaXTwitter,
-  FaFacebookF,
   FaInstagram,
   FaLinkedinIn,
 } from "react-icons/fa6";
@@ -32,7 +31,7 @@ export default function ContactPage() {
                 </span>
               </div>
               <h1 className="font-work-sans font-black text-4xl md:text-5xl text-gray-900 mb-6">
-                We'd Love to <br />
+                We&apos;d Love to <br />
                 <span className="text-brand-blue">Hear from You</span>
               </h1>
               <p className="text-gray-600 text-lg mb-10 leading-relaxed">

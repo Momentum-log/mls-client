@@ -9,32 +9,20 @@
  */
 
 import apiClient from "../index";
-import { AxiosError } from "axios";
 import {
   Invoice,
   InvoicePaymentLink,
   ListInvoicesResponse,
-  GenerateInvoiceRequest,
-  GenerateInvoiceResponse,
-  ConfirmInvoiceRequest,
-  ConfirmInvoiceResponse,
-  RegeneratePaymentLinkRequest,
-  RegeneratePaymentLinkResponse,
   GetInvoiceResponse,
 } from "@/types/invoice";
 
-export interface InvoiceBusinessFilterParams {
+/**
+ * `GET /invoices` paginates only. It has no status, amount or sort filters, so
+ * those are applied client-side on the returned page.
+ */
+export interface InvoiceListParams {
   limit: number;
   offset: number;
-  status?: string;
-  invoiceNumber?: string;
-  customerEmail?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  minAmount?: number;
-  maxAmount?: number;
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
 }
 
 interface InvoiceListApiItem {
@@ -163,64 +151,19 @@ const normalizeInvoicesListResponse = (
 };
 
 /**
- * Fetches a paginated list of invoices with optional filtering by status.
+ * Fetches a page of the signed-in customer's invoices.
  *
- * @param params - Query parameters
- * @param params.limit - Number of invoices per page
+ * @param params.limit - Number of invoices per page (the server caps it at 100)
  * @param params.offset - Pagination offset
- * @param params.status - Optional invoice status filter (e.g., "PENDING", "PAID")
  * @returns Promise resolving to paginated invoices list
- *
- * @example
- * ```ts
- * const result = await getInvoices({ limit: 10, offset: 0, status: "PENDING" });
- * ```
  */
 export const getInvoices = async (
-  params: InvoiceBusinessFilterParams,
+  params: InvoiceListParams,
 ): Promise<ListInvoicesResponse> => {
-  const query = new URLSearchParams({
-    limit: String(params.limit),
-    offset: String(params.offset),
-    ...(params.status && params.status !== "all" && { status: params.status }),
-    ...(params.invoiceNumber && { invoiceNumber: params.invoiceNumber }),
-    ...(params.customerEmail && { customerEmail: params.customerEmail }),
-    ...(params.dateFrom && { dateFrom: params.dateFrom }),
-    ...(params.dateTo && { dateTo: params.dateTo }),
-    ...(params.minAmount !== undefined && {
-      minAmount: String(params.minAmount),
-    }),
-    ...(params.maxAmount !== undefined && {
-      maxAmount: String(params.maxAmount),
-    }),
-    ...(params.sortBy && { sortBy: params.sortBy }),
-    ...(params.sortOrder && { sortOrder: params.sortOrder }),
-  });
-
-  try {
-    const response = await apiClient.get<
-      ListInvoicesResponse | InvoiceListApiEnvelope
-    >(`/invoices/business/filter?${query.toString()}`);
-    return normalizeInvoicesListResponse(response.data, {
-      limit: params.limit,
-      offset: params.offset,
-    });
-  } catch (error) {
-    const axiosError = error as AxiosError;
-
-    // Fallback for environments where the business filter route is not enabled yet.
-    if (axiosError.response?.status === 404) {
-      const response = await apiClient.get<
-        ListInvoicesResponse | InvoiceListApiEnvelope
-      >(`/invoices?${query.toString()}`);
-      return normalizeInvoicesListResponse(response.data, {
-        limit: params.limit,
-        offset: params.offset,
-      });
-    }
-
-    throw error;
-  }
+  const response = await apiClient.get<
+    ListInvoicesResponse | InvoiceListApiEnvelope
+  >("/invoices", { params: { limit: params.limit, offset: params.offset } });
+  return normalizeInvoicesListResponse(response.data, params);
 };
 
 /**
@@ -241,63 +184,6 @@ export const getInvoice = async (
 ): Promise<GetInvoiceResponse> => {
   const response = await apiClient.get<GetInvoiceResponse>(
     `/invoices/${invoiceId}`,
-  );
-  return response.data;
-};
-
-/**
- * Generates a new invoice from a shipment.
- *
- * @param data - Invoice generation request
- * @param data.shipmentId - The shipment to invoice
- * @param data.deliveryMethod - How to deliver the invoice
- * @param data.recipientEmail - Email recipient (required if delivery includes email)
- * @param data.paymentGateway - Payment gateway to use
- * @returns Promise resolving to invoice generation response
- *
- * @example
- * ```ts
- * const response = await generateInvoice({
- *   shipmentId: "ship-123",
- *   deliveryMethod: "email",
- *   recipientEmail: "customer@example.com",
- * });
- * ```
- */
-export const generateInvoice = async (
-  data: GenerateInvoiceRequest,
-): Promise<GenerateInvoiceResponse> => {
-  const response = await apiClient.post<GenerateInvoiceResponse>(
-    "/invoices/generate",
-    data,
-  );
-  return response.data;
-};
-
-/**
- * Confirms an invoice and generates a payment link.
- *
- * Called after user selects payment method before making payment.
- *
- * @param data - Invoice confirmation request
- * @param data.invoiceId - The invoice to confirm
- * @param data.paymentMethod - Selected payment method
- * @returns Promise resolving to confirmed invoice with payment link
- *
- * @example
- * ```ts
- * const response = await confirmInvoice({
- *   invoiceId: "inv-123",
- *   paymentMethod: "PAYU",
- * });
- * ```
- */
-export const confirmInvoice = async (
-  data: ConfirmInvoiceRequest,
-): Promise<ConfirmInvoiceResponse> => {
-  const response = await apiClient.post<ConfirmInvoiceResponse>(
-    `/invoices/${data.invoiceId}/confirm`,
-    data,
   );
   return response.data;
 };
@@ -344,26 +230,3 @@ export const sendInvoiceEmail = async (
   return response.data;
 };
 
-/**
- * Regenerates an expired payment link for an invoice.
- *
- * @param data - Payment link regeneration request
- * @param data.invoiceId - The invoice to regenerate link for
- * @returns Promise resolving to new payment link details
- *
- * @example
- * ```ts
- * const response = await regeneratePaymentLink({
- *   invoiceId: "inv-123",
- * });
- * ```
- */
-export const regeneratePaymentLink = async (
-  data: RegeneratePaymentLinkRequest,
-): Promise<RegeneratePaymentLinkResponse> => {
-  const response = await apiClient.post<RegeneratePaymentLinkResponse>(
-    `/invoices/${data.invoiceId}/payment-link/regenerate`,
-    data,
-  );
-  return response.data;
-};

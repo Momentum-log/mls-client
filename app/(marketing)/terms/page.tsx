@@ -22,7 +22,7 @@ export default function TermsPage() {
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700 text-sm leading-relaxed">
             <h2 className="text-lg font-bold text-gray-900">1. Introduction</h2>
             <p>
-              Welcome to Momentum Logistics Service ("we," "our," or "us"). By
+              Welcome to Momentum Logistics Service (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). By
               accessing or using our website and services, you agree to be bound
               by these Terms and Conditions. If you do not agree with any part
               of these terms, please do not use our services.
@@ -57,7 +57,7 @@ export default function TermsPage() {
               at the time of checkout. You agree to pay the full amount for your
               shipment before services are rendered. Refund policies are subject
               to the terms of the individual carrier and Momentum Logistics
-              Service's discretion.
+              Service&apos;s discretion.
             </p>
 
             <h2 className="text-lg font-bold text-gray-900">

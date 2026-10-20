@@ -1,5 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import {
+  cancelShipment,
+  matchHsCodes,
   getShippingQuote,
   getShippingEstimate,
   getShipmentHistory,
@@ -7,6 +10,7 @@ import {
   createShipment,
   trackShipment,
   getShipment,
+  withdrawCancellation,
 } from "@/api/shipments";
 import {
   ShipmentMutationPayload,
@@ -15,10 +19,13 @@ import {
   Shipment,
   ShipmentStats,
   GetShipmentResponse,
+  CancelShipmentResponse,
+  HsCodeMatchRequest,
+  HsCodeMatchResponse,
 } from "@/types/shipping";
 import { useMemo } from "react";
 import { formatStatus, getShipmentDisplayName } from "@/utils/shipment-helper";
-import { isActive, isDelivered } from "@/utils/shipment-status";
+import { isActive, isDelivered, isTerminal } from "@/utils/shipment-status";
 import { CreateShipmentResponse } from "@/types/invoice";
 
 /**
@@ -81,13 +88,56 @@ export const useGetShipmentHistory = () => {
 };
 
 /**
- * Hook to fetch a specific shipment.
+ * Hook to fetch one of the signed-in customer's shipments, by ID or tracking
+ * number.
+ *
+ * The server answers 404 for another customer's shipment and 401 for a guest;
+ * neither changes on retry, so neither is retried.
  */
 export const useGetShipment = (trackingNumber: string) => {
   return useQuery<GetShipmentResponse, Error>({
     queryKey: ["shipment", trackingNumber],
     queryFn: () => getShipment(trackingNumber),
     enabled: !!trackingNumber.trim(),
+    // Staff move shipments on from the admin console; re-read while the page
+    // is open so the actions offered follow the real status.
+    refetchInterval: (query) => {
+      const status = query.state.data?.shipmentStatus;
+      return status && isTerminal(status) ? false : 60_000;
+    },
+    retry: (failureCount, error) => {
+      const status = (error as AxiosError).response?.status;
+      if (status === 401 || status === 404) return false;
+      return failureCount < 2;
+    },
+  });
+};
+
+/**
+ * Cancels an unpaid shipment, or asks staff to cancel a paid one. The shipment
+ * is re-read afterwards so the page shows the server's state, not a guess.
+ */
+export const useCancelShipment = (shipmentId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<CancelShipmentResponse, Error, string | undefined>({
+    mutationFn: (reason) => cancelShipment(shipmentId, reason),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipment"] });
+      queryClient.invalidateQueries({ queryKey: ["shipment-history"] });
+    },
+  });
+};
+
+/** Withdraws the shipment's open cancellation request. */
+export const useWithdrawCancellation = (shipmentId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message: string }, Error, void>({
+    mutationFn: () => withdrawCancellation(shipmentId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipment"] });
+    },
   });
 };
 
@@ -175,4 +225,11 @@ export const useShipmentStats = () => {
     isLoading,
     error,
   };
+};
+
+/** Suggests HS codes for customs item descriptions. */
+export const useMatchHsCodes = () => {
+  return useMutation<HsCodeMatchResponse, Error, HsCodeMatchRequest>({
+    mutationFn: matchHsCodes,
+  });
 };

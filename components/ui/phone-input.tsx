@@ -44,8 +44,13 @@ export const PhoneInputComponent: React.FC<UniversalPhoneInputProps> = ({
         <PhoneInput
           country={"pl"}
           value={value}
-          onChange={(phone, countryData: any) =>
-            onChange(phone, countryData.countryCode?.toUpperCase())
+          onChange={(phone, countryData) =>
+            onChange(
+              phone,
+              "countryCode" in countryData
+                ? countryData.countryCode.toUpperCase()
+                : "",
+            )
           }
           onBlur={onBlur}
           disabled={disabled}

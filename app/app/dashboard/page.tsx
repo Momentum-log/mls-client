@@ -6,7 +6,6 @@ import Button from "@/components/ui/button";
 import {
   FiBox,
   FiCheckCircle,
-  FiDollarSign,
   FiChevronRight,
 } from "react-icons/fi";
 import { FaFileCirclePlus, FaArrowRight, FaEuroSign } from "react-icons/fa6";
