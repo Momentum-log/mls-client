@@ -10,6 +10,11 @@ interface DropoffCenterListProps {
   /** Search radius in km, 1-50. */
   radiusKm?: number;
   carrierDisplayName?: string;
+  /**
+   * Whether the carrier can list its locations. Some (DPD) cannot yet; the
+   * customer is then pointed at any of the carrier's points without a search.
+   */
+  searchSupported?: boolean;
 }
 
 /**
@@ -23,12 +28,22 @@ export default function DropoffCenterList({
   shipmentId,
   radiusKm = 25,
   carrierDisplayName = "carrier",
+  searchSupported = true,
 }: DropoffCenterListProps) {
   const {
     data: centers,
     isPending,
     error,
-  } = useShipmentDropoffCenters(shipmentId, radiusKm);
+  } = useShipmentDropoffCenters(shipmentId, radiusKm, { enabled: searchSupported });
+
+  if (!searchSupported) {
+    return (
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-600 text-center">
+        Drop your parcel at any authorised {carrierDisplayName} pickup point or
+        parcel shop. Your label is valid at all of them.
+      </div>
+    );
+  }
 
   if (isPending) {
     return (

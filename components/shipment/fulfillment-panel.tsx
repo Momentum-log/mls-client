@@ -129,6 +129,7 @@ export default function FulfillmentPanel({
   });
 
   const pickupSupported = options?.pickupSupported ?? false;
+  const dropoffSearchSupported = options?.dropoffSupported ?? false;
   const carrierName = options?.carrierDisplayName ?? "the carrier";
   const isPickupConfirmed = options?.currentFulfillment === "PICKUP";
 
@@ -459,6 +460,7 @@ export default function FulfillmentPanel({
           <DropoffCenterList
             shipmentId={shipmentId}
             carrierDisplayName={carrierName}
+            searchSupported={dropoffSearchSupported}
           />
         )}
 

@@ -5,6 +5,11 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.50.0] - 2026-10-17 - DPD
+
+- Added: **DPD shipments display like the other carriers** (`utils/carrier-branding.ts`). "DPD" in service names is shown as "MLS", as FedEx and DHL already are. DPD labels arrive as a PDF and download as `MLS-<TRACKING>.pdf` through the existing path (`utils/label-link.ts`).
+- Fixed: **Drop-off for carriers without a location search** (`components/shipment/dropoff-center-list.tsx`, `components/shipment/fulfillment-panel.tsx`). When the server reports `dropoffSupported: false` (DPD for now), "I'll drop it off" explains that any of the carrier's pickup points or parcel shops takes the parcel, instead of calling the search and showing its "Not Supported" error.
+
 ## [1.49.0] - 2026-10-17 - Post-demo fixes
 
 - Fixed: **Verifying your email took a reload to count** (`app/app/shipments/new/page.tsx`, `components/account/VerifyEmailModal.tsx`). The new-shipment page trusted the `verificationRequired=1` flag left in the URL by the guard redirect, even after the account was verified. Once the user is loaded, live account state decides and the stale flags are removed from the URL. After verifying, the modal follows `next` and refreshes the route cache.
