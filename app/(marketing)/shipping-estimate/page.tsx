@@ -448,7 +448,7 @@ function ShippingEstimateContent() {
                                       name={`packages.${index}.dimensions.length`}
                                       value={pkg.dimensions.length}
                                       onChange={formik.handleChange}
-                                      placeholder="L"
+                                      placeholder="Length"
                                       className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center bg-white"
                                       disabled={pkg.selectedPreset !== "custom"}
                                     />
@@ -457,7 +457,7 @@ function ShippingEstimateContent() {
                                       name={`packages.${index}.dimensions.width`}
                                       value={pkg.dimensions.width}
                                       onChange={formik.handleChange}
-                                      placeholder="W"
+                                      placeholder="Width"
                                       className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center bg-white"
                                       disabled={pkg.selectedPreset !== "custom"}
                                     />
@@ -466,7 +466,7 @@ function ShippingEstimateContent() {
                                       name={`packages.${index}.dimensions.height`}
                                       value={pkg.dimensions.height}
                                       onChange={formik.handleChange}
-                                      placeholder="H"
+                                      placeholder="Height"
                                       className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:border-brand-blue outline-none text-center bg-white"
                                       disabled={pkg.selectedPreset !== "custom"}
                                     />

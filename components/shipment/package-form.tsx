@@ -309,7 +309,7 @@ export default function PackageForm({
                                     ? "opacity-50 pointer-events-none bg-gray-50"
                                     : "border-gray-200"
                                 }`}
-                                placeholder={dim.label[0]}
+                                placeholder={dim.label}
                               />
                               <span className="text-[10px] uppercase font-black text-gray-400 block text-center tracking-widest">
                                 {dim.label}
@@ -338,7 +338,7 @@ export default function PackageForm({
                                     ? "opacity-50 pointer-events-none bg-gray-50"
                                     : "border-gray-200"
                                 }`}
-                                placeholder="0.00"
+                                placeholder="Weight"
                               />
                               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 uppercase tracking-widest">
                                 {formik.values.globalWeightUnit}
@@ -363,7 +363,7 @@ export default function PackageForm({
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 className="w-full px-5 py-3.5 rounded-2xl border border-gray-200 font-bold bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all"
-                                placeholder="0.00"
+                                placeholder="Value"
                               />
                               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 uppercase tracking-widest">
                                 {currency}
@@ -391,7 +391,7 @@ export default function PackageForm({
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         className="w-full px-5 py-4 rounded-2xl border border-gray-200 font-medium bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all"
-                        placeholder="What's inside? (e.g. Cotton T-shirts, Electronics, etc.)"
+                        placeholder="What's inside?"
                       />
                       {touchedBag.description && errorsBag.description && (
                         <p className={errorStyles}>

@@ -5,6 +5,11 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.52.4] - 2026-11-03 - Descriptive placeholders
+
+- Changed: **Form placeholders say what to type, not a sample value.** Names read "Full name", "First name" or "Last name" instead of "John Doe"; emails "Email address" instead of `name@example.com`; passwords "Password" and "Confirm password" instead of dots; company and tax fields "Company name" and "NIP / Tax Number"; codes "6-digit code" or "Verification code"; tracking fields "Tracking number"; addresses "Street address", "Country", "State or province", "City", "Postal code"; package and customs fields "Length", "Width", "Height", "Weight", "Value", "Item description", "Gross weight", "NIP number", "HS code"; the phone input "Phone number"; pickup notes "Notes for the driver". Covers sign-in, registration, password reset, account and verification modals, the address, package, customs and pickup forms, the instant quote, tracking, the 404 page and the home quick quote (`app/auth/forgot-password/page.tsx`, `app/(marketing)/shipping-estimate/page.tsx`, `components/{auth,account,shipment,shared,tracking,ui}/*`, `components/site/copy/{en,pl}.ts`).
+- Verification: `bun run build` succeeds, `bunx tsc --noEmit` and `bun run lint` clean, `bun utils/site-locale.check.ts` passes. Placeholder text was not reviewed screen by screen in the browser.
+
 ## [1.52.3] - 2026-11-02 - Company film player
 
 - Changed: **About page film has Momentum's own controls** (`components/site/company-film.tsx`). A yellow play button over the poster, and a bar with play/pause, a seek slider, elapsed and total time, mute and full screen, replacing the browser's controls. The bar fades while the film plays and returns on hover or keyboard focus. Every control is a labelled button or range input, in English and Polish.

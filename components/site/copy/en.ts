@@ -160,7 +160,7 @@ const en = {
         large: "Large box",
       },
       trackingLabel: "Tracking number",
-      trackingPlaceholder: "Starts with MLS-",
+      trackingPlaceholder: "Tracking number",
       track: "Track parcel",
       trackHint:
         "No account needed. Signed in? You will go straight to the full shipment page.",

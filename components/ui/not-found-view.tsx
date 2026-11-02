@@ -92,7 +92,7 @@ export default function NotFoundView({ isApp = false }: NotFoundViewProps) {
               type="text"
               value={trackingId}
               onChange={(e) => setTrackingId(e.target.value)}
-              placeholder="Searching for a package? Enter Tracking ID..."
+              placeholder="Tracking number"
               className={cn(
                 "w-full pl-11 pr-24 py-4 rounded-xl border outline-none transition-all shadow-sm",
                 "bg-white border-gray-200",

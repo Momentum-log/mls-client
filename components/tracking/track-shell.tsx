@@ -53,7 +53,7 @@ const TrackShell: FC<TrackShellProps> = ({
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="Starts with MLS-"
+              placeholder="Tracking number"
               className="h-11 min-w-0 flex-1 bg-transparent px-3 font-mono text-base text-foreground outline-none placeholder:text-gray-400"
             />
             <button

@@ -159,7 +159,7 @@ const pl: SiteCopy = {
         large: "Duże pudełko",
       },
       trackingLabel: "Numer przesyłki",
-      trackingPlaceholder: "Zaczyna się od MLS-",
+      trackingPlaceholder: "Numer przesyłki",
       track: "Śledź paczkę",
       trackHint:
         "Konto nie jest potrzebne. Zalogowani przechodzą od razu do pełnych szczegółów przesyłki.",

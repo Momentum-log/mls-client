@@ -151,7 +151,7 @@ const LoginForm = () => {
           id="identifier"
           name="identifier"
           type="text"
-          placeholder="name@example.com or +48..."
+          placeholder="Email or phone number"
           value={formik.values.identifier}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
@@ -180,7 +180,7 @@ const LoginForm = () => {
         <PasswordInput
           id="password"
           name="password"
-          placeholder="••••••••"
+          placeholder="Password"
           value={formik.values.password}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}

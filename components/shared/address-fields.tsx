@@ -175,7 +175,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
                   setFieldValue(getFieldName(emailKey), e.target.value)
                 }
                 onBlur={handleBlur}
-                placeholder="your@email.com"
+                placeholder="Email address"
                 className={cn(
                   "pl-11",
                   emailTouched && emailError ? "border-red-500" : "",
@@ -223,7 +223,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
             value={streetValue || ""}
             onChange={(val) => setFieldValue(getFieldName(streetKey), val)}
             onPlaceSelect={handlePlaceSelect}
-            placeholder="Search for street address..."
+            placeholder="Street address"
             className={cn(
               "pl-11",
               streetTouched && streetError ? "border-red-500" : "",
@@ -244,7 +244,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
           options={countryOptions}
           value={countryValue || ""}
           onChange={handleCountryChange}
-          placeholder="Select Country"
+          placeholder="Country"
           className={countryTouched && countryError ? "border-red-500" : ""}
           searchable
         />
@@ -264,7 +264,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
           options={stateOptions}
           value={stateValue || ""}
           onChange={handleStateChange}
-          placeholder="Select State"
+          placeholder="State or province"
           className={stateTouched && stateError ? "border-red-500" : ""}
           disabled={!countryValue}
           searchable
@@ -286,7 +286,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
           options={cityOptions}
           value={cityValue || ""}
           onChange={handleCityChange}
-          placeholder="Select City"
+          placeholder="City"
           className={cityTouched && cityError ? "border-red-500" : ""}
           disabled={!stateValue}
           searchable
@@ -313,7 +313,7 @@ const AddressFields: React.FC<AddressFieldsProps> = ({ prefix }) => {
               setFieldValue(getFieldName(zipKey), e.target.value)
             }
             onBlur={handleBlur}
-            placeholder="Zip code"
+            placeholder="Postal code"
             className={cn(
               "pl-11",
               zipTouched && zipError ? "border-red-500" : "",
