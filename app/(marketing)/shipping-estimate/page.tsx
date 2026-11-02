@@ -1,20 +1,23 @@
 "use client";
 
+import { BookOpen, Laptop, Luggage, Mail, Package } from "lucide-react";
 import React, { useEffect, Suspense, useState } from "react";
 import { FormikErrors, FormikProvider, useFormik, FieldArray } from "formik";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import Container from "@/components/shared/container";
+import Link from "next/link";
+import { SiteContainer } from "@/components/site/ui";
 import Button from "@/components/ui/button";
 import {
   FaBoxOpen,
-  FaCircleExclamation,
   FaShip,
   FaLocationDot,
 } from "react-icons/fa6";
 
-import ShippingHero from "@/components/shipping/shipping-hero";
+import MarkerHeading from "@/components/landing/marker-heading";
+import QuoteResults from "@/components/shipping/quote-results";
+import QuoteHowItWorks from "@/components/shipping/quote-how-it-works";
 import AddressFields from "@/components/shared/address-fields";
 import { shippingFormSchema, ShippingFormValues } from "./schema";
 import { useGetShippingQuote } from "@/hooks/shipments/use-shipments";
@@ -24,10 +27,7 @@ import { getOrSetGuestId } from "@/utils/auth-helper";
 import { useAuthStore } from "@/store/auth-store";
 import { useCountryStore } from "@/store/country-store";
 
-import { formatCurrency } from "@/utils/currency-formatter";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Rate } from "@/types/shipping";
-import { SupportedCurrency } from "@/types/country";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
 
 /** Weight threshold for heavy shipment modal (in kg) */
@@ -38,35 +38,35 @@ const PACKAGE_PRESETS = [
   {
     id: "envelope",
     name: "Envelope",
-    icon: "✉️",
+    icon: Mail,
     dims: { length: 35, width: 25, height: 2 },
     weight: 0.5,
   },
   {
     id: "book-box",
     name: "Book Box",
-    icon: "📚",
+    icon: BookOpen,
     dims: { length: 30, width: 20, height: 15 },
     weight: 2,
   },
   {
     id: "laptop-box",
     name: "Laptop Box",
-    icon: "💻",
+    icon: Laptop,
     dims: { length: 45, width: 35, height: 10 },
     weight: 3,
   },
   {
     id: "luggage",
     name: "Luggage",
-    icon: "🧳",
+    icon: Luggage,
     dims: { length: 70, width: 50, height: 30 },
     weight: 20,
   },
   {
     id: "custom",
     name: "Custom",
-    icon: "📦",
+    icon: Package,
     dims: { length: 0, width: 0, height: 0 },
     weight: 0,
   },
@@ -88,26 +88,22 @@ export default function ShippingEstimatePage() {
  */
 function ShippingEstimateLoader() {
   return (
-    <main className="bg-white min-h-screen">
-      <ShippingHero />
-      <div className="bg-gray-50 py-20">
-        <Container>
-          <div className="text-center mb-12">
-            <div className="h-12 w-80 bg-gray-200 rounded-lg mx-auto mb-6 animate-pulse" />
-            <div className="h-6 w-96 bg-gray-200 rounded-lg mx-auto animate-pulse" />
+    <main className="min-h-screen bg-gray-50 font-satoshi">
+      <SiteContainer className="pb-24 pt-10">
+        <div className="mb-8 flex flex-col gap-4">
+          <div className="h-12 w-80 max-w-full animate-pulse rounded-lg bg-gray-200" />
+          <div className="h-6 w-96 max-w-full animate-pulse rounded-lg bg-gray-200" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="space-y-6 lg:col-span-3">
+            <div className="h-64 animate-pulse rounded-3xl bg-white" />
+            <div className="h-64 animate-pulse rounded-3xl bg-white" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-3 space-y-6">
-              <div className="bg-white rounded-3xl p-8 h-64 animate-pulse" />
-              <div className="bg-white rounded-3xl p-8 h-64 animate-pulse" />
-              <div className="bg-white rounded-3xl p-8 h-48 animate-pulse" />
-            </div>
-            <div className="lg:col-span-2">
-              <div className="bg-brand-blue rounded-3xl p-8 h-80 animate-pulse" />
-            </div>
+          <div className="lg:col-span-2">
+            <div className="h-80 animate-pulse rounded-3xl bg-white" />
           </div>
-        </Container>
-      </div>
+        </div>
+      </SiteContainer>
     </main>
   );
 }
@@ -287,25 +283,34 @@ function ShippingEstimateContent() {
   ]);
 
   return (
-    <main className="bg-white min-h-screen">
-      <ShippingHero />
-
-      <div className="bg-gray-50 py-20">
-        <Container>
-          <div className="text-center mb-12">
-            <h1 className="font-work-sans font-black text-4xl md:text-5xl text-gray-900 mb-6">
-              Estimate Your <span className="text-brand-blue">Shipping</span>
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Get an instant estimate for your international or local shipment.
+    <main className="pattern-grid min-h-screen bg-gray-50 font-satoshi">
+      <SiteContainer className="flex flex-col gap-8 pb-24 pt-10">
+          <div className="flex flex-col gap-2.5">
+            <nav aria-label="Breadcrumb" className="text-sm font-medium text-gray-500">
+              <Link href="/" className="text-brand-blue no-underline">
+                Home
+              </Link>{" "}
+              / Instant quote
+            </nav>
+            <MarkerHeading
+              marker="shipping"
+              after="options"
+              brush={2}
+              className="m-0 text-[38px] font-medium leading-[42px] text-gray-900 md:text-5xl md:leading-[52px]"
+            >
+              Your
+            </MarkerHeading>
+            <p className="m-0 max-w-[680px] text-lg font-medium leading-7 text-gray-600">
+              Pick the balance of price and speed that suits you. We choose the
+              courier; you pay one price to Momentum.
             </p>
           </div>
 
           <FormikProvider value={formik}>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
               <div className="lg:col-span-3 space-y-6">
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-200">
                     <div className="flex items-center gap-3 mb-6">
                       <div
                         id="pickup-details"
@@ -323,7 +328,7 @@ function ShippingEstimateContent() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-200">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
                         <FaLocationDot className="w-5 h-5" />
@@ -338,7 +343,7 @@ function ShippingEstimateContent() {
                   </div>
 
                   {/* Package Details */}
-                  <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100">
+                  <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-200">
                     <div className="flex justify-between items-center mb-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center text-brand-blue">
@@ -423,7 +428,7 @@ function ShippingEstimateContent() {
                                           : "border-gray-200 hover:border-brand-blue/50 text-gray-600 bg-white"
                                       }`}
                                     >
-                                      <span className="text-2xl mb-1">{preset.icon}</span>
+                                      <preset.icon className="mb-1 h-6 w-6" aria-hidden="true" />
                                       <span className="text-xs font-medium">
                                         {preset.name}
                                       </span>
@@ -516,99 +521,25 @@ function ShippingEstimateContent() {
               </div>
 
               <div className="lg:col-span-2">
-                <div className="bg-brand-blue text-white rounded-3xl p-6 md:p-8 sticky top-32">
-                  <h3 className="font-bold text-xl mb-6">Quote Summary</h3>
-
-                  {!estimateData && !isEstimating ? (
-                    <div className="text-center py-8 text-white/60">
-                      <FaCircleExclamation className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>
-                        Fill out the form to see your estimated shipping cost.
-                      </p>
-                    </div>
-                  ) : isEstimating ? (
-                    <div className="space-y-4 animate-pulse">
-                      <div className="h-24 bg-white/10 rounded-2xl"></div>
-                      <div className="h-24 bg-white/10 rounded-2xl"></div>
-                    </div>
-                  ) : estimateData?.rates && estimateData.rates.length > 0 ? (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                      {estimateData?.rates?.map((rate: Rate, index: number) => (
-                        <div
-                          key={`${rate.serviceType}-${index}`}
-                          className="bg-white/10 rounded-2xl p-5 border border-white/10"
-                        >
-                          <div className="flex justify-between items-start mb-4">
-                            <div>
-                              <h4 className="font-bold text-lg text-white">
-                                {rate.serviceName}
-                              </h4>
-                              <p className="text-sm text-brand-yellow">
-                                {rate.deliveryDescription}
-                              </p>
-                            </div>
-                            <span className="text-2xl font-black text-brand-yellow">
-                              {formatCurrency(
-                                rate.actualPrice,
-                                (rate.currency as SupportedCurrency) || "EUR",
-                              )}
-                            </span>
-                          </div>
-                          <Button
-                            variant="outline"
-                            className="w-full bg-white text-brand-blue border-none font-bold"
-                            onClick={() => router.push("/register")}
-                          >
-                            Book Now
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 animate-in fade-in duration-500">
-                      <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <FaCircleExclamation className="w-8 h-8 text-brand-yellow" />
-                      </div>
-                      <h4 className="font-bold text-xl mb-3">No Rates Found</h4>
-                      <p className="text-white/70 text-sm leading-relaxed mb-6">
-                        We couldn&apos;t retrieve shipping rates for this
-                        address. This usually happens if the address is
-                        incomplete or unrecognized by our carriers.
-                      </p>
-                      {estimateData?.errors &&
-                        estimateData.errors.length > 0 && (
-                          <div className="bg-black/20 rounded-xl p-4 mb-6 text-left">
-                            <p className="text-[10px] uppercase font-bold text-white/40 mb-2">
-                              Carrier Feedback
-                            </p>
-                            {estimateData.errors.map((err, i) => (
-                              <p key={i} className="text-xs text-white/80">
-                                • {err.details}
-                              </p>
-                            ))}
-                          </div>
-                        )}
-                      <Button
-                        variant="outline"
-                        className="border-white/20 text-white hover:bg-white/10 w-full"
-                        onClick={() => {
-                          const element =
-                            document.getElementById("pickup-details");
-                          if (element) {
-                            element.scrollIntoView({ behavior: "smooth" });
-                          }
-                        }}
-                      >
-                        Review Addresses
-                      </Button>
-                    </div>
-                  )}
+                <div className="lg:sticky lg:top-8">
+                  <QuoteResults
+                    rates={estimateData?.rates}
+                    errors={estimateData?.errors}
+                    hasResult={!!estimateData}
+                    isLoading={isEstimating}
+                    onReviewAddresses={() =>
+                      document
+                        .getElementById("pickup-details")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                  />
                 </div>
               </div>
             </div>
           </FormikProvider>
-        </Container>
-      </div>
+
+          <QuoteHowItWorks />
+      </SiteContainer>
 
       {/* Heavy Shipment Modal */}
       <HeavyShipmentModal

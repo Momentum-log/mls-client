@@ -16,6 +16,8 @@ interface UniversalPhoneInputProps {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  /** Id for the inner input, so an outside `<label htmlFor>` can name it. */
+  id?: string;
 }
 
 /**
@@ -32,6 +34,7 @@ export const PhoneInputComponent: React.FC<UniversalPhoneInputProps> = ({
   placeholder = "Enter phone number",
   className,
   disabled = false,
+  id,
 }) => {
   return (
     <div className={cn("w-full space-y-2", className)}>
@@ -71,6 +74,7 @@ export const PhoneInputComponent: React.FC<UniversalPhoneInputProps> = ({
           searchClass="!block" // Ensure search box is visible
           containerClass="!w-full"
           inputProps={{
+            id,
             name: "phone",
             autoFocus: false,
           }}

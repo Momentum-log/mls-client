@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  isSiteLocale,
+  LOCALE_COOKIE,
+  localeFromAcceptLanguage,
+} from "@/utils/site-locale";
 
 const SHIPMENT_CREATION_PREFIX = "/app/shipments/new";
 
@@ -55,6 +60,17 @@ const getShipmentGuardState = async (
 };
 
 export async function proxy(request: NextRequest) {
+  // The home page lives at /en or /pl: a saved choice wins, then the browser.
+  if (request.nextUrl.pathname === "/") {
+    const saved = request.cookies.get(LOCALE_COOKIE)?.value;
+    const locale = isSiteLocale(saved)
+      ? saved
+      : localeFromAcceptLanguage(request.headers.get("accept-language"));
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}`;
+    return NextResponse.redirect(url);
+  }
+
   const encodedToken = request.cookies.get("mls_access_token")?.value;
   const token = decodeCookieToken(encodedToken);
 

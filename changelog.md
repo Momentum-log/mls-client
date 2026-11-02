@@ -5,6 +5,55 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.52.3] - 2026-11-02 - Company film player
+
+- Changed: **About page film has Momentum's own controls** (`components/site/company-film.tsx`). A yellow play button over the poster, and a bar with play/pause, a seek slider, elapsed and total time, mute and full screen, replacing the browser's controls. The bar fades while the film plays and returns on hover or keyboard focus. Every control is a labelled button or range input, in English and Polish.
+- Changed: **Film frame spacing**. Even 16px padding on all four sides, the frame shrinks to the video's width, and the video's corner radius follows the nested-radius rule: inner radius = outer radius (32px) minus padding (16px) = 16px.
+- Verification: `bunx tsc --noEmit` and `bun run lint` clean. In the browser: measured 16px padding on every side with 32px and 16px radii; play, pause, seek (to 15s), mute and the label changes all worked.
+
+## [1.52.2] - 2026-11-02 - Quote loading state, About and Contact polish, package icons
+
+- Fixed: **Quick quote showed an empty space while prices loaded** (`components/shipping/quote-results.tsx`). The loading skeleton was white blocks inside a white panel. It now shows a spinner with "Calculating rates across our courier networks…" and three grey placeholder rows, announced to screen readers (`role="status"`), until the prices replace it.
+- Changed: **Company film is shown portrait (9:16)** on About (`app/(marketing)/[lang]/about/page.tsx`), in a navy patterned frame, instead of being cropped to 16:9.
+- Changed: **About cards**. "Why we exist" cards carry icons (target, telescope, hourglass, rocket) and patterns; the four value cards are coloured, patterned cards with a large faint icon.
+- Changed: **Contact channel cards** (WhatsApp, phone, email) have dot patterns and a large faint icon.
+- Changed: **Package size presets use icons instead of emoji** on the instant quote and in the new-shipment flow (`app/(marketing)/shipping-estimate/page.tsx`, `components/shipment/package-form.tsx`).
+- Verification: `bunx tsc --noEmit` and `bun run lint` clean. In the browser against the local API: the loading panel stayed on screen for the whole ~3 s request, then six prices replaced it; About and Contact checked at 1440px.
+
+## [1.52.1] - 2026-11-02 - Quick quote sends contact details
+
+- Fixed: **Home quick quote was rejected for guests** (`components/site/home/booking-panel.tsx`). The server answers 400 "Email and Phone are required for guest estimates", and the panel sent neither. It now has Email and Phone fields (the phone uses the shared country-code input, which now takes an `id` so its label is linked, `components/ui/phone-input.tsx`), prefilled for signed-in customers, sent as the pick-up contact. A phone shorter than 7 digits is stopped before the request, and server errors show their own message through `handleApiError`.
+- Verification: `bunx tsc --noEmit` and `bun run lint` clean. In the browser against the local API: Łódź to Berlin with the small box returned 200 and six options; the address fields showed only the street.
+
+## [1.52.0] - 2026-11-02 - Redesign feedback: brush headings, patterns, quick quote, auto language
+
+- Added: **Brush highlight** (`components/ui/brush-highlight.tsx`, `components/ui/brush-strokes.ts`, styles in `app/globals.css`). The three hand-painted strokes from the Momentum design system, with a choice of stroke (1-3), colour (`yellow`, `blue`, `sky`, `green` or any CSS colour), thickness and flip. `MarkerHeading` now uses it (`markerColor`, `brush`, `thickness`, and `after` for a brushed word mid-sentence). Every page heading carries one: home, Ship, Freight, Sustainability, About, Contact, "Your shipping options" and "Track a parcel".
+- Added: **Background patterns** (`.pattern-dots`, `.pattern-grid`, their `-light` versions and `.pattern-stripes-light` in `app/globals.css`) on every section and on the feature cards, plus decorative rings on the call-to-action, business, vision, ESG and headquarters cards (`components/site/rings.tsx`).
+- Changed: **Home quick quote** (`components/site/home/booking-panel.tsx`). "Pick up from" and "Drop off to" are Google Places fields: picking a suggestion shows only the street while the country, state, city and postcode go into the quote payload. A package size chip supplies weight and dimensions, and "See prices" calls the quote API and shows the options in the panel. Changing an address, size or currency clears stale prices.
+- Changed: **Courier logos** padded and contained so none is cropped; DPD uses its logo (`public/images/partners/dpd.png`).
+- Changed: **"Every shipment, one partner" cards** are coloured, patterned cards with a large icon and number, each linking to the instant quote.
+- Changed: **Contact**. The headquarters card is navy with icons and a "Get directions" link to Google Maps; the message form is shown disabled with a note to use WhatsApp, phone or email.
+- Added: **Automatic language** (`components/site/locale-auto-detect.tsx`, `utils/site-locale.ts`). On the first visit, a browser in Poland's time zone or with a Polish language goes to `/pl`, everyone else to `/en`, without any permission prompt; the result is saved in the `mls_lang` cookie, so a language picked in the header always wins. The `/` redirect also treats any `-PL` browser region as Polish.
+- Fixed: **Headings ignored `font-satoshi`** (`app/globals.css`). The global `h1`-`h6` WorkSans rule sat outside Tailwind's layers, so it beat every font class and the new pages showed WorkSans headings. It now lives in `@layer base`; headings without a font class are unchanged, and any heading that already carried a font class now gets that font.
+- Verification: `bun utils/site-locale.check.ts` passes, `bunx tsc --noEmit` clean, `bun run lint` clean, `bun run build` succeeds. Checked in the dev server at 1440px and 375px: brush strokes, patterns, logos and cards render, all headings use Satoshi, and no `/en`, `/pl`, quote or tracking page scrolls sideways at 375px. Not checked: address suggestions and live prices, because the API at `localhost:8000` was not running.
+
+## [1.51.0] - 2026-11-02 - Marketing site redesign
+
+Implements the "Momentum Logistics — Marketing Website" design canvas across the public site.
+
+- Added: **English and Polish pages under `/en` and `/pl`** (`app/(marketing)/[lang]/`, `utils/site-locale.ts`, `components/site/copy/{en,pl,index}.ts`). Home, Ship a parcel, Freight, Sustainability, About and FAQ, and Contact exist in both languages; the Polish dictionary is typed against the English one. `/` redirects to the saved language (`mls_lang` cookie) or the browser's (`proxy.ts`); `/about` and `/contact` redirect to `/en/...` (`next.config.ts`). Quote, tracking, auth and account screens stay unprefixed and English.
+- Added: **New pages** `/[lang]/ship`, `/[lang]/freight` (with the live freight enquiry form, `components/site/freight-enquiry-form.tsx`, posting to `POST /inquiries`) and `/[lang]/sustainability`.
+- Changed: **Header** (`components/layout/header*.tsx`). Services mega menu (Ship, Track, Freight, Sustainability), a language and region menu (language changes the URL and is remembered; region sets PLN or EUR in the country store), and a drop-down menu below `lg`. Footer rebuilt on navy with the new link columns and the current WhatsApp number.
+- Changed: **Home page** (`components/site/home/*`). Hero with a quote-or-track panel: "See prices" hands the countries and postcodes to `/shipping-estimate`, 70 kg or more points to the freight enquiry, tracking goes to `/track-shipment/<number>`.
+- Changed: **About** now holds the FAQ (`#faq`) with answers matching how the platform works (card or PayU, Fastest/Balanced/Economy); the old FAQ answers on `/legacy-home` are untouched.
+- Changed: **Instant quote** (`app/(marketing)/shipping-estimate/page.tsx`, `components/shipping/quote-results.tsx`). New page heading, selectable option cards with a "Continue to booking" bar, and a how-it-works strip. The form itself is unchanged.
+- Changed: **Public tracking** (`components/tracking/{track-shell,PublicTrackingResult}.tsx`). Inline search, four-stage progress, full event timeline, route summary, WhatsApp and email help prefilled with the tracking number, and "Copy share link".
+- Changed: **Contact form** submits through the visitor's mail app (`mailto:`) instead of doing nothing; office hours and the map are omitted until the client provides them.
+- Added: Theme tokens `brand-navy`, `brand-blue-dark`, `brand-blue-tint`, `navy-fg`, `navy-muted`, `eco-bg`, `warning-bg`, `warning-fg` (`app/globals.css`).
+- Removed: The previous landing sections, its EN/PL store and hook, the old About components, the header and footer country selectors, and the shipping hero (`components/landing/{landing-*,language-toggle,stat-tile,translations}`, `hooks/use-landing-copy.ts`, `store/language-store.ts`, `components/about/*`, `components/shared/{header-,}country-selector.tsx`, `components/shipping/shipping-{hero,process-showcase}.tsx`).
+- Notes: Design image slots without a supplied photo are left out (cards use icons instead); Google reviews, office hours and the map are not shown until the client supplies them; DPD shows as a wordmark until an official logo is provided.
+- Verification: `bunx tsc --noEmit` clean, `bun run lint` clean, `bun run build` succeeds with `/en` and `/pl` prerendered for all six pages. Not checked in a browser.
+
 ## [1.50.0] - 2026-10-17 - DPD
 
 - Added: **DPD shipments display like the other carriers** (`utils/carrier-branding.ts`). "DPD" in service names is shown as "MLS", as FedEx and DHL already are. DPD labels arrive as a PDF and download as `MLS-<TRACKING>.pdf` through the existing path (`utils/label-link.ts`).
