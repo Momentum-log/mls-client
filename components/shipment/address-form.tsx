@@ -135,7 +135,7 @@ export default function AddressForm({
                   value={formik.values.name}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="e.g. John Doe"
+                  placeholder="Full name"
                   className={
                     formik.touched.name && formik.errors.name
                       ? "border-red-500"
@@ -156,7 +156,7 @@ export default function AddressForm({
                   value={formik.values.company}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="Company Name"
+                  placeholder="Company name"
                 />
               </div>
             </div>

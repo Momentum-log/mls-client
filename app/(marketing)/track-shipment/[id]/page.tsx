@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import Button from "@/components/ui/button";
 import { trackShipment } from "@/api/shipments";
 import { deepTransformData } from "@/utils/data-transform";
-import { FiPackage, FiAlertCircle } from "react-icons/fi";
-import Container from "@/components/shared/container";
+import { FiAlertCircle } from "react-icons/fi";
+import TrackShell from "@/components/tracking/track-shell";
 import PublicTrackingResult from "@/components/tracking/PublicTrackingResult";
 import { TrackingResponse } from "@/types/shipping";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { buildUnpaidTrackingResponse } from "@/utils/tracking-fallbacks";
 
@@ -124,62 +122,23 @@ export default function TrackShipmentByIdPage() {
   }
 
   return (
-    <div className="bg-white min-h-screen">
-      {/* Hero Section (Simplified for ID view) */}
-      <section className="relative bg-brand-blue py-12 text-center overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-          <div className="absolute top-10 left-10 text-white text-9xl transform -rotate-12 opacity-20">
-            <FiPackage />
-          </div>
-          <div className="absolute bottom-10 right-10 text-brand-yellow text-9xl transform rotate-12 opacity-20">
-            <FiPackage />
-          </div>
+    <TrackShell
+      defaultValue={trackingId}
+      onTrack={(id) => router.push(`/track-shipment/${encodeURIComponent(id)}`)}
+    >
+      {loading ? (
+        <div className="h-64 animate-pulse rounded-3xl bg-white" />
+      ) : error ? (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-red-100 bg-white px-6 py-16 text-center">
+          <FiAlertCircle className="h-12 w-12 text-red-500" aria-hidden="true" />
+          <h2 className="m-0 font-satoshi text-xl font-bold text-gray-900">
+            Unable to track this parcel
+          </h2>
+          <p className="m-0 max-w-md text-gray-500">{error}</p>
         </div>
-
-        <Container>
-          <div className="relative z-10 max-w-3xl mx-auto px-4">
-            <Link
-              href="/track-shipment"
-              className="inline-flex items-center text-white/60 hover:text-white mb-6 transition-colors text-sm font-medium"
-            >
-              ← Track another package
-            </Link>
-            <h1 className="text-3xl md:text-4xl font-black text-white mb-2 font-work-sans">
-              Tracking <span className="text-brand-yellow">{trackingId}</span>
-            </h1>
-          </div>
-        </Container>
-      </section>
-
-      {/* Results Section */}
-      <section className="py-12 bg-gray-50 min-h-[400px]">
-        <Container>
-          <div className="max-w-4xl mx-auto">
-            {loading ? (
-              <div className="animate-pulse space-y-8">
-                <div className="h-48 bg-white rounded-3xl"></div>
-                <div className="grid grid-cols-2 gap-8">
-                  <div className="h-40 bg-white rounded-3xl"></div>
-                  <div className="h-40 bg-white rounded-3xl"></div>
-                </div>
-              </div>
-            ) : error ? (
-              <div className="text-center py-20 bg-white rounded-3xl border border-red-100 shadow-sm">
-                <FiAlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Unable to Track Package
-                </h3>
-                <p className="text-gray-500 max-w-md mx-auto mb-8">{error}</p>
-                <Link href="/track-shipment">
-                  <Button variant="outline">Try Another ID</Button>
-                </Link>
-              </div>
-            ) : trackingData ? (
-              <PublicTrackingResult data={trackingData} />
-            ) : null}
-          </div>
-        </Container>
-      </section>
-    </div>
+      ) : trackingData ? (
+        <PublicTrackingResult data={trackingData} />
+      ) : null}
+    </TrackShell>
   );
 }

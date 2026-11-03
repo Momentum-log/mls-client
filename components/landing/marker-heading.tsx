@@ -1,38 +1,45 @@
 import React, { FC } from "react";
 import { cn } from "@/utils/cn";
+import BrushHighlight, { type BrushHighlightProps } from "@/components/ui/brush-highlight";
 
 interface MarkerHeadingProps {
-  /** Text rendered in the normal weight, before the highlighted phrase. */
-  children: React.ReactNode;
-  /** Phrase that receives the yellow marker swipe. */
+  /** Text rendered before the highlighted phrase. */
+  children?: React.ReactNode;
+  /** Phrase that receives the brush stroke. */
   marker: string;
+  /** Text after the highlighted phrase, for headings where it sits mid-sentence. */
+  after?: string;
+  markerColor?: BrushHighlightProps["color"];
+  brush?: BrushHighlightProps["variant"];
+  thickness?: BrushHighlightProps["thickness"];
+  id?: string;
   className?: string;
 }
 
-/**
- * Display heading with Momentum's signature yellow marker swipe behind the
- * closing phrase.
- *
- * The swipe is an absolutely positioned block rotated -3deg and stacked beneath
- * the text — the same treatment used on the previous landing hero, extracted
- * here so both pages share one implementation.
- */
+/** Page H1 with Momentum's brush stroke behind one phrase. */
 const MarkerHeading: FC<MarkerHeadingProps> = ({
   children,
   marker,
+  after,
+  markerColor,
+  brush,
+  thickness,
+  id,
   className,
 }) => (
   <h1
+    id={id}
     className={cn(
       "font-satoshi font-black leading-[1.1] tracking-[-0.02em] text-foreground",
       className,
     )}
   >
-    {children}{" "}
-    <span className="relative inline-block">
-      <span className="absolute bottom-[0.05em] left-0 z-0 h-[0.34em] w-full -rotate-3 bg-brand-yellow" />
-      <span className="relative z-10">{marker}</span>
-    </span>
+    {children}
+    {children ? " " : null}
+    <BrushHighlight color={markerColor} variant={brush} thickness={thickness}>
+      {marker}
+    </BrushHighlight>
+    {after ? ` ${after}` : null}
   </h1>
 );
 

@@ -95,7 +95,7 @@ const EmailChangeModal: React.FC<EmailChangeModalProps> = ({
               type="email"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="new.email@example.com"
+              placeholder="New email address"
               disabled={isLoading}
               required
             />
@@ -123,7 +123,7 @@ const EmailChangeModal: React.FC<EmailChangeModalProps> = ({
             <Input
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="CODE"
+              placeholder="Verification code"
               className="text-center text-2xl tracking-[0.5em] font-black h-16 uppercase"
               maxLength={6}
               disabled={isLoading}

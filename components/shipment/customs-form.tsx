@@ -387,7 +387,7 @@ export default function CustomsForm({
                   value={formik.values.firstName}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="Item Description (e.g., Cotton T-Shirt)"
+                  placeholder="Item description"
                 />
                 {formik.touched.firstName && formik.errors.firstName && (
                   <span className={errorStyles}>
@@ -402,7 +402,7 @@ export default function CustomsForm({
                   value={formik.values.secondaryName}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="Sender Last Name"
+                  placeholder="Last name"
                 />
                 {formik.touched.secondaryName &&
                   formik.errors.secondaryName && (
@@ -439,7 +439,7 @@ export default function CustomsForm({
                   value={formik.values.grossWeight}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="e.g. 2.5"
+                  placeholder="Gross weight"
                 />
                 {formik.touched.grossWeight && formik.errors.grossWeight && (
                   <span className={errorStyles}>
@@ -458,7 +458,7 @@ export default function CustomsForm({
                     value={formik.values.nipNr}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="e.g. 1234567890"
+                    placeholder="NIP number"
                   />
                   {formik.touched.nipNr && formik.errors.nipNr && (
                     <span className={errorStyles}>
@@ -509,7 +509,7 @@ export default function CustomsForm({
                               value={item.nameEn}
                               disabled
                               className="bg-gray-100 opacity-70 cursor-not-allowed font-semibold text-gray-600"
-                              placeholder="Pre-populated from Package"
+                              placeholder="Item name"
                             />
                             {(touchedBag as ItemDetail).nameEn &&
                               (errorBag as ItemDetail).nameEn && (
@@ -538,7 +538,7 @@ export default function CustomsForm({
                               value={item.tariffCode}
                               onChange={formik.handleChange}
                               onBlur={formik.handleBlur}
-                              placeholder="e.g. 610910"
+                              placeholder="HS code"
                             />
                             {(touchedBag as ItemDetail).tariffCode &&
                               (errorBag as ItemDetail).tariffCode && (

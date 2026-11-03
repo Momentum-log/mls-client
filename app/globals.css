@@ -217,19 +217,29 @@
   --color-success: #16a34a;
   --color-success-bg: #dcfce7;
   --color-success-fg: #15803d;
+  --color-brand-blue-dark: #004a8d;
+  --color-brand-blue-tint: #eef5fc;
+  --color-brand-navy: #0b2540;
+  --color-navy-fg: #d6e6f5;
+  --color-navy-muted: #b8cde3;
+  --color-eco-bg: #f0fdf4;
+  --color-warning-bg: #fef3c7;
+  --color-warning-fg: #92400e;
   --font-sans: var(--font-satoshi);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-work-sans);
 }
 
-/* Heading Styles */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-work-sans);
+/* Heading Styles. In the base layer so a `font-*` class on a heading wins. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-work-sans);
+  }
 }
 
 body {
@@ -238,6 +248,72 @@ body {
 
 button {
   cursor: pointer !important;
+}
+
+/* Brush highlight (components/ui/brush-highlight.tsx): a painted stroke behind a word. */
+.brush {
+  position: relative;
+  display: inline-block;
+  isolation: isolate;
+  white-space: nowrap;
+}
+.brush__stroke {
+  position: absolute;
+  z-index: -1;
+  left: -0.12em;
+  bottom: 0.02em;
+  width: calc(100% + 0.3em);
+  height: var(--brush-height, 0.38em);
+  color: var(--brush-color, #fcb417);
+  overflow: visible;
+  pointer-events: none;
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+.brush__stroke--full {
+  bottom: -0.14em;
+  left: -0.3em;
+  width: calc(100% + 1.1em);
+  transform: rotate(-0.6deg);
+}
+.brush--flip .brush__stroke {
+  transform: rotate(-2deg) scaleX(-1);
+  transform-origin: center;
+}
+.brush--flip .brush__stroke--full {
+  transform: rotate(-0.6deg) scaleX(-1);
+}
+.brush__text {
+  position: relative;
+}
+
+/* Background patterns for sections and feature cards. Solid dots and lines, no colour gradients. */
+.pattern-dots {
+  background-image: radial-gradient(rgb(0 93 177 / 0.12) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.pattern-dots-light {
+  background-image: radial-gradient(rgb(255 255 255 / 0.12) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.pattern-grid {
+  background-image:
+    linear-gradient(rgb(0 93 177 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(0 93 177 / 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.pattern-grid-light {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.pattern-stripes-light {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.06) 0 2px,
+    transparent 2px 16px
+  );
 }
 
 /* Hide scrollbar while allowing scrolling */

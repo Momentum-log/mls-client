@@ -193,7 +193,7 @@ const ProfileForm = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               disabled={!isEditing || formik.isSubmitting}
-              placeholder="John Doe"
+              placeholder="Full name"
             />
             {formik.touched.name && formik.errors.name && (
               <p className="text-xs text-red-500">
@@ -274,7 +274,7 @@ const ProfileForm = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   disabled={!isEditing || formik.isSubmitting}
-                  placeholder="Kowalski Sp. z o.o."
+                  placeholder="Company name"
                 />
                 {formik.touched.companyName && formik.errors.companyName && (
                   <p className="text-xs text-red-500">
@@ -292,7 +292,7 @@ const ProfileForm = () => {
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   disabled={!isEditing || formik.isSubmitting}
-                  placeholder="1234563218"
+                  placeholder="NIP / Tax Number"
                 />
                 {formik.touched.nip && formik.errors.nip && (
                   <p className="text-xs text-red-500">
