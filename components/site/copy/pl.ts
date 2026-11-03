@@ -94,7 +94,7 @@ const pl: SiteCopy = {
         blurb: "Zielona logistyka z założenia",
         cta: "Nasze zobowiązania",
         detail:
-          "Optymalizacja tras, czystsza energia i mniej odpadów opakowaniowych, w drodze do bezemisyjnej floty.",
+          "Optymalizacja tras, czystsza energia i mniej odpadów opakowaniowych, w drodze do floty o niższej emisji.",
       },
     ],
   },
@@ -119,7 +119,8 @@ const pl: SiteCopy = {
     contact: "Kontakt",
     talkTitle: "Porozmawiaj z nami",
     whatsapp: "Napisz na WhatsApp",
-    copyright: "Momentum Logistics Service. Część grupy Applespeed.",
+    copyright: "Momentum Logistics Services Sp. z o.o.",
+    legalIds: "KRS 0001197173 · NIP 7272893300 · REGON 542847107",
     terms: "Regulamin",
     privacy: "Polityka prywatności",
     cookies: "Polityka cookies",
@@ -127,7 +128,7 @@ const pl: SiteCopy = {
 
   home: {
     eyebrow: "Paczki, ekspres i fracht z Polski",
-    title: "Wysyłaj na cały świat,",
+    title: "Wysyłaj globalnie,",
     marker: "w kilka minut.",
     intro:
       "Natychmiastowe ceny do ponad 150 krajów w sieciach DPD, FedEx i DHL. Rezerwuj, płać i śledź online, bez telefonów i ukrytych opłat.",
@@ -165,27 +166,6 @@ const pl: SiteCopy = {
         "Konto nie jest potrzebne. Zalogowani przechodzą od razu do pełnych szczegółów przesyłki.",
     },
     partnersTitle: "Doręczamy przez sieci, którym już ufasz",
-    shipEyebrow: "Wyślij paczkę",
-    shipTitle: "Każda przesyłka, jeden partner",
-    shipLink: "Jak działa wysyłka paczek",
-    shipCards: [
-      {
-        title: "Dokumenty",
-        text: "Umowy, certyfikaty i dokumenty, które muszą dotrzeć szybko.",
-      },
-      {
-        title: "Paczki i zamówienia internetowe",
-        text: "Kilka paczek w jednej rezerwacji, do 70 kg każda.",
-      },
-      {
-        title: "Bagaż i rzeczy osobiste",
-        text: "Przeprowadzka za granicę lub powrót do domu? Wyślij rzeczy od drzwi do drzwi.",
-      },
-      {
-        title: "Wysyłki firmowe",
-        text: "Konto firmowe z Twoim numerem NIP na każdym dokumencie.",
-      },
-    ],
     freightEyebrow: "Fracht i ciężkie przesyłki",
     freightTitle: "Większe ładunki wycenia człowiek, nie formularz",
     freightText:
@@ -231,7 +211,7 @@ const pl: SiteCopy = {
     greenEyebrow: "Ekologia",
     greenTitle: "Zielona logistyka z założenia",
     greenText:
-      "Przepisy to dla nas punkt wyjścia. Wbudowujemy ekologię w trasy, flotę i współpracę z partnerami, dążąc do bezemisyjnej floty, więc wysyłka z nami wspiera także Twoje cele ESG.",
+      "Przepisy to dla nas punkt wyjścia. Wbudowujemy ekologię w trasy, flotę i współpracę z partnerami, dążąc do floty o niższej emisji, więc wysyłka z nami wspiera także Twoje cele ESG.",
     greenImageAlt: "Ekologia w Momentum: czystsza logistyka",
     greenPoints: [
       "Mądrzejsze trasy, mniej emisji",
@@ -359,7 +339,7 @@ const pl: SiteCopy = {
     form: {
       eyebrow: "Zapytanie o fracht",
       title: "Powiedz nam, co trzeba przewieźć",
-      text: "Im więcej szczegółów o trasach, wolumenach i towarach, tym dokładniejsza wycena.",
+      text: "Im więcej szczegółów o trasach, wolumenach i towarach, tym szybsza wycena.",
       fullName: "Imię i nazwisko",
       companyName: "Nazwa firmy",
       email: "E-mail",
@@ -389,8 +369,9 @@ const pl: SiteCopy = {
     intro:
       "Spełnianie przepisów środowiskowych to dla nas punkt wyjścia, a nie cel. Wbudowujemy ekologię w planowanie tras, zarządzanie flotą i wybór partnerów, więc każda przesyłka z Momentum wspiera także Twoje raportowanie ESG.",
     ambitionEyebrow: "Nasz cel",
-    ambitionTitle: "Bezemisyjna flota",
-    ambitionText: "Z mierzalnymi celami wyznaczanymi i raportowanymi co roku.",
+    ambitionTitle: "Dążymy do floty o niższej emisji",
+    ambitionText:
+      "Podejmujemy praktyczne kroki, by ograniczać emisje: od mądrzejszych tras, które zmniejszają liczbę pustych kilometrów, po wybór wydajnych pojazdów i partnerów, którzy podzielają nasze cele. Wraz z rozwojem floty wyznaczymy jasne cele i będziemy dzielić się postępami.",
     imageAlt: "Ekologia w Momentum: czystsza logistyka",
     commitmentsTitle: "Cztery zobowiązania",
     commitments: [
@@ -429,7 +410,6 @@ const pl: SiteCopy = {
       "Wysyłka kiedyś oznaczała ukryte opłaty, telefony i osobny portal dla każdego przewoźnika. Zbudowaliśmy Momentum, aby każdy, od studenta wysyłającego walizkę do domu po rozwijający się sklep internetowy, mógł zobaczyć cenę, zarezerwować i śledzić przesyłkę w jednym miejscu.",
       "Za platformą stoją doświadczeni logistycy. Każde konto firmowe ma stałego opiekuna, a nasz dział frachtu osobiście wycenia większe ładunki.",
     ],
-    group: "Momentum jest częścią grupy Applespeed.",
     filmLabel: "Film o firmie: nasza flota i obsługa frachtu",
     filmPlay: "Odtwórz film o firmie",
     filmPause: "Pauza",
@@ -440,7 +420,7 @@ const pl: SiteCopy = {
     whyTitle: "Dlaczego istniejemy",
     missionLabel: "Misja",
     mission:
-      "Zapewniać firmom każdej wielkości płynną, niezawodną logistykę i usuwać bariery w handlu międzynarodowym.",
+      "Być najbardziej zaufanym zintegrowanym partnerem logistycznym w Europie i usuwać bariery w handlu międzynarodowym.",
     visionLabel: "Wizja",
     vision:
       "Świat, w którym odległość nie ogranicza możliwości, a towary przemieszczają się swobodnie, sprawnie i ekologicznie ponad granicami.",
@@ -471,7 +451,7 @@ const pl: SiteCopy = {
         title: "Partnerstwo",
         text: "Trwałe relacje, nie tylko przewożenie paczek.",
       },
-      { title: "Globalne myślenie", text: "Myśl globalnie, działaj lokalnie." },
+      { title: "Niezawodność", text: "Myśl globalnie, działaj lokalnie." },
     ],
     faqEyebrow: "FAQ",
     faqTitle: "Najczęściej zadawane pytania",

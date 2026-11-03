@@ -84,7 +84,6 @@ export default async function AboutPage({ params }: LocalePageProps) {
                 {paragraph}
               </p>
             ))}
-            <p className="m-0 text-[15px] font-medium leading-[22px] text-gray-500">{t.group}</p>
           </div>
         </SiteContainer>
       </section>

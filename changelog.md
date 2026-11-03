@@ -5,6 +5,14 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.52.5] - 2026-11-03 - Client copy feedback
+
+- Changed: Home hero reads "Ship globally, in minutes." (Polish "Wysyłaj globalnie"). Freight form hint says "the faster the quote". Mission reads "To be Europe's most trusted integrated logistics partner, taking the friction out of global trade." The "Global mindset" value is now "Reliability". Sustainability replaces the net-zero claim with "Working towards a lower-emission fleet" and the supplied text; the home, header and sustainability intro copy no longer promise net-zero.
+- Added: Footer shows "Momentum Logistics Services Sp. z o.o." with KRS 0001197173, NIP 7272893300 and REGON 542847107.
+- Removed: Home "Every shipment, one partner" section (`HomeShip`) and its copy. All "part of the Applespeed group" wording, in the footer and on the About page.
+- Files changed: `components/site/copy/{en,pl}.ts`, `components/site/home/home-sections.tsx`, `components/layout/footer.tsx`, `app/(marketing)/[lang]/{page.tsx,about/page.tsx}`.
+- Verification: `bun run build` succeeds, `bunx tsc --noEmit` and `bun run lint` clean, `bun utils/site-locale.check.ts` passes. Pages not reviewed in the browser. The Polish wording is my translation and has not been reviewed by a native speaker.
+
 ## [1.52.4] - 2026-11-03 - Descriptive placeholders
 
 - Changed: **Form placeholders say what to type, not a sample value.** Names read "Full name", "First name" or "Last name" instead of "John Doe"; emails "Email address" instead of `name@example.com`; passwords "Password" and "Confirm password" instead of dots; company and tax fields "Company name" and "NIP / Tax Number"; codes "6-digit code" or "Verification code"; tracking fields "Tracking number"; addresses "Street address", "Country", "State or province", "City", "Postal code"; package and customs fields "Length", "Width", "Height", "Weight", "Value", "Item description", "Gross weight", "NIP number", "HS code"; the phone input "Phone number"; pickup notes "Notes for the driver". Covers sign-in, registration, password reset, account and verification modals, the address, package, customs and pickup forms, the instant quote, tracking, the 404 page and the home quick quote (`app/auth/forgot-password/page.tsx`, `app/(marketing)/shipping-estimate/page.tsx`, `components/{auth,account,shipment,shared,tracking,ui}/*`, `components/site/copy/{en,pl}.ts`).

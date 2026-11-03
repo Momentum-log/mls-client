@@ -95,7 +95,7 @@ const en = {
         blurb: "Greener logistics, by design",
         cta: "Our commitments",
         detail:
-          "Route optimisation, cleaner energy and less packaging waste, towards a net-zero fleet.",
+          "Route optimisation, cleaner energy and less packaging waste, towards a lower-emission fleet.",
       },
     ],
   },
@@ -120,7 +120,8 @@ const en = {
     contact: "Contact us",
     talkTitle: "Talk to us",
     whatsapp: "WhatsApp us",
-    copyright: "Momentum Logistics Service. Part of the Applespeed group.",
+    copyright: "Momentum Logistics Services Sp. z o.o.",
+    legalIds: "KRS 0001197173 · NIP 7272893300 · REGON 542847107",
     terms: "Terms and Conditions",
     privacy: "Privacy Policy",
     cookies: "Cookie Policy",
@@ -128,7 +129,7 @@ const en = {
 
   home: {
     eyebrow: "Parcels, express and freight from Poland",
-    title: "Ship anywhere in the world,",
+    title: "Ship globally,",
     marker: "in minutes.",
     intro:
       "Instant prices to 150+ countries through the DPD, FedEx and DHL networks. Book, pay and track online, with no calls and no hidden fees.",
@@ -166,27 +167,6 @@ const en = {
         "No account needed. Signed in? You will go straight to the full shipment page.",
     },
     partnersTitle: "Delivered through the networks you already trust",
-    shipEyebrow: "Ship a parcel",
-    shipTitle: "Every shipment, one partner",
-    shipLink: "How parcel shipping works",
-    shipCards: [
-      {
-        title: "Documents",
-        text: "Contracts, certificates and paperwork that need to arrive fast.",
-      },
-      {
-        title: "Parcels and online orders",
-        text: "Several boxes in one booking, up to 70 kg each.",
-      },
-      {
-        title: "Luggage and personal items",
-        text: "Moving abroad or heading home? Send it ahead, door to door.",
-      },
-      {
-        title: "Business shipping",
-        text: "A company account with your NIP / Tax Number on every document.",
-      },
-    ],
     freightEyebrow: "Freight and heavy shipments",
     freightTitle: "Bigger loads get a person, not a form",
     freightText:
@@ -226,7 +206,7 @@ const en = {
     greenEyebrow: "Sustainability",
     greenTitle: "Greener logistics, by design",
     greenText:
-      "Regulations are our baseline. We build sustainability into routes, fleet and partners, working towards a net-zero fleet, so shipping with us supports your own ESG goals.",
+      "Regulations are our baseline. We build sustainability into routes, fleet and partners, working towards a lower-emission fleet, so shipping with us supports your own ESG goals.",
     greenImageAlt: "Momentum sustainability: cleaner logistics",
     greenPoints: [
       "Smarter routes, lower emissions",
@@ -353,7 +333,7 @@ const en = {
     form: {
       eyebrow: "Freight enquiry",
       title: "Tell us what needs to move",
-      text: "The more detail you give about routes, volumes and goods, the sharper the quote.",
+      text: "The more detail you give about routes, volumes and goods, the faster the quote.",
       fullName: "Full name",
       companyName: "Company name",
       email: "Email",
@@ -383,8 +363,9 @@ const en = {
     intro:
       "Meeting eco regulations is our baseline, not our goal. We build sustainability into how we plan routes, run our fleet and choose our partners, so every shipment with Momentum also supports your own ESG reporting.",
     ambitionEyebrow: "Our ambition",
-    ambitionTitle: "A net-zero fleet",
-    ambitionText: "With measurable targets set and reported every year.",
+    ambitionTitle: "Working towards a lower-emission fleet",
+    ambitionText:
+      "We are taking practical steps to cut emissions, from smarter routes that reduce empty kilometres to choosing efficient vehicles and partners who share our goals. As our fleet grows, we will set clear targets and share our progress.",
     imageAlt: "Momentum sustainability: cleaner logistics",
     commitmentsTitle: "Four commitments",
     commitments: [
@@ -423,7 +404,6 @@ const en = {
       "Shipping used to mean hidden fees, phone calls and a different portal for every carrier. We built Momentum so anyone, from a student sending a suitcase home to a growing online shop, can see the price, book it and follow it in one place.",
       "Behind the platform are experienced logistics people. Every business account gets a named contact, and our freight team quotes the bigger loads personally.",
     ],
-    group: "Momentum is part of the Applespeed group.",
     filmLabel: "Company film: our fleet and freight handling",
     filmPlay: "Play the company film",
     filmPause: "Pause",
@@ -434,7 +414,7 @@ const en = {
     whyTitle: "Why we exist",
     missionLabel: "Mission",
     mission:
-      "Give businesses of every size seamless, reliable logistics, and take the friction out of global trade.",
+      "To be Europe's most trusted integrated logistics partner, taking the friction out of global trade.",
     visionLabel: "Vision",
     vision:
       "A world where distance is no barrier to opportunity, and goods move freely, efficiently and sustainably across borders.",
@@ -462,7 +442,7 @@ const en = {
         title: "Partnership",
         text: "Lasting relationships, not just moving boxes.",
       },
-      { title: "Global mindset", text: "Think big, act locally." },
+      { title: "Reliability", text: "Think big, act locally." },
     ],
     faqEyebrow: "FAQ",
     faqTitle: "Frequently asked questions",

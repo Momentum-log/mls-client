@@ -1,13 +1,7 @@
 import React, { FC } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import {
-  ArrowRight,
-  Briefcase,
   Check,
-  FileText,
-  Luggage,
-  Package,
   Plane,
   Ship,
   Truck,
@@ -21,7 +15,6 @@ import {
 } from "@/components/site/ui";
 import type { SiteCopy } from "@/components/site/copy";
 import Rings from "@/components/site/rings";
-import { cn } from "@/utils/cn";
 import { localePath, type SiteLocale } from "@/utils/site-locale";
 
 type HomeCopy = SiteCopy["home"];
@@ -65,95 +58,6 @@ export const HomePartners: FC<{ copy: HomeCopy }> = ({ copy }) => (
           </li>
         ))}
       </ul>
-    </SiteContainer>
-  </section>
-);
-
-const SHIP_CARDS = [
-  {
-    icon: FileText,
-    card: "pattern-dots-light bg-brand-blue text-white",
-    tile: "bg-white/15 text-brand-yellow",
-    text: "text-navy-fg",
-  },
-  {
-    icon: Package,
-    card: "bg-brand-yellow text-foreground",
-    tile: "bg-white/60 text-brand-blue",
-    text: "text-gray-800",
-  },
-  {
-    icon: Luggage,
-    card: "pattern-dots bg-brand-blue-tint text-gray-900",
-    tile: "bg-white text-brand-blue",
-    text: "text-gray-600",
-  },
-  {
-    icon: Briefcase,
-    card: "pattern-grid-light bg-brand-navy text-white",
-    tile: "bg-white/10 text-brand-yellow",
-    text: "text-navy-muted",
-  },
-];
-
-/** What Momentum ships: four coloured cards, each leading to the instant quote. */
-export const HomeShip: FC<SectionProps> = ({ copy, locale }) => (
-  <section aria-labelledby="ship-h" className="pattern-grid">
-    <SiteContainer className="flex flex-col gap-8 pb-12 pt-6 lg:gap-10 lg:pb-24 lg:pt-[72px]">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <SectionHeading id="ship-h" eyebrow={copy.shipEyebrow} title={copy.shipTitle} />
-        <Link
-          href={localePath(locale, "/ship")}
-          className="text-[15px] font-bold text-brand-blue no-underline hover:text-brand-blue-dark"
-        >
-          {copy.shipLink} →
-        </Link>
-      </div>
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-5">
-        {copy.shipCards.map((card, index) => {
-          const style = SHIP_CARDS[index];
-          const Icon = style.icon;
-          return (
-            <Link
-              key={card.title}
-              href="/shipping-estimate"
-              className={cn(
-                "group relative isolate flex min-h-[180px] flex-col gap-2 overflow-hidden rounded-2xl p-4 no-underline transition-transform duration-200 hover:-translate-y-1 lg:min-h-[260px] lg:gap-3 lg:rounded-3xl lg:p-6",
-                style.card,
-              )}
-            >
-              <Icon
-                aria-hidden="true"
-                strokeWidth={1.2}
-                className="pointer-events-none absolute -bottom-6 -right-6 -z-10 h-28 w-28 opacity-15 transition-transform duration-300 group-hover:rotate-6 lg:h-40 lg:w-40"
-              />
-              <span className="flex items-center justify-between">
-                <span
-                  className={cn(
-                    "inline-flex h-10 w-10 items-center justify-center rounded-xl lg:h-12 lg:w-12",
-                    style.tile,
-                  )}
-                >
-                  <Icon className="h-5 w-5 lg:h-6 lg:w-6" aria-hidden="true" />
-                </span>
-                <span className="font-satoshi text-sm font-extrabold opacity-60">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-              </span>
-              <h3 className="m-0 mt-auto font-satoshi text-base font-bold leading-[22px] lg:text-xl lg:leading-7">
-                {card.title}
-              </h3>
-              <p className={cn("m-0 text-[13px] leading-[18px] lg:text-[15px] lg:leading-[22px]", style.text)}>
-                {card.text}
-              </p>
-              <ArrowRight
-                aria-hidden="true"
-                className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1"
-              />
-            </Link>
-          );
-        })}
-      </div>
     </SiteContainer>
   </section>
 );
