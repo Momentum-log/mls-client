@@ -5,6 +5,13 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.55.0] - 2026-11-04 - Fixed currency on Momentum routes
+
+**Requires:** `mls-server` with the Momentum charge-currency change.
+
+- Changed: **the booking form says "Charged in EUR on this route"** instead of the currency switcher when the server prices a route in a fixed currency (Momentum's Nigeria <-> EU lanes, set by staff per lane). Prices and checkout already use the rate's own currency.
+- Verification: eslint on the changed file and `tsc` (only the existing SVG import errors).
+
 ## [1.54.1] - 2026-11-04 - Clear message when Nigeria <-> EU has no price
 
 **Requires:** `mls-server` with the Nigeria-EU fall-through fix.
