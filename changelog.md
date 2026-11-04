@@ -5,6 +5,16 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.56.0] - 2026-11-04 - Pickup or drop-off before paying, and labels our team prepares
+
+**Requires:** `mls-server` with manual fulfilment (migration `20261104120000_add_manual_fulfilment`).
+
+- Added: **"How will the parcel leave you?" on the review step, before paying** (`components/shipment/handover-choice.tsx`, `utils/handover.ts`). Drop it off, or courier pickup with a day (next working day onwards) and a ready-from / until window. Sent with the booking as `handover`; changing the service asks again.
+- Added: **"Label Being Prepared"** for the new status `LABEL_PENDING` (our team books the label on the carrier's site). The shipment page, the payment success page and the status badge say "Our team is preparing your label", with no promised hours, and that it will be emailed. The shipment counts as active and can still be cancelled.
+- Added: **staff-booked handover** (`handoverMode: "MANUAL"`): after our team uploads the label, the shipment page shows the booked pickup day and window, or the drop-off instruction, instead of the carrier booking buttons.
+- Changed: the review step says the label is emailed after payment instead of asking for the handover afterwards.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors) and `bun run lint`.
+
 ## [1.55.0] - 2026-11-04 - Fixed currency on Momentum routes
 
 **Requires:** `mls-server` with the Momentum charge-currency change.
