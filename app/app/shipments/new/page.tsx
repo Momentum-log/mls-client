@@ -118,6 +118,13 @@ export default function NewShipmentPage() {
     () => (estimate?.errors ? deepTransformData(estimate.errors) : undefined),
     [estimate],
   );
+  // Some routes (Momentum's Nigeria <-> EU) are always charged in one
+  // currency set by staff; the server prices them in it whatever we ask for,
+  // so the switcher would do nothing there.
+  const laneCurrency = useMemo(() => {
+    const quoted = Object.values(estimate?.tiers ?? {})[0]?.currency;
+    return quoted && quoted !== activeCurrency ? quoted : null;
+  }, [estimate, activeCurrency]);
   const displaySelectedTier = useMemo(
     () => (selectedTier ? deepTransformData(selectedTier) : null),
     [selectedTier],
@@ -847,11 +854,17 @@ export default function NewShipmentPage() {
               isCompleted={completedSteps.includes("service")}
               onEdit={() => setExpandedSection("service")}
               headerAction={
-                <CurrencySwitcher
-                  currency={activeCurrency}
-                  onChange={setCurrency}
-                  disabled={isFetchingRates}
-                />
+                laneCurrency ? (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Charged in {laneCurrency} on this route
+                  </span>
+                ) : (
+                  <CurrencySwitcher
+                    currency={activeCurrency}
+                    onChange={setCurrency}
+                    disabled={isFetchingRates}
+                  />
+                )
               }
               summary={
                 displaySelectedTier && (
