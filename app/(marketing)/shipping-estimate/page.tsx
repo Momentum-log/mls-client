@@ -525,6 +525,7 @@ function ShippingEstimateContent() {
                   <QuoteResults
                     rates={estimateData?.rates}
                     errors={estimateData?.errors}
+                    notices={estimateData?.notices}
                     hasResult={!!estimateData}
                     isLoading={isEstimating}
                     onReviewAddresses={() =>

@@ -12,6 +12,8 @@ export interface ServiceLink {
   blurb: string;
   cta: string;
   detail: string;
+  /** Preview photo for the mega menu, with the crop that suits it. */
+  image: { src: string; position: string };
 }
 
 const ICONS: Record<ServiceId, LucideIcon> = {
@@ -21,18 +23,43 @@ const ICONS: Record<ServiceId, LucideIcon> = {
   sustainability: Leaf,
 };
 
-/** Tracking is English only, so it has no language segment. */
-const hrefFor = (id: ServiceId, locale: SiteLocale): string =>
-  id === "track" ? "/track-shipment" : localePath(locale, `/${id}`);
+/**
+ * Only two photos exist so far: Ship, Track and Freight share the hero photo
+ * with different crops until dedicated ones arrive.
+ */
+const IMAGES: Record<ServiceId, ServiceLink["image"]> = {
+  ship: { src: "/images/landing/hero-truck.jpg", position: "30% 50%" },
+  track: { src: "/images/landing/hero-truck.jpg", position: "85% 40%" },
+  freight: { src: "/images/landing/hero-truck.jpg", position: "60% 75%" },
+  sustainability: { src: "/images/landing/sustainability.jpg", position: "50% 50%" },
+};
+
+/**
+ * Tracking is English only, so it has no language segment. "Ship a parcel"
+ * takes signed-in customers straight to the booking form; guests see the
+ * Ship page first (D11).
+ */
+const hrefFor = (id: ServiceId, locale: SiteLocale, signedIn: boolean): string => {
+  if (id === "track") return "/track-shipment";
+  if (id === "ship" && signedIn) return "/app/shipments/new";
+  return localePath(locale, `/${id}`);
+};
 
 /** The four Services entries shown in the mega menu and the mobile menu. */
 export const getServiceLinks = (
   copy: SiteCopy,
   locale: SiteLocale,
+  signedIn: boolean,
 ): ServiceLink[] =>
   copy.nav.serviceItems.map((item) => {
     const id = item.id as ServiceId;
-    return { ...item, id, icon: ICONS[id], href: hrefFor(id, locale) };
+    return {
+      ...item,
+      id,
+      icon: ICONS[id],
+      image: IMAGES[id],
+      href: hrefFor(id, locale, signedIn),
+    };
   });
 
 const SERVICE_PATHS = [

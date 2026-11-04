@@ -5,6 +5,36 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.54.0] - 2026-11-04 - Momentum notes and HS code suggestions
+
+**Requires:** `mls-server` with PR #25.
+
+- Added (W5): **"Express shipping also available".** When a quote carries an `EXPRESS_ON_REQUEST` notice (Momentum's door-to-door Nigeria <-> EU lanes while express has no price), the booking form, the Ship page and the home quote panel show the message with a contact button. Once staff price express it arrives as a normal rate and the note disappears.
+- Added (W5): **"Request a quote" over 30 kg.** Above Momentum's online weight limit (30 kg by default) the server returns no price and a `QUOTE_ON_REQUEST` notice, so those screens show a "Request a quote on WhatsApp" button instead of "No services available". Notices carry `contactUrl` (a WhatsApp chat with support, prefilled with weight and route); without it the buttons go to the contact page.
+- Added (W7): **HS code suggestions while typing.** The customs tariff code field is now a combobox. Type a product word (3+ characters) or the first digits of a code (2+), or focus the empty field to search the item's description. Debounced 400 ms, cached per term, superseded requests cancelled. Only full 8-digit CN codes can be picked; headings show as context. A picked code shows "Suggested code ... please check it matches your item" with a link to its details. Keyboard: arrows, Enter, Escape. "Suggest a code" (MTech) stays.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors, which `next build` resolves), eslint on the changed files, and `bun run build` pass. Not yet checked against a running server.
+
+## [1.53.0] - 2026-11-04 - November backlog, Phase A
+
+- Changed (W1): **Global wording.** "From Poland" and "across Europe" became "worldwide" / "ship globally" in the page titles, descriptions, home, ship, freight and about copy (EN and PL). The Łódź address and the mission line stay. The home subheading names "partners you already trust" instead of carriers, and the stat reads "trusted courier networks". The partner logos stay.
+- Changed (W1): **Insurance copy matches reality.** The Ship card reads "Insurance is your choice" and the FAQ explains that parcels travel under the carrier's standard liability.
+- Changed (W1): **About page.** The "Old way" card is gone and "The Momentum way" spans the full width. The nine confirmed values sit in a 3 x 3 grid, each with a one-line description for review.
+- Added (W1): **Photos in the Services menu.** The preview card shows a photo per service (Ship, Track and Freight share the hero photo with different crops until new photos arrive).
+- Changed (W1): **"Ship a parcel" for signed-in customers** goes straight to `/app/shipments/new`. Guests still see the Ship page (D11).
+- Fixed (W2a): quotes no longer send the placeholder contact "Estimate". A contact is sent only when it is real.
+- Changed (W2c): when the server refuses a quote because the packages changed (`409`, `reason: QUOTE_MISMATCH`), the booking form says so and fetches prices again.
+- Added (W2b): receipts say "Paid by Momentum staff" when staff recorded the payment (`paidBy: "STAFF"`).
+- Added (W4): **Price breakdown.** Rates, tiers and the checkout summary show the VAT-inclusive total, with carrier price, "Handling fee", VAT (with its rate), any pickup fee and the total. Without a `breakdown` from the server the old net price is shown as before.
+- Verification: `bunx tsc --noEmit`, `bun run lint`, `bun utils/site-locale.check.ts` and `bun run build` pass. The About page and Services menu were checked in a headless browser. The Polish wording has not been reviewed by a native speaker.
+
+## [1.52.5] - 2026-11-03 - Client copy feedback
+
+- Changed: Home hero reads "Ship globally, in minutes." (Polish "Wysyłaj globalnie"). Freight form hint says "the faster the quote". Mission reads "To be Europe's most trusted integrated logistics partner, taking the friction out of global trade." The "Global mindset" value is now "Reliability". Sustainability replaces the net-zero claim with "Working towards a lower-emission fleet" and the supplied text; the home, header and sustainability intro copy no longer promise net-zero.
+- Added: Footer shows "Momentum Logistics Services Sp. z o.o." with KRS 0001197173, NIP 7272893300 and REGON 542847107.
+- Removed: Home "Every shipment, one partner" section (`HomeShip`) and its copy. All "part of the Applespeed group" wording, in the footer and on the About page.
+- Files changed: `components/site/copy/{en,pl}.ts`, `components/site/home/home-sections.tsx`, `components/layout/footer.tsx`, `app/(marketing)/[lang]/{page.tsx,about/page.tsx}`.
+- Verification: `bun run build` succeeds, `bunx tsc --noEmit` and `bun run lint` clean, `bun utils/site-locale.check.ts` passes. Pages not reviewed in the browser. The Polish wording is my translation and has not been reviewed by a native speaker.
+
 ## [1.52.4] - 2026-11-03 - Descriptive placeholders
 
 - Changed: **Form placeholders say what to type, not a sample value.** Names read "Full name", "First name" or "Last name" instead of "John Doe"; emails "Email address" instead of `name@example.com`; passwords "Password" and "Confirm password" instead of dots; company and tax fields "Company name" and "NIP / Tax Number"; codes "6-digit code" or "Verification code"; tracking fields "Tracking number"; addresses "Street address", "Country", "State or province", "City", "Postal code"; package and customs fields "Length", "Width", "Height", "Weight", "Value", "Item description", "Gross weight", "NIP number", "HS code"; the phone input "Phone number"; pickup notes "Notes for the driver". Covers sign-in, registration, password reset, account and verification modals, the address, package, customs and pickup forms, the instant quote, tracking, the 404 page and the home quick quote (`app/auth/forgot-password/page.tsx`, `app/(marketing)/shipping-estimate/page.tsx`, `components/{auth,account,shipment,shared,tracking,ui}/*`, `components/site/copy/{en,pl}.ts`).

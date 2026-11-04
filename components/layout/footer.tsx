@@ -116,8 +116,11 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-wrap justify-between gap-4 border-t border-white/10 pt-6 text-[13px] leading-5 text-navy-muted">
-          <span>
-            © {new Date().getFullYear()} {t.copyright}
+          <span className="flex flex-col gap-0.5">
+            <span>
+              © {new Date().getFullYear()} {t.copyright}
+            </span>
+            <span>{t.legalIds}</span>
           </span>
           <div className="flex flex-wrap gap-5">
             <Link href="/terms" className="text-navy-muted no-underline hover:text-white">

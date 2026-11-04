@@ -113,7 +113,13 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
     setError(null);
     const size = PRESETS.find((p) => p.id === preset) ?? PRESETS[1];
     const payload = getEstimatePayload(
-      { ...toLocation(pickup), email: email.trim(), phoneNumber: phone },
+      {
+        ...toLocation(pickup),
+        email: email.trim(),
+        phoneNumber: phone,
+        // A signed-in customer is the sender; a guest gives no name (W2a).
+        personName: user?.name,
+      },
       toLocation(dropoff),
       [
         {
@@ -273,6 +279,7 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
             <QuoteResults
               rates={quote?.rates}
               errors={quote?.errors}
+              notices={quote?.notices}
               hasResult={!!quote}
               isLoading={isPending}
               onReviewAddresses={() => reset()}

@@ -3,6 +3,7 @@ import { AxiosError } from "axios";
 import {
   cancelShipment,
   matchHsCodes,
+  suggestHsCodes,
   getShippingQuote,
   getShippingEstimate,
   getShipmentHistory,
@@ -231,5 +232,26 @@ export const useShipmentStats = () => {
 export const useMatchHsCodes = () => {
   return useMutation<HsCodeMatchResponse, Error, HsCodeMatchRequest>({
     mutationFn: matchHsCodes,
+  });
+};
+
+/** True when `q` is long enough to search: 2+ digits, or 3+ characters. */
+export const isHsSearchable = (q: string) => {
+  const term = q.trim();
+  return /^[\d\s.]+$/.test(term) ? term.replace(/\D/g, "").length >= 2 : term.length >= 3;
+};
+
+/**
+ * HS code suggestions for an already debounced term. Each term is cached, and
+ * a superseded request is cancelled through the query's abort signal.
+ */
+export const useSuggestHsCodes = (q: string, lang: "en" | "pl") => {
+  const term = q.trim();
+  return useQuery({
+    queryKey: ["hs-code-suggest", lang, term.toLowerCase()],
+    queryFn: ({ signal }) => suggestHsCodes(term, lang, signal),
+    enabled: isHsSearchable(term),
+    staleTime: 60 * 60 * 1000,
+    retry: false,
   });
 };

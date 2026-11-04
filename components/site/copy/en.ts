@@ -10,19 +10,19 @@
 const en = {
   meta: {
     home: {
-      title: "Momentum Logistics - Ship parcels and freight from Poland",
+      title: "Momentum Logistics - Ship parcels and freight globally",
       description:
-        "Instant prices to 150+ countries through the DPD, FedEx and DHL networks. Book, pay and track online. Road, sea and air freight quoted within 24 hours.",
+        "Instant prices to 150+ countries through partners you already trust. Book, pay and track online. Road, sea and air freight quoted within 24 hours.",
     },
     ship: {
       title: "Ship a parcel - Momentum Logistics",
       description:
-        "Domestic and international parcel shipping from Poland. Compare Fastest, Balanced and Economy prices, pay online and hand your parcel over your way.",
+        "Domestic and international parcel shipping worldwide. Compare Fastest, Balanced and Economy prices, pay online and hand your parcel over your way.",
     },
     freight: {
       title: "Freight - Momentum Logistics",
       description:
-        "Road, sea and air freight across Europe and beyond, quoted by a specialist within 24 hours.",
+        "Road, sea and air freight worldwide, quoted by a specialist within 24 hours.",
     },
     sustainability: {
       title: "Sustainability - Momentum Logistics",
@@ -32,7 +32,7 @@ const en = {
     about: {
       title: "About us and FAQ - Momentum Logistics",
       description:
-        "Momentum Logistics is a logistics company in Łódź, Poland, shipping parcels and freight to 150+ countries.",
+        "Momentum Logistics is a logistics company in Łódź, shipping parcels and freight worldwide to 150+ countries.",
     },
     contact: {
       title: "Contact - Momentum Logistics",
@@ -95,7 +95,7 @@ const en = {
         blurb: "Greener logistics, by design",
         cta: "Our commitments",
         detail:
-          "Route optimisation, cleaner energy and less packaging waste, towards a net-zero fleet.",
+          "Route optimisation, cleaner energy and less packaging waste, towards a lower-emission fleet.",
       },
     ],
   },
@@ -120,18 +120,19 @@ const en = {
     contact: "Contact us",
     talkTitle: "Talk to us",
     whatsapp: "WhatsApp us",
-    copyright: "Momentum Logistics Service. Part of the Applespeed group.",
+    copyright: "Momentum Logistics Services Sp. z o.o.",
+    legalIds: "KRS 0001197173 · NIP 7272893300 · REGON 542847107",
     terms: "Terms and Conditions",
     privacy: "Privacy Policy",
     cookies: "Cookie Policy",
   },
 
   home: {
-    eyebrow: "Parcels, express and freight from Poland",
-    title: "Ship anywhere in the world,",
+    eyebrow: "Parcels, express and freight, shipped globally",
+    title: "Ship globally,",
     marker: "in minutes.",
     intro:
-      "Instant prices to 150+ countries through the DPD, FedEx and DHL networks. Book, pay and track online, with no calls and no hidden fees.",
+      "Instant prices to 150+ countries through partners you already trust. Book, pay and track online, with no calls and no hidden fees.",
     ctaQuote: "Get an instant quote",
     ctaFreight: "Freight enquiry",
     heroImageAlt: "A Momentum truck on the road",
@@ -166,34 +167,13 @@ const en = {
         "No account needed. Signed in? You will go straight to the full shipment page.",
     },
     partnersTitle: "Delivered through the networks you already trust",
-    shipEyebrow: "Ship a parcel",
-    shipTitle: "Every shipment, one partner",
-    shipLink: "How parcel shipping works",
-    shipCards: [
-      {
-        title: "Documents",
-        text: "Contracts, certificates and paperwork that need to arrive fast.",
-      },
-      {
-        title: "Parcels and online orders",
-        text: "Several boxes in one booking, up to 70 kg each.",
-      },
-      {
-        title: "Luggage and personal items",
-        text: "Moving abroad or heading home? Send it ahead, door to door.",
-      },
-      {
-        title: "Business shipping",
-        text: "A company account with your NIP / Tax Number on every document.",
-      },
-    ],
     freightEyebrow: "Freight and heavy shipments",
     freightTitle: "Bigger loads get a person, not a form",
     freightText:
       "Road, sea and air freight, and anything over 70 kg. A freight specialist replies within 24 hours with a tailored quote.",
     freightCta: "Request a freight quote",
     freightCards: [
-      { title: "Road freight", text: "Full and part truck loads across Europe." },
+      { title: "Road freight", text: "Full and part truck loads, worldwide." },
       { title: "Sea freight", text: "Full containers and shared groupage loads." },
       {
         title: "Air freight",
@@ -219,14 +199,14 @@ const en = {
     factsLabel: "Momentum at a glance",
     facts: [
       { value: "150+", label: "countries we deliver to" },
-      { value: "3", label: "courier networks: DPD, FedEx, DHL" },
+      { value: "3", label: "trusted courier networks" },
       { value: "24 h", label: "freight quote reply" },
       { value: "2", label: "prices in PLN or EUR" },
     ],
     greenEyebrow: "Sustainability",
     greenTitle: "Greener logistics, by design",
     greenText:
-      "Regulations are our baseline. We build sustainability into routes, fleet and partners, working towards a net-zero fleet, so shipping with us supports your own ESG goals.",
+      "Regulations are our baseline. We build sustainability into routes, fleet and partners, working towards a lower-emission fleet, so shipping with us supports your own ESG goals.",
     greenImageAlt: "Momentum sustainability: cleaner logistics",
     greenPoints: [
       "Smarter routes, lower emissions",
@@ -247,7 +227,7 @@ const en = {
     title: "Sending a parcel abroad, as easy as",
     marker: "sending an email.",
     intro:
-      "Domestic and international shipping from Poland. Compare prices instantly, pay online, and hand your parcel over the way that suits you.",
+      "Domestic and international shipping, worldwide. Compare prices instantly, pay online, and hand your parcel over the way that suits you.",
     ctaQuote: "Get an instant quote",
     ctaTrack: "Track a parcel",
     tiersEyebrow: "You choose price and speed",
@@ -296,8 +276,9 @@ const en = {
       "A named contact at Momentum",
     ],
     bizCta: "Create a company account",
-    insuredTitle: "Insured as standard",
-    insuredText: "Every package carries standard insurance by default.",
+    insuredTitle: "Insurance is your choice",
+    insuredText:
+      "Parcels travel under the carrier's standard liability. If your items are valuable, insure them before you ship.",
     customsTitle: "Customs, guided",
     customsText:
       "For international parcels we help you describe each item and suggest an HS code.",
@@ -312,7 +293,7 @@ const en = {
     title: "Freight, quoted by people who move it",
     marker: "every day.",
     intro:
-      "Road, sea and air freight across Europe and beyond, with a named contact from your first enquiry. Tell us what you move and a specialist replies within 24 hours.",
+      "Road, sea and air freight worldwide, with a named contact from your first enquiry. Tell us what you move and a specialist replies within 24 hours.",
     heroImageAlt: "A Momentum freight truck on the road",
     cta: "Request a freight quote",
     whatsapp: "WhatsApp the freight team",
@@ -320,7 +301,7 @@ const en = {
     modes: [
       {
         title: "Road freight",
-        text: "Full truck loads (FTL) and less-than-truck-load (LTL) across Poland and Europe.",
+        text: "Full truck loads (FTL) and less-than-truck-load (LTL), worldwide.",
       },
       {
         title: "Sea freight",
@@ -353,7 +334,7 @@ const en = {
     form: {
       eyebrow: "Freight enquiry",
       title: "Tell us what needs to move",
-      text: "The more detail you give about routes, volumes and goods, the sharper the quote.",
+      text: "The more detail you give about routes, volumes and goods, the faster the quote.",
       fullName: "Full name",
       companyName: "Company name",
       email: "Email",
@@ -383,8 +364,9 @@ const en = {
     intro:
       "Meeting eco regulations is our baseline, not our goal. We build sustainability into how we plan routes, run our fleet and choose our partners, so every shipment with Momentum also supports your own ESG reporting.",
     ambitionEyebrow: "Our ambition",
-    ambitionTitle: "A net-zero fleet",
-    ambitionText: "With measurable targets set and reported every year.",
+    ambitionTitle: "Working towards a lower-emission fleet",
+    ambitionText:
+      "We are taking practical steps to cut emissions, from smarter routes that reduce empty kilometres to choosing efficient vehicles and partners who share our goals. As our fleet grows, we will set clear targets and share our progress.",
     imageAlt: "Momentum sustainability: cleaner logistics",
     commitmentsTitle: "Four commitments",
     commitments: [
@@ -416,14 +398,13 @@ const en = {
     title: "Your trusted global logistics",
     marker: "partner.",
     intro:
-      "We are a logistics company based in Łódź, Poland, helping people and businesses of every size ship parcels and freight to 150+ countries, with speed, transparency and reliability as standard.",
+      "We are a logistics company based in Łódź, helping people and businesses of every size ship parcels and freight worldwide, to 150+ countries, with speed, transparency and reliability as standard.",
     storyEyebrow: "Our story",
     storyTitle: "Logistics for everyone, from Łódź outwards",
     story: [
       "Shipping used to mean hidden fees, phone calls and a different portal for every carrier. We built Momentum so anyone, from a student sending a suitcase home to a growing online shop, can see the price, book it and follow it in one place.",
       "Behind the platform are experienced logistics people. Every business account gets a named contact, and our freight team quotes the bigger loads personally.",
     ],
-    group: "Momentum is part of the Applespeed group.",
     filmLabel: "Company film: our fleet and freight handling",
     filmPlay: "Play the company film",
     filmPause: "Pause",
@@ -434,16 +415,10 @@ const en = {
     whyTitle: "Why we exist",
     missionLabel: "Mission",
     mission:
-      "Give businesses of every size seamless, reliable logistics, and take the friction out of global trade.",
+      "To be Europe's most trusted integrated logistics partner, taking the friction out of global trade.",
     visionLabel: "Vision",
     vision:
       "A world where distance is no barrier to opportunity, and goods move freely, efficiently and sustainably across borders.",
-    oldTitle: "The old way",
-    oldPoints: [
-      "Hidden fees that appear after you book",
-      "Missed deadlines and silence",
-      "A different portal for every carrier",
-    ],
     newTitle: "The Momentum way",
     newPoints: [
       "Instant, transparent prices before you commit",
@@ -453,16 +428,21 @@ const en = {
     valuesEyebrow: "Our values",
     valuesTitle: "What we stand for",
     values: [
-      { title: "Trust first", text: "Transparent pricing and promises we keep." },
       {
-        title: "Innovation",
-        text: "Technology that removes steps, not adds them.",
+        title: "Customer success",
+        text: "Your shipment arriving on time is how we measure ourselves.",
       },
+      { title: "Integrity", text: "Honest prices and promises we keep." },
+      { title: "Reliability", text: "We do what we say, every time it ships." },
+      { title: "Innovation", text: "Technology that removes steps, not adds them." },
+      { title: "Partnership", text: "Lasting relationships, not just moving boxes." },
+      { title: "Safety", text: "Careful handling for every parcel and every person." },
+      { title: "Sustainability", text: "Smarter routes and fewer emissions on every lane." },
       {
-        title: "Partnership",
-        text: "Lasting relationships, not just moving boxes.",
+        title: "Operational excellence",
+        text: "Clear processes that make every handover smooth.",
       },
-      { title: "Global mindset", text: "Think big, act locally." },
+      { title: "Transparency", text: "You see the price, the fees and the status." },
     ],
     faqEyebrow: "FAQ",
     faqTitle: "Frequently asked questions",
@@ -483,7 +463,7 @@ const en = {
       },
       {
         q: "Is my shipment insured?",
-        a: "Every package carries standard insurance by default.",
+        a: "Momentum does not insure parcels; the choice is yours. Parcels travel under the carrier's standard liability. If your items are valuable, insure them before you ship.",
       },
       {
         q: "How does my parcel get to the courier?",

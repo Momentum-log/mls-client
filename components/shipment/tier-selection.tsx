@@ -5,6 +5,7 @@ import Button from "@/components/ui/button";
 import { FiTruck, FiClock, FiAlertTriangle, FiZap, FiAward, FiTag } from "react-icons/fi";
 import {
   CarrierError,
+  QuoteNotice,
   ShippingTier,
   ShippingTiers,
   TIER_KEYS,
@@ -12,12 +13,16 @@ import {
 } from "@/types/shipping";
 import { formatCurrency } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
+import { customerTotal } from "@/utils/price";
+import QuoteNotices, { needsQuoteRequest } from "@/components/shipping/quote-notices";
 
 interface TierSelectionProps {
   tiers?: ShippingTiers;
   /** Present only to distinguish "no service on this route" from "no tiers". */
   hasRates: boolean;
   errors?: CarrierError[];
+  /** Shown under the options, e.g. "express on request". */
+  notices?: QuoteNotice[];
   selectedRoutingRef: string | null;
   onSelect: (tier: ShippingTier) => void;
   isLoading: boolean;
@@ -67,6 +72,7 @@ export default function TierSelection({
   tiers,
   hasRates,
   errors,
+  notices,
   selectedRoutingRef,
   onSelect,
   isLoading,
@@ -89,6 +95,20 @@ export default function TierSelection({
     key,
     tier: tiers![key]!,
   }));
+
+  if (available.length === 0 && needsQuoteRequest(notices)) {
+    // Over Momentum's online weight limit: no price on purpose, ask instead.
+    return (
+      <div className="space-y-4 py-6">
+        <QuoteNotices notices={notices} />
+        <div className="flex justify-between items-center pt-8 border-t border-gray-100">
+          <Button type="button" variant="ghost" size="lg" onClick={onBack} className="text-gray-500 font-bold">
+            Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (available.length === 0) {
     // Three distinct failures, and conflating them sends the customer to fix
@@ -185,12 +205,12 @@ export default function TierSelection({
                 <div className="text-right">
                   <div className="text-xl font-black text-gray-900 tabular-nums">
                     {formatCurrency(
-                      tier.actualPrice,
+                      customerTotal(tier),
                       tier.currency as SupportedCurrency,
                     )}
                   </div>
                   <div className="text-[9px] font-black text-brand-blue uppercase tracking-widest mt-0.5">
-                    Est. Total
+                    {tier.breakdown ? "Total incl. VAT" : "Est. Total"}
                   </div>
                 </div>
               </div>
@@ -221,6 +241,8 @@ export default function TierSelection({
           );
         })}
       </div>
+
+      <QuoteNotices notices={notices} />
 
       <div className="flex justify-between items-center pt-8 border-t border-gray-100">
         <Button

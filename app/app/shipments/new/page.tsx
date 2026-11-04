@@ -46,6 +46,7 @@ import { AccountVerificationModal } from "@/components/shipment/account-verifica
 import { useVerification } from "@/hooks/shipments/useVerification";
 import { extractApiError } from "@/utils/error-handler";
 import useUserCountryCode from "@/hooks/use-user-country-code";
+import { customerTotal } from "@/utils/price";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -278,6 +279,8 @@ export default function NewShipmentPage() {
         stateOrProvinceCode: sender.stateOrProvinceCode || "",
         postalCode: sender.postalCode,
         streetLines: [sender.street],
+        personName: sender.name,
+        phoneNumber: sender.phone,
       },
       {
         city: recipient.city,
@@ -285,6 +288,8 @@ export default function NewShipmentPage() {
         stateOrProvinceCode: recipient.stateOrProvinceCode || "",
         postalCode: recipient.postalCode,
         streetLines: [recipient.street],
+        personName: recipient.name,
+        phoneNumber: recipient.phone,
       },
       formattedPackages,
       getOrSetGuestId(),
@@ -549,6 +554,7 @@ export default function NewShipmentPage() {
         let msg = "Unable to create shipment. Please try again.";
         let isAddressRequired = false;
         let status: number | undefined;
+        let reason: string | undefined;
 
         if (error && typeof error === "object" && "response" in error) {
           const res = (
@@ -558,12 +564,14 @@ export default function NewShipmentPage() {
                 data?: {
                   error?: string;
                   details?: string;
+                  reason?: string;
                 };
               };
             }
           ).response;
 
           status = res?.status;
+          reason = res?.data?.reason;
 
           if (res?.data?.error) msg = res.data.error;
           isAddressRequired = res?.data?.error === "ADDRESS_REQUIRED";
@@ -596,10 +604,13 @@ export default function NewShipmentPage() {
           invalidateQuote();
           setIsSummaryOpen(false);
           setExpandedSection("service");
+          // W2c: the quote was priced for different packages.
+          const packagesChanged = reason === "QUOTE_MISMATCH";
           addToast({
-            title: "Prices Have Changed",
-            message:
-              "This quote has expired. We're fetching current prices — please choose again.",
+            title: packagesChanged ? "Packages Changed" : "Prices Have Changed",
+            message: packagesChanged
+              ? "Your packages changed since this price was quoted. We're fetching prices for the current packages — please choose again."
+              : "This quote has expired. We're fetching current prices — please choose again.",
             type: "error",
           });
           return;
@@ -848,7 +859,7 @@ export default function NewShipmentPage() {
                       </p>
                       <p className="text-xs text-brand-blue font-bold tracking-tight">
                         {formatCurrency(
-                          displaySelectedTier.actualPrice,
+                          customerTotal(displaySelectedTier),
                           displaySelectedTier.currency as SupportedCurrency,
                         )}
                       </p>
@@ -861,6 +872,7 @@ export default function NewShipmentPage() {
                 tiers={displayTiers}
                 hasRates={(estimate?.rates?.length ?? 0) > 0}
                 errors={displayErrors}
+                notices={estimate?.notices}
                 selectedRoutingRef={selectedTier?.routingRef ?? null}
                 onSelect={handleTierSelect}
                 isLoading={isFetchingRates}

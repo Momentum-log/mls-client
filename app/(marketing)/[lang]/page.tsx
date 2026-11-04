@@ -7,7 +7,6 @@ import {
   HomeFreight,
   HomeHowItWorks,
   HomePartners,
-  HomeShip,
   HomeSustainability,
 } from "@/components/site/home/home-sections";
 
@@ -30,7 +29,6 @@ export default async function HomePage({ params }: LocalePageProps) {
     <main className="bg-white font-satoshi text-foreground">
       <HomeHero copy={home} locale={locale} />
       <HomePartners copy={home} />
-      <HomeShip copy={home} locale={locale} />
       <HomeFreight copy={home} locale={locale} />
       <HomeHowItWorks copy={home} />
       <HomeFacts copy={home} />

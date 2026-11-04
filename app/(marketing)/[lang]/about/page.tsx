@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import {
+  BadgeCheck,
   Check,
-  Globe,
+  Cog,
+  Eye,
   Handshake,
-  Hourglass,
+  HardHat,
+  Leaf,
   Lightbulb,
   Rocket,
-  ShieldCheck,
+  Smile,
   Target,
   Telescope,
-  X,
+  Timer,
   type LucideIcon,
 } from "lucide-react";
 import Eyebrow from "@/components/landing/eyebrow";
@@ -36,14 +39,18 @@ export async function generateMetadata({
   return copy.meta.about;
 }
 
-const VALUE_ICONS = [ShieldCheck, Lightbulb, Handshake, Globe];
+/** One icon per value, in copy order (nine values, a 3 x 3 grid). */
+const VALUE_ICONS = [Smile, BadgeCheck, Timer, Lightbulb, Handshake, HardHat, Leaf, Cog, Eye];
 
-const VALUE_STYLES = [
+const CARD_STYLES = [
   { card: "pattern-dots bg-brand-blue-tint text-gray-900", tile: "bg-white text-brand-blue", text: "text-gray-600" },
   { card: "bg-brand-yellow text-foreground", tile: "bg-white/60 text-brand-blue", text: "text-gray-800" },
   { card: "pattern-dots bg-eco-bg text-gray-900", tile: "bg-white text-success-fg", text: "text-gray-600" },
   { card: "pattern-grid-light bg-brand-navy text-white", tile: "bg-white/10 text-brand-yellow", text: "text-navy-muted" },
 ];
+
+/** The four card styles in a rotation that never repeats along a row or column of 3. */
+const VALUE_STYLES = [0, 1, 2, 3, 0, 1, 2, 3, 0].map((i) => CARD_STYLES[i]);
 
 function CardIcon({ icon: Icon, className }: { icon: LucideIcon; className: string }) {
   return (
@@ -84,7 +91,6 @@ export default async function AboutPage({ params }: LocalePageProps) {
                 {paragraph}
               </p>
             ))}
-            <p className="m-0 text-[15px] font-medium leading-[22px] text-gray-500">{t.group}</p>
           </div>
         </SiteContainer>
       </section>
@@ -107,19 +113,7 @@ export default async function AboutPage({ params }: LocalePageProps) {
               <p className="m-0 text-xl font-medium leading-[30px] lg:text-2xl lg:leading-[34px]">{t.vision}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="pattern-grid flex flex-col gap-4 rounded-3xl border border-gray-200 bg-gray-100 p-8">
-              <CardIcon icon={Hourglass} className="bg-white text-gray-500" />
-              <h3 className="m-0 font-satoshi text-xl font-bold leading-7 text-gray-500">{t.oldTitle}</h3>
-              <ul className="m-0 flex list-none flex-col gap-3 p-0 text-base font-medium leading-6 text-gray-600">
-                {t.oldPoints.map((point) => (
-                  <li key={point} className="flex gap-2.5">
-                    <X className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="grid grid-cols-1 gap-4">
             <div className="pattern-dots flex flex-col gap-4 rounded-3xl border-2 border-brand-blue bg-brand-blue-tint p-8">
               <CardIcon icon={Rocket} className="bg-brand-blue text-white" />
               <h3 className="m-0 font-satoshi text-xl font-bold leading-7 text-brand-blue">{t.newTitle}</h3>
@@ -139,7 +133,7 @@ export default async function AboutPage({ params }: LocalePageProps) {
       <section aria-labelledby="val-h">
         <SiteContainer className="flex flex-col gap-8 py-16 lg:py-24">
           <SectionHeading id="val-h" eyebrow={t.valuesEyebrow} title={t.valuesTitle} />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {t.values.map((value, index) => {
               const Icon = VALUE_ICONS[index];
               return (
