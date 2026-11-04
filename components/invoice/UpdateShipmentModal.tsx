@@ -244,6 +244,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
         stateOrProvinceCode: pickupAddress.stateOrProvinceCode || "",
         postalCode: pickupAddress.postalCode,
         streetLines: pickupAddress.streetLines || [pickupAddress.street || ""],
+        personName: pickupAddress.contact?.personName || pickupAddress.name,
+        phoneNumber: pickupAddress.contact?.phoneNumber || pickupAddress.phone,
       },
       {
         city: dropoffAddress.city || "",
@@ -253,6 +255,8 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
         streetLines: dropoffAddress.streetLines || [
           dropoffAddress.street || "",
         ],
+        personName: dropoffAddress.contact?.personName || dropoffAddress.name,
+        phoneNumber: dropoffAddress.contact?.phoneNumber || dropoffAddress.phone,
       },
       formattedPackages,
       getOrSetGuestId(),

@@ -278,6 +278,8 @@ export default function NewShipmentPage() {
         stateOrProvinceCode: sender.stateOrProvinceCode || "",
         postalCode: sender.postalCode,
         streetLines: [sender.street],
+        personName: sender.name,
+        phoneNumber: sender.phone,
       },
       {
         city: recipient.city,
@@ -285,6 +287,8 @@ export default function NewShipmentPage() {
         stateOrProvinceCode: recipient.stateOrProvinceCode || "",
         postalCode: recipient.postalCode,
         streetLines: [recipient.street],
+        personName: recipient.name,
+        phoneNumber: recipient.phone,
       },
       formattedPackages,
       getOrSetGuestId(),

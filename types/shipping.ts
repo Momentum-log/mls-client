@@ -132,9 +132,18 @@ export interface EstimatePackageDetails {
  * Payload for getting shipping rates/estimates.
  * 'customs' is REQUIRED for international routes.
  */
+/** A quote needs no contact; when one is known it may be sent (W2a). */
+export interface EstimateContact {
+  personName: string;
+  phoneNumber?: string;
+  email?: string;
+}
+
+export type EstimateAddress = Omit<Address, "contact"> & { contact?: EstimateContact };
+
 export interface ShippingEstimatePayload {
-  pickup: Address;
-  dropoff: Address;
+  pickup: EstimateAddress;
+  dropoff: EstimateAddress;
   packages: EstimatePackageDetails[];
   guestId?: string; // Keep consistent with docs
   /** Optional ISO 3166-1 alpha-2 country code for currency determination (e.g., 'PL', 'DE') */

@@ -1,5 +1,10 @@
 import { ShippingEstimateResponse } from "@/types/shipping";
-import { CustomsData, ShippingEstimatePayload } from "@/types/shipping";
+import {
+  CustomsData,
+  EstimateAddress,
+  EstimateContact,
+  ShippingEstimatePayload,
+} from "@/types/shipping";
 import {
   deepBrandCarrierDisplay,
   toDisplayCarrierName,
@@ -84,6 +89,8 @@ interface EstimateLocationInput {
   streetLines?: string[];
   phoneNumber?: string;
   email?: string;
+  /** A real contact name, when known. Without one no contact is sent (W2a). */
+  personName?: string;
 }
 
 interface EstimatePackageInput {
@@ -111,12 +118,39 @@ export const checkIfInternational = (
 };
 
 /**
- * Constructs the payload for getting shipping estimates.
- * Follows the standard structure: pickup, dropoff, packages, guestId.
- * Strips contact and customs information.
+ * The contact for one end of a quote: only a real one. Carriers do not price
+ * by contact, and a placeholder name ("Estimate") used to end up in the
+ * stored quotes staff read on the Leads page (W2a).
+ */
+const contactFor = (location: EstimateLocationInput): EstimateContact | undefined =>
+  location.personName?.trim()
+    ? {
+        personName: location.personName.trim(),
+        ...(location.phoneNumber ? { phoneNumber: location.phoneNumber } : {}),
+        ...(location.email ? { email: location.email } : {}),
+      }
+    : undefined;
+
+const toEstimateAddress = (location: EstimateLocationInput): EstimateAddress => {
+  const contact = contactFor(location);
+  return {
+    countryCode: location.countryCode,
+    stateOrProvinceCode: location.stateOrProvinceCode || "",
+    city: location.city,
+    postalCode: location.postalCode || "00000",
+    streetLines: location.streetLines || [],
+    residential: false,
+    ...(contact ? { contact } : {}),
+  };
+};
+
+/**
+ * Constructs the payload for getting shipping estimates: pickup, dropoff,
+ * packages, guestId. A contact is included only when a real name is known;
+ * the sender's email and phone always go top-level for lead capture.
  *
- * @param pickup - Pickup location details (countryCode, stateOrProvinceCode, city)
- * @param dropoff - Dropoff location details (countryCode, stateOrProvinceCode, city)
+ * @param pickup - Pickup location (and the sender's contact, when known)
+ * @param dropoff - Dropoff location (and the recipient's contact, when known)
  * @param packages - Array of package weights and dimensions
  * @param guestId - Guest identifier for non-authenticated users
  * @param userCountryCode - Optional ISO 3166-1 alpha-2 country code for currency
@@ -131,34 +165,8 @@ export const getEstimatePayload = (
   currency?: string,
 ): ShippingEstimatePayload => {
   return {
-    pickup: {
-      countryCode: pickup.countryCode,
-      stateOrProvinceCode: pickup.stateOrProvinceCode || "",
-      city: pickup.city,
-      postalCode: pickup.postalCode || "00000",
-      streetLines: pickup.streetLines || [],
-      residential: false,
-      contact: {
-        personName: "Estimate",
-        companyName: "",
-        phoneNumber: pickup.phoneNumber || "",
-        email: pickup.email || "",
-      },
-    },
-    dropoff: {
-      countryCode: dropoff.countryCode,
-      stateOrProvinceCode: dropoff.stateOrProvinceCode || "",
-      city: dropoff.city,
-      postalCode: dropoff.postalCode || "00000",
-      streetLines: dropoff.streetLines || [],
-      residential: false,
-      contact: {
-        personName: "Estimate",
-        companyName: "",
-        phoneNumber: "",
-        email: "",
-      },
-    },
+    pickup: toEstimateAddress(pickup),
+    dropoff: toEstimateAddress(dropoff),
     packages: packages,
     guestId,
     ...(userCountryCode && { userCountryCode }),
