@@ -54,7 +54,7 @@ const Header: FC = () => {
     };
   }, [open]);
 
-  const services = getServiceLinks(copy, locale);
+  const services = getServiceLinks(copy, locale, isAuthenticated);
   const links = [
     { href: localePath(locale, "/about"), label: copy.nav.about },
     { href: `${localePath(locale, "/about")}#faq`, label: copy.nav.faq },

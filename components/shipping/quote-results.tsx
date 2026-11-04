@@ -8,6 +8,8 @@ import Button from "@/components/ui/button";
 import { formatCurrency } from "@/utils/currency-formatter";
 import type { SupportedCurrency } from "@/types/country";
 import type { Rate } from "@/types/shipping";
+import { customerTotal } from "@/utils/price";
+import PriceBreakdown from "./price-breakdown";
 
 interface QuoteResultsProps {
   rates?: Rate[];
@@ -21,7 +23,7 @@ interface QuoteResultsProps {
 const panelClass = "rounded-3xl border border-gray-200 bg-white p-5 sm:p-6";
 
 const priceOf = (rate: Rate): string =>
-  formatCurrency(rate.actualPrice, (rate.currency as SupportedCurrency) || "EUR");
+  formatCurrency(customerTotal(rate), (rate.currency as SupportedCurrency) || "EUR");
 
 /**
  * Shipping options for the instant quote: pick one, then continue to booking.
@@ -149,6 +151,7 @@ const QuoteResults: FC<QuoteResultsProps> = ({
           <span className="text-sm font-medium text-gray-500">Selected: {chosen.serviceName}</span>
           <span className="text-[28px] font-extrabold leading-[34px] text-gray-900">{priceOf(chosen)}</span>
         </div>
+        {chosen.breakdown && <PriceBreakdown breakdown={chosen.breakdown} />}
         <span className="text-[13px] leading-[18px] text-gray-500">
           Booking needs a free account. Prices are held for a limited time, then refreshed.
         </span>

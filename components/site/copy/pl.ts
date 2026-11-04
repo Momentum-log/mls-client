@@ -9,19 +9,19 @@ import type { SiteCopy } from "./en";
 const pl: SiteCopy = {
   meta: {
     home: {
-      title: "Momentum Logistics - Paczki i fracht z Polski",
+      title: "Momentum Logistics - Paczki i fracht na cały świat",
       description:
-        "Natychmiastowe ceny do ponad 150 krajów w sieciach DPD, FedEx i DHL. Rezerwuj, płać i śledź online. Fracht drogowy, morski i lotniczy z wyceną w 24 godziny.",
+        "Natychmiastowe ceny do ponad 150 krajów przez partnerów, którym już ufasz. Rezerwuj, płać i śledź online. Fracht drogowy, morski i lotniczy z wyceną w 24 godziny.",
     },
     ship: {
       title: "Wyślij paczkę - Momentum Logistics",
       description:
-        "Krajowe i międzynarodowe przesyłki z Polski. Porównaj ceny Najszybsza, Zrównoważona i Ekonomiczna, zapłać online i nadaj paczkę tak, jak Ci wygodnie.",
+        "Krajowe i międzynarodowe przesyłki na cały świat. Porównaj ceny Najszybsza, Zrównoważona i Ekonomiczna, zapłać online i nadaj paczkę tak, jak Ci wygodnie.",
     },
     freight: {
       title: "Fracht - Momentum Logistics",
       description:
-        "Fracht drogowy, morski i lotniczy w Europie i na świecie, wyceniany przez specjalistę w ciągu 24 godzin.",
+        "Fracht drogowy, morski i lotniczy na całym świecie, wyceniany przez specjalistę w ciągu 24 godzin.",
     },
     sustainability: {
       title: "Ekologia - Momentum Logistics",
@@ -31,7 +31,7 @@ const pl: SiteCopy = {
     about: {
       title: "O nas i FAQ - Momentum Logistics",
       description:
-        "Momentum Logistics to firma logistyczna z Łodzi, wysyłająca paczki i fracht do ponad 150 krajów.",
+        "Momentum Logistics to firma logistyczna z Łodzi, wysyłająca paczki i fracht na cały świat, do ponad 150 krajów.",
     },
     contact: {
       title: "Kontakt - Momentum Logistics",
@@ -127,11 +127,11 @@ const pl: SiteCopy = {
   },
 
   home: {
-    eyebrow: "Paczki, ekspres i fracht z Polski",
+    eyebrow: "Paczki, ekspres i fracht na cały świat",
     title: "Wysyłaj globalnie,",
     marker: "w kilka minut.",
     intro:
-      "Natychmiastowe ceny do ponad 150 krajów w sieciach DPD, FedEx i DHL. Rezerwuj, płać i śledź online, bez telefonów i ukrytych opłat.",
+      "Natychmiastowe ceny do ponad 150 krajów przez partnerów, którym już ufasz. Rezerwuj, płać i śledź online, bez telefonów i ukrytych opłat.",
     ctaQuote: "Natychmiastowa wycena",
     ctaFreight: "Zapytanie o fracht",
     heroImageAlt: "Ciężarówka Momentum w trasie",
@@ -174,7 +174,7 @@ const pl: SiteCopy = {
     freightCards: [
       {
         title: "Fracht drogowy",
-        text: "Całopojazdowy i drobnicowy transport w całej Europie.",
+        text: "Całopojazdowy i drobnicowy transport na całym świecie.",
       },
       {
         title: "Fracht morski",
@@ -204,7 +204,7 @@ const pl: SiteCopy = {
     factsLabel: "Momentum w liczbach",
     facts: [
       { value: "150+", label: "krajów, do których doręczamy" },
-      { value: "3", label: "sieci kurierskie: DPD, FedEx, DHL" },
+      { value: "3", label: "zaufane sieci kurierskie" },
       { value: "24 h", label: "odpowiedź z wyceną frachtu" },
       { value: "2", label: "waluty cen: PLN lub EUR" },
     ],
@@ -233,7 +233,7 @@ const pl: SiteCopy = {
     title: "Wysłać paczkę za granicę jest tak łatwo, jak",
     marker: "wysłać e-mail.",
     intro:
-      "Krajowe i międzynarodowe przesyłki z Polski. Porównaj ceny od razu, zapłać online i nadaj paczkę tak, jak Ci wygodnie.",
+      "Krajowe i międzynarodowe przesyłki na cały świat. Porównaj ceny od razu, zapłać online i nadaj paczkę tak, jak Ci wygodnie.",
     ctaQuote: "Natychmiastowa wycena",
     ctaTrack: "Śledź przesyłkę",
     tiersEyebrow: "Ty wybierasz cenę i szybkość",
@@ -282,8 +282,9 @@ const pl: SiteCopy = {
       "Stały opiekun w Momentum",
     ],
     bizCta: "Załóż konto firmowe",
-    insuredTitle: "Standardowe ubezpieczenie",
-    insuredText: "Każda paczka jest domyślnie objęta standardowym ubezpieczeniem.",
+    insuredTitle: "Ubezpieczenie to Twój wybór",
+    insuredText:
+      "Paczki podróżują w ramach standardowej odpowiedzialności przewoźnika. Jeśli wysyłasz cenne przedmioty, ubezpiecz je przed nadaniem.",
     customsTitle: "Odprawa celna z pomocą",
     customsText:
       "Przy paczkach międzynarodowych pomagamy opisać każdy przedmiot i podpowiadamy kod HS.",
@@ -298,7 +299,7 @@ const pl: SiteCopy = {
     title: "Fracht wyceniany przez ludzi, którzy przewożą go",
     marker: "na co dzień.",
     intro:
-      "Fracht drogowy, morski i lotniczy w Europie i na świecie, ze stałym opiekunem od pierwszego zapytania. Powiedz nam, co przewozisz, a specjalista odpowie w ciągu 24 godzin.",
+      "Fracht drogowy, morski i lotniczy na całym świecie, ze stałym opiekunem od pierwszego zapytania. Powiedz nam, co przewozisz, a specjalista odpowie w ciągu 24 godzin.",
     heroImageAlt: "Ciężarówka frachtowa Momentum w trasie",
     cta: "Zapytaj o wycenę frachtu",
     whatsapp: "Napisz do działu frachtu na WhatsApp",
@@ -306,7 +307,7 @@ const pl: SiteCopy = {
     modes: [
       {
         title: "Fracht drogowy",
-        text: "Ładunki całopojazdowe (FTL) i drobnicowe (LTL) w Polsce i Europie.",
+        text: "Ładunki całopojazdowe (FTL) i drobnicowe (LTL) na całym świecie.",
       },
       {
         title: "Fracht morski",
@@ -403,7 +404,7 @@ const pl: SiteCopy = {
     title: "Twój zaufany globalny partner",
     marker: "logistyczny.",
     intro:
-      "Jesteśmy firmą logistyczną z Łodzi. Pomagamy ludziom i firmom każdej wielkości wysyłać paczki i fracht do ponad 150 krajów, a szybkość, przejrzystość i niezawodność to u nas standard.",
+      "Jesteśmy firmą logistyczną z Łodzi. Pomagamy ludziom i firmom każdej wielkości wysyłać paczki i fracht na cały świat, do ponad 150 krajów, a szybkość, przejrzystość i niezawodność to u nas standard.",
     storyEyebrow: "Nasza historia",
     storyTitle: "Logistyka dla każdego, z Łodzi w świat",
     story: [
@@ -424,12 +425,6 @@ const pl: SiteCopy = {
     visionLabel: "Wizja",
     vision:
       "Świat, w którym odległość nie ogranicza możliwości, a towary przemieszczają się swobodnie, sprawnie i ekologicznie ponad granicami.",
-    oldTitle: "Stary sposób",
-    oldPoints: [
-      "Ukryte opłaty, które pojawiają się po rezerwacji",
-      "Niedotrzymane terminy i brak kontaktu",
-      "Osobny portal dla każdego przewoźnika",
-    ],
     newTitle: "Sposób Momentum",
     newPoints: [
       "Natychmiastowe, przejrzyste ceny przed decyzją",
@@ -440,18 +435,20 @@ const pl: SiteCopy = {
     valuesTitle: "Za czym stoimy",
     values: [
       {
-        title: "Zaufanie przede wszystkim",
-        text: "Przejrzyste ceny i dotrzymane obietnice.",
+        title: "Sukces klienta",
+        text: "Przesyłka doręczona na czas to miara naszej pracy.",
       },
+      { title: "Uczciwość", text: "Uczciwe ceny i dotrzymane obietnice." },
+      { title: "Niezawodność", text: "Robimy to, co obiecujemy, przy każdej przesyłce." },
+      { title: "Innowacyjność", text: "Technologia, która usuwa kroki, a nie je dodaje." },
+      { title: "Partnerstwo", text: "Trwałe relacje, nie tylko przewożenie paczek." },
+      { title: "Bezpieczeństwo", text: "Staranna obsługa każdej paczki i każdej osoby." },
+      { title: "Zrównoważony rozwój", text: "Mądrzejsze trasy i mniej emisji na każdej trasie." },
       {
-        title: "Innowacyjność",
-        text: "Technologia, która usuwa kroki, a nie je dodaje.",
+        title: "Doskonałość operacyjna",
+        text: "Jasne procesy, dzięki którym każde przekazanie przebiega sprawnie.",
       },
-      {
-        title: "Partnerstwo",
-        text: "Trwałe relacje, nie tylko przewożenie paczek.",
-      },
-      { title: "Niezawodność", text: "Myśl globalnie, działaj lokalnie." },
+      { title: "Przejrzystość", text: "Widzisz cenę, opłaty i status przesyłki." },
     ],
     faqEyebrow: "FAQ",
     faqTitle: "Najczęściej zadawane pytania",
@@ -472,7 +469,7 @@ const pl: SiteCopy = {
       },
       {
         q: "Czy przesyłka jest ubezpieczona?",
-        a: "Każda paczka jest domyślnie objęta standardowym ubezpieczeniem.",
+        a: "Momentum nie ubezpiecza paczek, decyzja należy do Ciebie. Paczki podróżują w ramach standardowej odpowiedzialności przewoźnika. Jeśli wysyłasz cenne przedmioty, ubezpiecz je przed nadaniem.",
       },
       {
         q: "Jak paczka trafia do kuriera?",

@@ -12,6 +12,7 @@ import {
 } from "@/types/shipping";
 import { formatCurrency } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
+import { customerTotal } from "@/utils/price";
 
 interface TierSelectionProps {
   tiers?: ShippingTiers;
@@ -185,12 +186,12 @@ export default function TierSelection({
                 <div className="text-right">
                   <div className="text-xl font-black text-gray-900 tabular-nums">
                     {formatCurrency(
-                      tier.actualPrice,
+                      customerTotal(tier),
                       tier.currency as SupportedCurrency,
                     )}
                   </div>
                   <div className="text-[9px] font-black text-brand-blue uppercase tracking-widest mt-0.5">
-                    Est. Total
+                    {tier.breakdown ? "Total incl. VAT" : "Est. Total"}
                   </div>
                 </div>
               </div>

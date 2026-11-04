@@ -138,6 +138,8 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
   const createdAt = getString("createdAt") || getString("date");
   const updatedAt = getString("updatedAt");
   const paidAt = getString("paidAt") || null;
+  // W2b: "STAFF" when Momentum staff recorded the payment (bank transfer, cash...).
+  const paidByStaff = getString("paidBy") === "STAFF";
 
   const sellerCompanyName = getString("sellerCompanyName", "MLS Logistics");
   const sellerStreet = getString("sellerStreet");
@@ -276,6 +278,11 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
                 ? formatInvoiceDate(paidAt, false)
                 : formatInvoiceDate(updatedAt, false)}
             </p>
+            {paidByStaff && (
+              <p className="text-xs text-green-700 font-medium">
+                Paid by Momentum staff
+              </p>
+            )}
           </div>
         </div>
       )}
