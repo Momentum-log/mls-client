@@ -703,6 +703,8 @@ export interface Shipment {
   // --- Tracking ---
   customTrackingNumber: string | null;
   carrierTrackingNumber: string | null;
+  /** The carrier's own tracking page, when staff added one with the label. */
+  carrierTrackingUrl?: string | null;
 
   // --- Status & Service ---
   shipmentStatus: ShipmentStatus;

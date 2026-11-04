@@ -34,6 +34,7 @@ import {
   FiFileText,
   FiAlertTriangle,
   FiLoader,
+  FiExternalLink,
 } from "react-icons/fi";
 
 /**
@@ -201,6 +202,18 @@ export default function ShipmentDetailsPage() {
             >
               <Button variant="outline" className="shrink-0 bg-white">
                 <FiDownload className="mr-2" /> Download Label
+              </Button>
+            </a>
+          )}
+          {shipment.carrierTrackingUrl && (
+            <a
+              href={shipment.carrierTrackingUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" className="shrink-0 bg-white">
+                <FiExternalLink className="mr-2" /> Track on{" "}
+                {shipment.carrier?.name ?? "carrier"} site
               </Button>
             </a>
           )}
