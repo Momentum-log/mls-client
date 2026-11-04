@@ -553,6 +553,7 @@ export default function NewShipmentPage() {
         let msg = "Unable to create shipment. Please try again.";
         let isAddressRequired = false;
         let status: number | undefined;
+        let reason: string | undefined;
 
         if (error && typeof error === "object" && "response" in error) {
           const res = (
@@ -562,12 +563,14 @@ export default function NewShipmentPage() {
                 data?: {
                   error?: string;
                   details?: string;
+                  reason?: string;
                 };
               };
             }
           ).response;
 
           status = res?.status;
+          reason = res?.data?.reason;
 
           if (res?.data?.error) msg = res.data.error;
           isAddressRequired = res?.data?.error === "ADDRESS_REQUIRED";
@@ -600,10 +603,13 @@ export default function NewShipmentPage() {
           invalidateQuote();
           setIsSummaryOpen(false);
           setExpandedSection("service");
+          // W2c: the quote was priced for different packages.
+          const packagesChanged = reason === "QUOTE_MISMATCH";
           addToast({
-            title: "Prices Have Changed",
-            message:
-              "This quote has expired. We're fetching current prices — please choose again.",
+            title: packagesChanged ? "Packages Changed" : "Prices Have Changed",
+            message: packagesChanged
+              ? "Your packages changed since this price was quoted. We're fetching prices for the current packages — please choose again."
+              : "This quote has expired. We're fetching current prices — please choose again.",
             type: "error",
           });
           return;
