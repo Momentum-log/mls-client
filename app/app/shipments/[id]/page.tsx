@@ -330,6 +330,7 @@ export default function ShipmentDetailsPage() {
                 pickupCloseTime={shipment.pickupCloseTime}
                 pickupConfirmationCode={shipment.pickupConfirmationCode}
                 pickupLocationCode={shipment.pickupLocationCode}
+                hasLabel={Boolean(shipment.labelUrl)}
               />
 
               {trackingResponse && (
