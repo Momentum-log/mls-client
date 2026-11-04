@@ -30,6 +30,7 @@ import { useCountryStore } from "@/store/country-store";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import HeavyShipmentModal from "@/components/ui/heavy-shipment-modal";
+import { toFiniteNumber } from "@/utils/package-weight";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -202,13 +203,13 @@ function ShippingEstimateContent() {
 
       const formattedPackages = values.packages.map(pkg => ({
         weight: {
-          value: parseFloat(pkg.weight.toFixed(2)),
+          value: parseFloat(toFiniteNumber(pkg.weight).toFixed(2)),
           units: values.globalWeightUnit,
         },
         dimensions: {
-          length: parseFloat(pkg.dimensions.length.toFixed(1)),
-          width: parseFloat(pkg.dimensions.width.toFixed(1)),
-          height: parseFloat(pkg.dimensions.height.toFixed(1)),
+          length: parseFloat(toFiniteNumber(pkg.dimensions.length).toFixed(1)),
+          width: parseFloat(toFiniteNumber(pkg.dimensions.width).toFixed(1)),
+          height: parseFloat(toFiniteNumber(pkg.dimensions.height).toFixed(1)),
           units: values.globalDimUnit,
         },
       }));
