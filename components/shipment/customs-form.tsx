@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useFormik, FormikProvider, FieldArray } from "formik";
+import { totalPackageWeight } from "@/utils/package-weight";
 import { z } from "zod";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -188,7 +189,7 @@ export default function CustomsForm({
     }));
   };
 
-  const totalPackagesWeight = packages.reduce((acc, p) => acc + p.weight, 0);
+  const totalPackagesWeight = totalPackageWeight(packages);
 
   const formik = useFormik({
     initialValues: {

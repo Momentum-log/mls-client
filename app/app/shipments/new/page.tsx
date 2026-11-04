@@ -10,6 +10,7 @@ import {
 import { StackedSection } from "@/components/shipment/stacked-section";
 import AddressForm from "@/components/shipment/address-form";
 import PackageForm from "@/components/shipment/package-form";
+import { toFiniteNumber, totalPackageWeight } from "@/utils/package-weight";
 import TierSelection from "@/components/shipment/tier-selection";
 import CustomsForm from "@/components/shipment/customs-form";
 import SummaryDrawer from "@/components/shipment/summary-drawer";
@@ -117,6 +118,13 @@ export default function NewShipmentPage() {
     () => (estimate?.errors ? deepTransformData(estimate.errors) : undefined),
     [estimate],
   );
+  // Some routes (Momentum's Nigeria <-> EU) are always charged in one
+  // currency set by staff; the server prices them in it whatever we ask for,
+  // so the switcher would do nothing there.
+  const laneCurrency = useMemo(() => {
+    const quoted = Object.values(estimate?.tiers ?? {})[0]?.currency;
+    return quoted && quoted !== activeCurrency ? quoted : null;
+  }, [estimate, activeCurrency]);
   const displaySelectedTier = useMemo(
     () => (selectedTier ? deepTransformData(selectedTier) : null),
     [selectedTier],
@@ -266,13 +274,13 @@ export default function NewShipmentPage() {
 
     const formattedPackages = packages.map((pkg) => ({
       weight: {
-        value: parseFloat(pkg.weight.toFixed(2)),
+        value: parseFloat(toFiniteNumber(pkg.weight).toFixed(2)),
         units: "KG",
       },
       dimensions: {
-        length: parseFloat(pkg.length.toFixed(1)),
-        width: parseFloat(pkg.width.toFixed(1)),
-        height: parseFloat(pkg.height.toFixed(1)),
+        length: parseFloat(toFiniteNumber(pkg.length).toFixed(1)),
+        width: parseFloat(toFiniteNumber(pkg.width).toFixed(1)),
+        height: parseFloat(toFiniteNumber(pkg.height).toFixed(1)),
         units: "CM",
       },
     }));
@@ -774,7 +782,7 @@ export default function NewShipmentPage() {
                         {packages.length} package{packages.length > 1 ? "s" : ""}
                       </p>
                       <p className="text-xs text-gray-500 font-medium">
-                        Total weight: {packages.reduce((acc, p) => acc + p.weight, 0).toFixed(2)} kg
+                        Total weight: {totalPackageWeight(packages).toFixed(2)} kg
                       </p>
                     </div>
                     <div>
@@ -846,11 +854,17 @@ export default function NewShipmentPage() {
               isCompleted={completedSteps.includes("service")}
               onEdit={() => setExpandedSection("service")}
               headerAction={
-                <CurrencySwitcher
-                  currency={activeCurrency}
-                  onChange={setCurrency}
-                  disabled={isFetchingRates}
-                />
+                laneCurrency ? (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Charged in {laneCurrency} on this route
+                  </span>
+                ) : (
+                  <CurrencySwitcher
+                    currency={activeCurrency}
+                    onChange={setCurrency}
+                    disabled={isFetchingRates}
+                  />
+                )
               }
               summary={
                 displaySelectedTier && (
