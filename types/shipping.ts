@@ -354,15 +354,19 @@ export interface ShippingEstimateResponse {
 }
 
 /**
- * `EXPRESS_ON_REQUEST`: Momentum express (Nigeria <-> EU) exists but has no
- * online price yet. Show the message with a way to contact us.
+ * Momentum (Nigeria <-> EU, door to door).
+ * `EXPRESS_ON_REQUEST`: express exists but has no online price yet.
+ * `QUOTE_ON_REQUEST`: the shipment is over the online weight limit (30 kg),
+ * so there is no rate; offer "Request a quote".
  */
 export interface QuoteNotice {
-  code: "EXPRESS_ON_REQUEST";
+  code: "EXPRESS_ON_REQUEST" | "QUOTE_ON_REQUEST";
   carrier: string;
   message: string;
-  transitDaysMin: number;
-  transitDaysMax: number;
+  /** WhatsApp chat with support; null means use the contact page. */
+  contactUrl: string | null;
+  transitDaysMin?: number;
+  transitDaysMax?: number;
 }
 
 export type FulfillmentType = "PICKUP" | "DROPOFF";

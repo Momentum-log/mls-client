@@ -10,7 +10,7 @@ import type { SupportedCurrency } from "@/types/country";
 import type { QuoteNotice, Rate } from "@/types/shipping";
 import { customerTotal } from "@/utils/price";
 import PriceBreakdown from "./price-breakdown";
-import QuoteNotices from "./quote-notices";
+import QuoteNotices, { needsQuoteRequest } from "./quote-notices";
 
 interface QuoteResultsProps {
   rates?: Rate[];
@@ -79,6 +79,14 @@ const QuoteResults: FC<QuoteResultsProps> = ({
         <p className="m-0 max-w-[280px] text-gray-500">
           Fill out the form to see your shipping options.
         </p>
+      </div>
+    );
+  }
+
+  if (rates.length === 0 && needsQuoteRequest(notices)) {
+    return (
+      <div className={cn(panelClass, "flex flex-col gap-4")}>
+        <QuoteNotices notices={notices} />
       </div>
     );
   }

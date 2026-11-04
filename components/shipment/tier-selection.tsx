@@ -14,7 +14,7 @@ import {
 import { formatCurrency } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
 import { customerTotal } from "@/utils/price";
-import QuoteNotices from "@/components/shipping/quote-notices";
+import QuoteNotices, { needsQuoteRequest } from "@/components/shipping/quote-notices";
 
 interface TierSelectionProps {
   tiers?: ShippingTiers;
@@ -95,6 +95,20 @@ export default function TierSelection({
     key,
     tier: tiers![key]!,
   }));
+
+  if (available.length === 0 && needsQuoteRequest(notices)) {
+    // Over Momentum's online weight limit: no price on purpose, ask instead.
+    return (
+      <div className="space-y-4 py-6">
+        <QuoteNotices notices={notices} />
+        <div className="flex justify-between items-center pt-8 border-t border-gray-100">
+          <Button type="button" variant="ghost" size="lg" onClick={onBack} className="text-gray-500 font-bold">
+            Back
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (available.length === 0) {
     // Three distinct failures, and conflating them sends the customer to fix
