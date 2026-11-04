@@ -2,6 +2,7 @@
 
 import React, { FC, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { SITE_CONTACT, type SiteCopy } from "@/components/site/copy";
@@ -27,7 +28,6 @@ const HeaderServicesMenu: FC<HeaderServicesMenuProps> = ({
 }) => {
   const [activeId, setActiveId] = useState(services[0].id);
   const active = services.find((s) => s.id === activeId) ?? services[0];
-  const ActiveIcon = active.icon;
 
   return (
     <div
@@ -85,9 +85,25 @@ const HeaderServicesMenu: FC<HeaderServicesMenuProps> = ({
         </div>
 
         <div className="flex min-w-0 flex-[1.4_1_520px] flex-col justify-between gap-6 rounded-3xl bg-brand-blue-tint p-8">
-          <span className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-blue text-white">
-            <ActiveIcon className="h-8 w-8" aria-hidden="true" />
-          </span>
+          {/* Every photo is mounted when the menu opens (eager), so moving
+              between services swaps them instantly instead of flashing. */}
+          <div className="relative h-44 overflow-hidden rounded-2xl bg-brand-blue" aria-hidden="true">
+            {services.map((service) => (
+              <Image
+                key={service.id}
+                src={service.image.src}
+                alt=""
+                fill
+                loading="eager"
+                sizes="(min-width: 1280px) 680px, 55vw"
+                style={{ objectPosition: service.image.position }}
+                className={cn(
+                  "object-cover transition-opacity duration-200",
+                  service.id === active.id ? "opacity-100" : "opacity-0",
+                )}
+              />
+            ))}
+          </div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex max-w-[440px] flex-col gap-2">
               <strong className="font-satoshi text-2xl font-bold leading-8 text-gray-900">
