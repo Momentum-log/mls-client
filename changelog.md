@@ -5,6 +5,12 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.57.0] - 2026-11-04 - Momentum shipments with no label
+
+**Requires:** `mls-server` with Momentum tracking steps (no migration of its own). Merge the server first.
+
+- Changed: **A Momentum shipment staff booked without a label** no longer tells the customer to print one (`components/shipment/fulfillment-panel.tsx`, `hasLabel`): it says there is nothing to print and to bring the parcel as arranged. The tracking timeline shows each step staff record (status, place and note) with no client change: the server sends them as timeline events.
+
 ## [1.56.0] - 2026-11-04 - Pickup or drop-off before paying, and labels our team prepares
 
 **Requires:** `mls-server` with manual fulfilment (migrations `20261104120000_add_manual_fulfilment` and `20261104150000_add_carrier_tracking_url`).

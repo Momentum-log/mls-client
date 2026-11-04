@@ -53,6 +53,11 @@ interface FulfillmentPanelProps {
   pickupCloseTime?: string | null;
   pickupConfirmationCode?: string | null;
   pickupLocationCode?: string | null;
+  /**
+   * False when staff booked the shipment with no label (Momentum, our own
+   * network): there is nothing to print.
+   */
+  hasLabel?: boolean;
 }
 
 const Shell = ({
@@ -95,6 +100,7 @@ export default function FulfillmentPanel({
   pickupCloseTime,
   pickupConfirmationCode,
   pickupLocationCode,
+  hasLabel = true,
 }: FulfillmentPanelProps) {
   const { addToast } = useToast();
   const [view, setView] = useState<"none" | "pickup" | "dropoff">("none");
@@ -362,8 +368,18 @@ export default function FulfillmentPanel({
               </p>
             ) : (
               <p className="text-sm text-gray-600 font-medium">
-                Print the label, attach it to the parcel and take it to a{" "}
-                {carrierName} drop-off point near you.
+                {hasLabel ? (
+                  <>
+                    Print the label, attach it to the parcel and take it to a{" "}
+                    {carrierName} drop-off point near you.
+                  </>
+                ) : (
+                  <>
+                    Our team has booked your shipment. There is no label to
+                    print: write your tracking number on the parcel and bring
+                    it to {carrierName} as arranged.
+                  </>
+                )}
               </p>
             )}
             {options.handoverMessage && (
