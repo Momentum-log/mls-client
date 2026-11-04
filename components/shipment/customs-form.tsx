@@ -17,6 +17,7 @@ import {
 import { Package, Address } from "@/store/shipment-store";
 import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
 import HsCodeSuggestion from "@/components/shipment/hs-code-suggestion";
+import HsCodeCombobox from "@/components/shipment/hs-code-combobox";
 import { useVerification } from "@/hooks/shipments/useVerification";
 import {
   customsTypeForUser,
@@ -533,12 +534,17 @@ export default function CustomsForm({
                                 <FiHelpCircle className="mr-1" /> Find HS Code
                               </a>
                             </div>
-                            <Input
+                            <HsCodeCombobox
                               name={`customsItem.${index}.tariffCode`}
                               value={item.tariffCode}
-                              onChange={formik.handleChange}
+                              onChange={(code) =>
+                                formik.setFieldValue(
+                                  `customsItem.${index}.tariffCode`,
+                                  code,
+                                )
+                              }
                               onBlur={formik.handleBlur}
-                              placeholder="HS code"
+                              description={item.nameEn}
                             />
                             {(touchedBag as ItemDetail).tariffCode &&
                               (errorBag as ItemDetail).tariffCode && (

@@ -872,6 +872,7 @@ export default function NewShipmentPage() {
                 tiers={displayTiers}
                 hasRates={(estimate?.rates?.length ?? 0) > 0}
                 errors={displayErrors}
+                notices={estimate?.notices}
                 selectedRoutingRef={selectedTier?.routingRef ?? null}
                 onSelect={handleTierSelect}
                 isLoading={isFetchingRates}

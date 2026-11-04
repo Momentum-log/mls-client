@@ -279,6 +279,7 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
             <QuoteResults
               rates={quote?.rates}
               errors={quote?.errors}
+              notices={quote?.notices}
               hasResult={!!quote}
               isLoading={isPending}
               onReviewAddresses={() => reset()}

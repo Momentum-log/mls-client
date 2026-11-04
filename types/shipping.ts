@@ -348,7 +348,21 @@ export interface ShippingEstimateResponse {
   rates: Rate[];
   tiers?: ShippingTiers;
   errors?: CarrierError[];
+  /** Messages that are not rates; absent when there are none. */
+  notices?: QuoteNotice[];
   guestId: string;
+}
+
+/**
+ * `EXPRESS_ON_REQUEST`: Momentum express (Nigeria <-> EU) exists but has no
+ * online price yet. Show the message with a way to contact us.
+ */
+export interface QuoteNotice {
+  code: "EXPRESS_ON_REQUEST";
+  carrier: string;
+  message: string;
+  transitDaysMin: number;
+  transitDaysMax: number;
 }
 
 export type FulfillmentType = "PICKUP" | "DROPOFF";
@@ -733,4 +747,26 @@ export interface ContinueToPayResponse {
     id?: string;
     invoiceId?: string;
   };
+}
+
+/** One CN code suggestion from `GET /shipments/hs-codes/suggest` (W7). */
+export interface CnSuggestion {
+  /** 4 (heading), 6 (HS subheading) or 8+ (EU CN) digits. */
+  code: string;
+  hs6: string | null;
+  description: string;
+  level: number;
+  /** Only full codes may fill the tariff code; the rest are group labels. */
+  selectable: boolean;
+  url: string;
+}
+
+export interface HsCodeSuggestResponse {
+  status: "success";
+  query: string;
+  lang: "en" | "de" | "fr" | "es";
+  source: "tariffnumber" | "cache" | "mtech" | "none";
+  /** True when the live lookup failed and a fallback answered. */
+  degraded: boolean;
+  suggestions: CnSuggestion[];
 }

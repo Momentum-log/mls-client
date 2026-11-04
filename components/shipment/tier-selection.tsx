@@ -5,6 +5,7 @@ import Button from "@/components/ui/button";
 import { FiTruck, FiClock, FiAlertTriangle, FiZap, FiAward, FiTag } from "react-icons/fi";
 import {
   CarrierError,
+  QuoteNotice,
   ShippingTier,
   ShippingTiers,
   TIER_KEYS,
@@ -13,12 +14,15 @@ import {
 import { formatCurrency } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
 import { customerTotal } from "@/utils/price";
+import QuoteNotices from "@/components/shipping/quote-notices";
 
 interface TierSelectionProps {
   tiers?: ShippingTiers;
   /** Present only to distinguish "no service on this route" from "no tiers". */
   hasRates: boolean;
   errors?: CarrierError[];
+  /** Shown under the options, e.g. "express on request". */
+  notices?: QuoteNotice[];
   selectedRoutingRef: string | null;
   onSelect: (tier: ShippingTier) => void;
   isLoading: boolean;
@@ -68,6 +72,7 @@ export default function TierSelection({
   tiers,
   hasRates,
   errors,
+  notices,
   selectedRoutingRef,
   onSelect,
   isLoading,
@@ -222,6 +227,8 @@ export default function TierSelection({
           );
         })}
       </div>
+
+      <QuoteNotices notices={notices} />
 
       <div className="flex justify-between items-center pt-8 border-t border-gray-100">
         <Button
