@@ -30,6 +30,7 @@ import {
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import {
   CustomsData,
+  HandoverPreference,
   ShippingEstimateResponse,
   ShippingTier,
   TIER_KEYS,
@@ -492,7 +493,10 @@ export default function NewShipmentPage() {
     });
   };
 
-  const handleFinalize = (paymentMethod: "stripe" | "payu") => {
+  const handleFinalize = (
+    paymentMethod: "stripe" | "payu",
+    handover: HandoverPreference,
+  ) => {
     if (
       !sender ||
       !recipient ||
@@ -531,6 +535,7 @@ export default function NewShipmentPage() {
       preferredPaymentOption: paymentMethod,
       invoiceId,
       currency: activeCurrency,
+      handover,
     });
 
     performCreateShipment(payload, {

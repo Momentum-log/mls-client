@@ -10,6 +10,7 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
   FiInfo,
+  FiClock,
 } from "react-icons/fi";
 import Button from "@/components/ui/button";
 import PickupScheduleForm from "./pickup-schedule-form";
@@ -35,6 +36,7 @@ import {
   canManageFulfillment,
   isDelivered,
   isLabelPending,
+  isAwaitingManualLabel,
   isTerminalFailure,
   isUnpaid,
   needsSupport,
@@ -102,9 +104,11 @@ export default function FulfillmentPanel({
   const unpaid = isUnpaid(shipmentStatus);
   // Past collection (an admin moved it on, or the carrier scanned it): the
   // choice is settled and the endpoints answer 409, so don't offer it.
+  const manualLabelPending = isAwaitingManualLabel(shipmentStatus);
   const settled =
     !unpaid &&
     !labelPending &&
+    !manualLabelPending &&
     !needsSupport(shipmentStatus) &&
     !canManageFulfillment(shipmentStatus);
 
@@ -123,7 +127,8 @@ export default function FulfillmentPanel({
     error: optionsError,
   } = useFulfillmentOptions(shipmentId, {
     // Unpaid and settled shipments have nothing to arrange; the endpoint 409s.
-    enabled: !unpaid && !settled,
+    // Neither has a shipment whose label our team is still booking.
+    enabled: !unpaid && !settled && !manualLabelPending,
     // `PAID` means "paid, label still generating" — it resolves on its own.
     pollWhilePending: labelPending,
   });
@@ -220,6 +225,31 @@ export default function FulfillmentPanel({
     );
   }
 
+  if (manualLabelPending) {
+    return (
+      <Shell tone="info">
+        <div className="flex items-start gap-3">
+          <FiClock className="w-6 h-6 text-brand-blue shrink-0" />
+          <div className="space-y-2">
+            <h3 className="font-bold text-gray-900">
+              Our team is preparing your label
+            </h3>
+            <p className="text-sm text-gray-600 font-medium">
+              Payment received, thank you. Most labels are ready shortly
+              during business hours; orders placed later are handled first
+              thing the next working day.
+            </p>
+            <p className="text-sm text-gray-600 font-medium">
+              We&apos;ll email the label to you and add it here as soon as
+              it&apos;s ready, so there&apos;s nothing more you need to do for
+              now.
+            </p>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
+
   if (needsSupport(shipmentStatus)) {
     return (
       <Shell tone="danger">
@@ -296,6 +326,53 @@ export default function FulfillmentPanel({
           handoverMessage={options.handoverMessage}
           collection={options.collection}
         />
+      </Shell>
+    );
+  }
+
+  if (options.handoverMode === "MANUAL") {
+    return (
+      <Shell tone="info">
+        <div className="flex items-start gap-3">
+          <FiCheckCircle className="w-6 h-6 text-brand-blue shrink-0" />
+          <div className="space-y-1">
+            <h3 className="font-bold text-gray-900">
+              {isPickupConfirmed
+                ? "Courier Pickup Booked"
+                : `Drop the parcel off with ${carrierName}`}
+            </h3>
+            {isPickupConfirmed ? (
+              <p className="text-sm text-gray-600 font-medium">
+                {scheduledPickupDate
+                  ? new Date(scheduledPickupDate).toLocaleDateString("en-GB", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      timeZone: "UTC",
+                    })
+                  : "Date confirmed"}
+                {pickupReadyTime && pickupCloseTime && (
+                  <>
+                    {" "}
+                    between {pickupReadyTime.slice(0, 5)} and{" "}
+                    {pickupCloseTime.slice(0, 5)}
+                  </>
+                )}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600 font-medium">
+                Print the label, attach it to the parcel and take it to a{" "}
+                {carrierName} drop-off point near you.
+              </p>
+            )}
+            {options.handoverMessage && (
+              <p className="text-xs text-gray-500 font-medium pt-1">
+                {options.handoverMessage}
+              </p>
+            )}
+          </div>
+        </div>
       </Shell>
     );
   }

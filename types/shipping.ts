@@ -381,9 +381,11 @@ export type FulfillmentType = "PICKUP" | "DROPOFF";
 /**
  * `CARRIER`: the customer chooses pickup or drop-off. `MLS_COLLECTION`: MLS
  * collects the parcel and hands it to the carrier at the hub (DHL eCommerce
- * exports); pickup and drop-off are both unavailable.
+ * exports); pickup and drop-off are both unavailable. `MANUAL`: our team
+ * booked the label and the handover on the carrier's site (manual
+ * fulfilment); the customer sees what was booked and cannot change it here.
  */
-export type HandoverMode = "CARRIER" | "MLS_COLLECTION";
+export type HandoverMode = "CARRIER" | "MLS_COLLECTION" | "MANUAL";
 
 export type CollectionFeeStatus = "PENDING_PAYMENT" | "PAID" | "WAIVED";
 
@@ -409,7 +411,7 @@ export interface FulfillmentOptions {
   shipmentId: string;
   currentFulfillment: "NONE" | FulfillmentType;
   handoverMode: HandoverMode;
-  /** Present with `MLS_COLLECTION`: shown instead of pickup and drop-off. */
+  /** Present with `MLS_COLLECTION` and `MANUAL`: shown instead of pickup and drop-off. */
   handoverMessage?: string;
   /** Present with `MLS_COLLECTION`. */
   collection?: CollectionState;
@@ -616,6 +618,23 @@ export interface CreateShipmentPayload {
   /** Optional currency override (PLN or EUR) */
   currency?: string;
   billingAddress?: BillingAddress;
+  /** How the parcel leaves the sender, chosen before paying. */
+  handover?: HandoverPreference;
+}
+
+/**
+ * The customer's pickup or drop-off choice, made before paying. Staff use it
+ * to book shipments that our team fulfils by hand.
+ */
+export interface HandoverPreference {
+  method: "PICKUP" | "DROPOFF";
+  /** YYYY-MM-DD; required for PICKUP. */
+  pickupDate?: string;
+  /** HH:MM, 24-hour; required for PICKUP. */
+  readyTime?: string;
+  /** HH:MM, 24-hour; required for PICKUP. */
+  closeTime?: string;
+  notes?: string;
 }
 
 export type ShipmentMutationPayload = CreateShipmentPayload & {
@@ -684,6 +703,8 @@ export interface Shipment {
   // --- Tracking ---
   customTrackingNumber: string | null;
   carrierTrackingNumber: string | null;
+  /** The carrier's own tracking page, when staff added one with the label. */
+  carrierTrackingUrl?: string | null;
 
   // --- Status & Service ---
   shipmentStatus: ShipmentStatus;

@@ -29,6 +29,7 @@ export const SHIPMENT_STATUSES = [
   "FAILED",
   "PAYMENT_FAILED",
   "CREATION_FAILED",
+  "LABEL_PENDING",
 ] as const;
 
 export type ShipmentStatus = (typeof SHIPMENT_STATUSES)[number];
@@ -62,6 +63,8 @@ export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
   FAILED: "Failed",
   PAYMENT_FAILED: "Payment Failed",
   CREATION_FAILED: "Needs Attention",
+  // Manual fulfilment: our team is booking the label with the carrier.
+  LABEL_PENDING: "Label Being Prepared",
 };
 
 export const SHIPMENT_STATUS_TONES: Record<ShipmentStatus, StatusTone> = {
@@ -82,6 +85,7 @@ export const SHIPMENT_STATUS_TONES: Record<ShipmentStatus, StatusTone> = {
   FAILED: "danger",
   PAYMENT_FAILED: "danger",
   CREATION_FAILED: "danger",
+  LABEL_PENDING: "info",
 };
 
 const STATUS_SET = new Set<string>(SHIPMENT_STATUSES);
@@ -137,6 +141,13 @@ export const isUnpaid = matches("CREATED", "PAYMENT_FAILED");
  */
 export const isLabelPending = matches("PAID");
 
+/**
+ * Paid, and our team is booking the label on the carrier's own site (manual
+ * fulfilment). Unlike `PAID` it can take a while, so it gets its own wording
+ * and no spinner. Leaves when staff upload the label.
+ */
+export const isAwaitingManualLabel = matches("LABEL_PENDING");
+
 /** Nothing further will happen without support intervention. */
 export const isTerminal = matches(
   "DELIVERED",
@@ -149,6 +160,7 @@ export const isTerminal = matches(
 /** Paid for and still moving — what the dashboard's "active" count means. */
 export const isActive = matches(
   "PAID",
+  "LABEL_PENDING",
   "AWAITING_FULFILLMENT",
   "PICKUP_SCHEDULED",
   "AWAITING_DROPOFF",
@@ -189,6 +201,7 @@ export const canManageFulfillment = matches(
  */
 export const canRequestCancellation = matches(
   "PAID",
+  "LABEL_PENDING",
   "AWAITING_FULFILLMENT",
   "AWAITING_DROPOFF",
   "PICKUP_SCHEDULED",
@@ -213,7 +226,7 @@ export const isTerminalFailure = matches("FAILED", "CANCELLED");
 /** Rough completion percentage for progress bars. */
 export const getProgress = (status: string): number => {
   if (isUnpaid(status)) return 10;
-  if (isLabelPending(status)) return 25;
+  if (isLabelPending(status) || isAwaitingManualLabel(status)) return 25;
   if (canManageFulfillment(status) || status === "AWAITING_MLS_COLLECTION")
     return 40;
   if (matches("DELIVERED", "COMPLETED")(status)) return 100;

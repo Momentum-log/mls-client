@@ -15,6 +15,7 @@
 import type {
   Address,
   CustomsData,
+  HandoverPreference,
   PackageDetails,
   ShipmentMutationPayload,
 } from "@/types/shipping";
@@ -61,6 +62,8 @@ export interface BuildCreateShipmentPayloadArgs {
   /** Present only when re-submitting an existing shipment (update mode). */
   shipmentId?: string;
   invoiceId?: string;
+  /** Pickup or drop-off, chosen on the review step before paying. */
+  handover?: HandoverPreference;
 }
 
 /**
@@ -80,6 +83,7 @@ export const buildCreateShipmentPayload = ({
   preferredPaymentOption,
   shipmentId,
   invoiceId,
+  handover,
 }: BuildCreateShipmentPayloadArgs): ShipmentMutationPayload => ({
   estimateId,
   routingRef,
@@ -92,4 +96,5 @@ export const buildCreateShipmentPayload = ({
   preferredPaymentOption,
   shipmentId,
   invoiceId,
+  handover,
 });

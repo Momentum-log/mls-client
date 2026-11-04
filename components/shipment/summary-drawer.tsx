@@ -9,9 +9,16 @@ import {
   FiMapPin,
   FiPackage,
   FiCreditCard,
+  FiHome,
 } from "react-icons/fi";
 import { Address, Package } from "@/store/shipment-store";
-import { ShippingTier } from "@/types/shipping";
+import { HandoverPreference, ShippingTier } from "@/types/shipping";
+import HandoverChoice from "@/components/shipment/handover-choice";
+import {
+  defaultHandover,
+  handoverProblem,
+  toHandoverPayload,
+} from "@/utils/handover";
 import Button from "@/components/ui/button";
 import { formatCurrencyCompact } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
@@ -25,7 +32,10 @@ interface SummaryDrawerProps {
   recipient: Address | null;
   packages: Package[];
   tier: ShippingTier | null;
-  onFinalize: (paymentMethod: "stripe" | "payu") => void;
+  onFinalize: (
+    paymentMethod: "stripe" | "payu",
+    handover: HandoverPreference,
+  ) => void;
   isLoading?: boolean;
 }
 
@@ -48,6 +58,26 @@ export default function SummaryDrawer({
   const [paymentMethod, setPaymentMethod] = React.useState<"stripe" | "payu">(
     "stripe",
   );
+
+  const [handover, setHandover] = React.useState<HandoverPreference>(
+    defaultHandover,
+  );
+  const [showHandoverProblem, setShowHandoverProblem] = React.useState(false);
+  const problem = handoverProblem(handover);
+
+  // A different service may hand over differently: ask again for each one.
+  React.useEffect(() => {
+    setHandover(defaultHandover());
+    setShowHandoverProblem(false);
+  }, [tier?.routingRef]);
+
+  const handlePay = () => {
+    if (problem) {
+      setShowHandoverProblem(true);
+      return;
+    }
+    onFinalize(paymentMethod, toHandoverPayload(handover));
+  };
 
   React.useEffect(() => {
     if (isOpen) {
@@ -220,9 +250,27 @@ export default function SummaryDrawer({
                 </div>
 
                 <p className="text-xs text-gray-500 font-medium leading-relaxed px-1">
-                  After payment you&apos;ll get a printable label and choose how
-                  to send it — drop it off yourself, or book a courier pickup.
+                  After payment we&apos;ll email your printable label and add
+                  it to your shipment page.
                 </p>
+              </div>
+
+              {/* Handover: decided before paying */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <FiHome className="text-brand-blue" />
+                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-500">
+                    How will the parcel leave you?
+                  </h4>
+                </div>
+                <HandoverChoice
+                  value={handover}
+                  onChange={(next) => {
+                    setHandover(next);
+                    setShowHandoverProblem(false);
+                  }}
+                  problem={showHandoverProblem ? problem : null}
+                />
               </div>
 
               {/* Payment Method Selector */}
@@ -314,7 +362,7 @@ export default function SummaryDrawer({
                 variant="primary"
                 size="lg"
                 className="w-full h-14 rounded-2xl text-lg font-black shadow-xl shadow-brand-blue/20"
-                onClick={() => onFinalize(paymentMethod)}
+                onClick={handlePay}
                 isLoading={isLoading}
                 disabled={isLoading}
               >

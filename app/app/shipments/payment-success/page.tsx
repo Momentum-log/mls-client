@@ -6,6 +6,8 @@ import { InvoiceReceipt } from "@/components/invoice";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { usePaymentInvoice } from "@/hooks/payments/use-payments";
+import { useGetShipment } from "@/hooks/shipments/use-shipments";
+import { isAwaitingManualLabel } from "@/utils/shipment-status";
 
 /**
  * Payment Success Page
@@ -29,6 +31,11 @@ export default function PaymentSuccessPage() {
     isLoading,
     error: invoiceError,
   } = usePaymentInvoice(invoiceId || "", Boolean(invoiceId));
+
+  // Manual fulfilment: our team books the label, so there is no collection
+  // step to offer yet.
+  const { data: shipment } = useGetShipment(shipmentId ?? "");
+  const manualLabel = isAwaitingManualLabel(shipment?.shipmentStatus ?? "");
 
   /**
    * Handle view full invoice
@@ -123,8 +130,23 @@ export default function PaymentSuccessPage() {
         onViewDetails={handleViewInvoice}
       />
 
+      {/* Manual fulfilment: the label is being prepared by our team */}
+      {shipmentId && manualLabel && (
+        <div className="mt-8 bg-brand-blue/5 border border-brand-blue/15 rounded-lg p-6">
+          <h3 className="font-bold text-foreground mb-1">
+            Our team is preparing your shipping label now
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Most labels are ready shortly during business hours. Orders placed
+            later are handled first thing the next working day. We&apos;ll
+            email the label to you and add it to your shipment page as soon as
+            it&apos;s ready, so there&apos;s nothing more you need to do.
+          </p>
+        </div>
+      )}
+
       {/* Arrange collection — the next step, on the shipment page */}
-      {shipmentId && (
+      {shipmentId && !manualLabel && (
         <div className="mt-8 bg-brand-blue/5 border border-brand-blue/15 rounded-lg p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="font-bold text-foreground mb-1">
@@ -156,8 +178,9 @@ export default function PaymentSuccessPage() {
           <li className="flex gap-3">
             <span className="text-base">✓</span>
             <span>
-              Your label is being prepared. Once it&apos;s ready you can print
-              it and choose how to send the parcel.
+              {manualLabel
+                ? "We'll email your label as soon as our team has booked it with the carrier."
+                : "Your label is being prepared. Once it's ready you can print it and choose how to send the parcel."}
             </span>
           </li>
           <li className="flex gap-3">
