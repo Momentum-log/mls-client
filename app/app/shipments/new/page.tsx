@@ -130,12 +130,17 @@ export default function NewShipmentPage() {
         setEstimate(data);
         setEstimateId(data.estimateId);
       },
-      onError: () => {
+      onError: (error: unknown) => {
         setIsFetchingRates(false);
+        // A 400 carries a reason meant for the customer, e.g. Nigeria <-> EU
+        // prices being unavailable; anything else gets the generic message.
+        const { statusCode, message } = extractApiError(error);
         addToast({
           title: "Calculation Failed",
           message:
-            "Unable to calculate shipping rates. Please check address details.",
+            statusCode === 400 && message
+              ? message
+              : "Unable to calculate shipping rates. Please check address details.",
           type: "error",
         });
       },

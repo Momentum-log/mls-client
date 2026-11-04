@@ -1,5 +1,6 @@
 "use client";
 
+import { extractApiError } from "@/utils/error-handler";
 import { BookOpen, Laptop, Luggage, Mail, Package } from "lucide-react";
 import React, { useEffect, Suspense, useState } from "react";
 import { FormikErrors, FormikProvider, useFormik, FieldArray } from "formik";
@@ -238,7 +239,7 @@ function ShippingEstimateContent() {
           addToast({
             type: "error",
             title: "Estimation Failed",
-            message: error.message || "Failed to get estimate.",
+            message: extractApiError(error).message || "Failed to get estimate.",
           });
         },
       });
