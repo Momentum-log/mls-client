@@ -8,6 +8,7 @@ import {
   GetShipmentResponse,
   HsCodeMatchRequest,
   HsCodeMatchResponse,
+  HsCodeSuggestResponse,
   PickupAvailability,
   RequestCollectionResponse,
   RequestPickupPayload,
@@ -54,6 +55,22 @@ export const matchHsCodes = async (payload: HsCodeMatchRequest) => {
   const response = await apiClient.post<HsCodeMatchResponse>(
     "/shipments/hs-codes/match",
     payload,
+  );
+  return response.data;
+};
+
+/**
+ * CN code suggestions while typing: a product word (3+ characters) or a code
+ * prefix (2+ digits). Answers 200 even when the lookup is down (`degraded`).
+ */
+export const suggestHsCodes = async (
+  q: string,
+  lang: "en" | "pl",
+  signal?: AbortSignal,
+) => {
+  const response = await apiClient.get<HsCodeSuggestResponse>(
+    "/shipments/hs-codes/suggest",
+    { params: { q, lang }, signal },
   );
   return response.data;
 };

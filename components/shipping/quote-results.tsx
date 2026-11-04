@@ -7,13 +7,15 @@ import { cn } from "@/utils/cn";
 import Button from "@/components/ui/button";
 import { formatCurrency } from "@/utils/currency-formatter";
 import type { SupportedCurrency } from "@/types/country";
-import type { Rate } from "@/types/shipping";
+import type { QuoteNotice, Rate } from "@/types/shipping";
 import { customerTotal } from "@/utils/price";
 import PriceBreakdown from "./price-breakdown";
+import QuoteNotices, { needsQuoteRequest } from "./quote-notices";
 
 interface QuoteResultsProps {
   rates?: Rate[];
   errors?: { details?: string }[];
+  notices?: QuoteNotice[];
   /** True once a quote has come back, even with no rates. */
   hasResult: boolean;
   isLoading: boolean;
@@ -32,6 +34,7 @@ const priceOf = (rate: Rate): string =>
 const QuoteResults: FC<QuoteResultsProps> = ({
   rates = [],
   errors = [],
+  notices,
   hasResult,
   isLoading,
   onReviewAddresses,
@@ -76,6 +79,14 @@ const QuoteResults: FC<QuoteResultsProps> = ({
         <p className="m-0 max-w-[280px] text-gray-500">
           Fill out the form to see your shipping options.
         </p>
+      </div>
+    );
+  }
+
+  if (rates.length === 0 && needsQuoteRequest(notices)) {
+    return (
+      <div className={cn(panelClass, "flex flex-col gap-4")}>
+        <QuoteNotices notices={notices} />
       </div>
     );
   }
@@ -146,6 +157,7 @@ const QuoteResults: FC<QuoteResultsProps> = ({
           );
         })}
       </div>
+      <QuoteNotices notices={notices} />
       <div className={cn(panelClass, "flex flex-col gap-4")}>
         <div className="flex flex-col gap-0.5">
           <span className="text-sm font-medium text-gray-500">Selected: {chosen.serviceName}</span>

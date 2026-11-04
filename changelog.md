@@ -5,6 +5,15 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.54.0] - 2026-11-04 - Momentum notes and HS code suggestions
+
+**Requires:** `mls-server` with PR #25.
+
+- Added (W5): **"Express shipping also available".** When a quote carries an `EXPRESS_ON_REQUEST` notice (Momentum's door-to-door Nigeria <-> EU lanes while express has no price), the booking form, the Ship page and the home quote panel show the message with a contact button. Once staff price express it arrives as a normal rate and the note disappears.
+- Added (W5): **"Request a quote" over 30 kg.** Above Momentum's online weight limit (30 kg by default) the server returns no price and a `QUOTE_ON_REQUEST` notice, so those screens show a "Request a quote on WhatsApp" button instead of "No services available". Notices carry `contactUrl` (a WhatsApp chat with support, prefilled with weight and route); without it the buttons go to the contact page.
+- Added (W7): **HS code suggestions while typing.** The customs tariff code field is now a combobox. Type a product word (3+ characters) or the first digits of a code (2+), or focus the empty field to search the item's description. Debounced 400 ms, cached per term, superseded requests cancelled. Only full 8-digit CN codes can be picked; headings show as context. A picked code shows "Suggested code ... please check it matches your item" with a link to its details. Keyboard: arrows, Enter, Escape. "Suggest a code" (MTech) stays.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors, which `next build` resolves), eslint on the changed files, and `bun run build` pass. Not yet checked against a running server.
+
 ## [1.53.0] - 2026-11-04 - November backlog, Phase A
 
 - Changed (W1): **Global wording.** "From Poland" and "across Europe" became "worldwide" / "ship globally" in the page titles, descriptions, home, ship, freight and about copy (EN and PL). The Łódź address and the mission line stay. The home subheading names "partners you already trust" instead of carriers, and the stat reads "trusted courier networks". The partner logos stay.
