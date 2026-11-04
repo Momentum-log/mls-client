@@ -178,7 +178,7 @@ export default function PickupScheduleForm({
         </label>
         <input
           type="text"
-          placeholder="e.g. Reception desk, ring bell 2B"
+          placeholder="Notes for the driver"
           maxLength={PICKUP_REMARKS_MAX_LENGTH}
           value={remarks}
           onChange={(e) => setRemarks(e.target.value)}

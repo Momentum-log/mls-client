@@ -84,7 +84,7 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
           <Input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="6-DIGIT CODE"
+            placeholder="6-digit code"
             className="text-center text-2xl tracking-[0.5em] font-black h-16 uppercase"
             maxLength={6}
             disabled={isLoading}

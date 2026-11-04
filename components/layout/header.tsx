@@ -1,272 +1,196 @@
 "use client";
-import Container from "@/components/shared/container";
-import { FC, useState, useEffect } from "react";
-import Button from "../ui/button";
+
+import React, { FC, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import logoLandscape from "@/public/images/logo-landscape.svg";
-import logoLandscapeWhite from "@/public/images/logo-landscape-white.svg";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { FaArrowRight, FaXmark, FaBars, FaUser } from "react-icons/fa6";
-import { useRouter } from "next/navigation";
+import { ChevronDown, Globe, Menu, X } from "lucide-react";
+import logoLandscape from "@/public/images/logo-landscape.svg";
+import { cn } from "@/utils/cn";
 import { useAuthStore } from "@/store/auth-store";
-import HeaderCountrySelector from "@/components/shared/header-country-selector";
-import LanguageToggle from "@/components/landing/language-toggle";
+import { useCountryStore } from "@/store/country-store";
+import { useSiteLocale } from "@/hooks/use-site-locale";
+import { localePath } from "@/utils/site-locale";
+import { getServiceLinks, isServicesPath } from "./header-services";
+import HeaderServicesMenu from "./header-services-menu";
+import HeaderRegionMenu from "./header-region-menu";
+import HeaderMobileMenu from "./header-mobile-menu";
 
+type OpenPanel = "services" | "region" | "mobile" | null;
+
+const navItemClass =
+  "inline-flex h-11 items-center gap-1.5 rounded-xl px-3.5 text-[15px] font-semibold no-underline transition-colors";
+
+/**
+ * Marketing site header: Services mega menu, language and region menu, and a
+ * drop-down menu on small screens. Only one panel is open at a time.
+ */
 const Header: FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname() ?? "/";
+  const { locale, copy } = useSiteLocale();
   const { isAuthenticated } = useAuthStore();
-  const pathname = usePathname();
-  const router = useRouter();
+  const { currency } = useCountryStore();
+  const [open, setOpen] = useState<OpenPanel>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
-  // Only the landing page ships bilingual copy, so the EN/PL switch is scoped
-  // to that route rather than promising translation of the whole site.
-  const showLanguageToggle = pathname === "/";
+  const close = (): void => setOpen(null);
+  const toggle = (panel: Exclude<OpenPanel, null>) => (): void =>
+    setOpen((current) => (current === panel ? null : panel));
 
-  // Lock body scroll when menu is open
+  // Close on outside click and Escape.
   useEffect(() => {
-    if (isMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
+    if (!open) return;
+    const onPointer = (event: MouseEvent): void => {
+      if (!headerRef.current?.contains(event.target as Node)) setOpen(null);
     };
-  }, [isMenuOpen]);
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape") setOpen(null);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
-
-  const navLinks = [
-    { href: "/", label: "Home" },
-    { href: "/about", label: "About Us" },
-    { href: "/contact", label: "Contact" },
-    { href: "/shipping-estimate", label: "Get a Quote" },
+  const services = getServiceLinks(copy, locale, isAuthenticated);
+  const links = [
+    { href: localePath(locale, "/about"), label: copy.nav.about },
+    { href: `${localePath(locale, "/about")}#faq`, label: copy.nav.faq },
+    { href: localePath(locale, "/contact"), label: copy.nav.contact },
   ];
+  const account = isAuthenticated
+    ? { href: "/app/dashboard", label: copy.nav.account }
+    : { href: "/login", label: copy.nav.signIn };
+  const servicesActive = open === "services" || isServicesPath(pathname);
+  const regionLabel = `${locale.toUpperCase()} · ${currency}`;
 
   return (
-    <header className="bg-white text-brand-blue py-4 md:px-8 relative z-50">
-      <Container>
-        <div className="flex items-center justify-between">
-          {/* logo */}
-          <div className="flex items-center relative z-50">
-            <Link href="/" onClick={closeMenu}>
-              <div className="relative w-32 md:w-40 h-10">
-                <Image
-                  src={isMenuOpen ? logoLandscapeWhite : logoLandscape}
-                  alt="Momentum Logistics Service Logo"
-                  fill
-                  className="object-contain transition-opacity duration-300"
-                  priority
-                />
-              </div>
-            </Link>
-          </div>
+    <header
+      ref={headerRef}
+      onMouseLeave={() => open === "services" && close()}
+      className="relative z-50 border-b border-gray-100 bg-white font-satoshi text-foreground"
+    >
+      <div className="mx-auto flex max-w-[1280px] items-center gap-4 px-4 py-2.5 sm:px-6 lg:gap-8 lg:py-3.5">
+        <Link
+          href={localePath(locale)}
+          aria-label={copy.nav.home}
+          className="flex shrink-0 items-center"
+          onClick={close}
+        >
+          <Image
+            src={logoLandscape}
+            alt="Momentum Logistics Service"
+            className="h-[30px] w-auto lg:h-10"
+            priority
+          />
+        </Link>
 
-          {/* Desktop Navbar */}
-          <nav className="hidden md:flex mr-8 ml-auto">
-            <ul className="flex items-center space-x-8 font-medium text-lg">
-              {navLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className={`hover:text-brand-yellow transition-colors relative group ${
-                      pathname === link.href
-                        ? "text-brand-blue font-bold"
-                        : "text-gray-600"
-                    }`}
-                  >
-                    {link.label}
-                    <span
-                      className={`absolute -bottom-1 left-0 h-0.5 bg-brand-yellow transition-all duration-300 ${
-                        pathname === link.href
-                          ? "w-full"
-                          : "w-0 group-hover:w-full"
-                      }`}
-                    ></span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Held back to `lg`: at exactly `md` the nav, country selector and
-                CTA already consume the full header row, and adding the 80px
-                toggle there would overflow it. Below `md` it appears in the
-                mobile menu instead. */}
-            {showLanguageToggle && (
-              <div className="hidden lg:flex">
-                <LanguageToggle />
-              </div>
+        <nav aria-label="Main" className="hidden flex-1 items-center gap-1 lg:flex">
+          <button
+            type="button"
+            onMouseEnter={() => setOpen("services")}
+            onClick={toggle("services")}
+            aria-expanded={open === "services"}
+            aria-controls="services-menu"
+            className={cn(
+              navItemClass,
+              servicesActive
+                ? "bg-brand-blue-tint text-brand-blue"
+                : "text-gray-700 hover:text-brand-blue",
             )}
-            <HeaderCountrySelector />
-            {isAuthenticated ? (
-              <Button
-                onClick={() => router.push("/app/dashboard")}
-                rounded="full"
-                size="md"
-                className="gap-2"
-              >
-                <FaUser className="w-4 h-4" />
-                Account
-              </Button>
-            ) : (
-              <Button
-                onClick={() => router.push("/register")}
-                rounded="full"
-                size="md"
-              >
-                Get Started
-              </Button>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden relative z-50">
-            <button
-              onClick={toggleMenu}
-              className={`p-2 focus:outline-none transition-colors duration-300 ${
-                isMenuOpen ? "text-white" : "text-brand-blue"
-              }`}
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? (
-                <FaXmark className="w-6 h-6" />
-              ) : (
-                <FaBars className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-        </div>
-      </Container>
-
-      {/* Mobile Menu Overlay */}
-      <div
-        className={`fixed inset-0 bg-brand-blue z-40 transition-all duration-500 ease-in-out md:hidden ${
-          isMenuOpen
-            ? "opacity-100 translate-x-0 pointer-events-auto"
-            : "opacity-0 translate-x-full pointer-events-none"
-        }`}
-      >
-        {/* Abstract Background Artifacts */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 w-64 h-64 bg-brand-yellow/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 left-0 w-full h-1/2 bg-linear-to-t from-black/20 to-transparent"></div>
-          <div className="absolute top-1/3 left-10 w-2 h-2 bg-brand-yellow rounded-full animate-ping"></div>
-          <div className="absolute bottom-1/4 right-10 w-3 h-3 bg-white/20 rounded-full animate-bounce delay-700"></div>
-
-          {/* Grid Pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: "radial-gradient(white 1px, transparent 1px)",
-              backgroundSize: "30px 30px",
-            }}
-          ></div>
-        </div>
-
-        <div className="flex flex-col h-full justify-center px-8 relative z-10">
-          <nav>
-            <ul className="space-y-6">
-              {navLinks.map((link, index) => (
-                <li
-                  key={link.href}
-                  className={`transform transition-all duration-500 delay-[${
-                    index * 100
-                  }ms] ${
-                    isMenuOpen
-                      ? "translate-x-0 opacity-100"
-                      : "translate-x-10 opacity-0"
-                  }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <Link
-                    href={link.href}
-                    onClick={closeMenu}
-                    className={`flex items-center justify-between text-3xl font-bold tracking-tight group ${
-                      pathname === link.href ? "text-white" : "text-white/60"
-                    }`}
-                  >
-                    <span className="group-hover:text-white transition-colors">
-                      {link.label}
-                    </span>
-                    {pathname === link.href && (
-                      <FaArrowRight className="w-6 h-6 text-brand-yellow animate-pulse" />
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          <div
-            className={`mt-12 transform transition-all duration-500 delay-300 ${
-              isMenuOpen
-                ? "translate-y-0 opacity-100"
-                : "translate-y-10 opacity-0"
-            }`}
           >
-            {isAuthenticated ? (
-              <Button
-                onClick={() => router.push("/app/dashboard")}
-                rounded="full"
-                size="lg"
-                className="w-full justify-center bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none gap-2"
-              >
-                <FaUser className="w-5 h-5" />
-                My Account
-              </Button>
-            ) : (
-              <Button
-                onClick={() => router.push("/register")}
-                rounded="full"
-                size="lg"
-                className="w-full justify-center bg-brand-yellow text-brand-blue hover:bg-white hover:text-brand-blue border-none"
-              >
-                Create Account
-              </Button>
-            )}
-
-            {!isAuthenticated && (
-              <div className="mt-6 text-center">
-                <Link
-                  href="/login"
-                  className="text-white text-lg font-medium hover:text-brand-yellow"
-                  onClick={closeMenu}
-                >
-                  Login
-                </Link>
-              </div>
-            )}
-
-            <div className="mt-8 flex flex-col items-center gap-4">
-              {/* Mobile Language Toggle */}
-              {showLanguageToggle && (
-                <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2">
-                  <LanguageToggle />
-                </div>
+            {copy.nav.services}
+            <ChevronDown
+              className={cn("h-3.5 w-3.5", open === "services" && "rotate-180")}
+              aria-hidden="true"
+            />
+          </button>
+          {links.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onMouseEnter={() => open === "services" && close()}
+              className={cn(
+                navItemClass,
+                pathname === link.href
+                  ? "bg-brand-blue-tint text-brand-blue"
+                  : "text-gray-700 hover:text-brand-blue",
               )}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
 
-              {/* Mobile Region Toggle */}
-              <div className="flex items-center gap-3 text-white/80">
-                <span className="text-sm">Region:</span>
-                <HeaderCountrySelector />
-              </div>
-              <div className="text-xs uppercase tracking-widest text-white/40">
-                Momentum Logistics
-              </div>
-            </div>
-          </div>
+        <div className="ml-auto flex items-center gap-1.5 lg:ml-0 lg:gap-3">
+          <button
+            type="button"
+            onClick={toggle("region")}
+            aria-expanded={open === "region"}
+            aria-haspopup="dialog"
+            aria-label={`${copy.nav.regionButton}: ${regionLabel}`}
+            className="inline-flex h-11 items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 text-[13px] font-bold text-foreground lg:gap-2 lg:px-3.5 lg:text-sm lg:font-semibold"
+          >
+            <Globe className="h-[18px] w-[18px] text-brand-blue" aria-hidden="true" />
+            <span>{regionLabel}</span>
+            <ChevronDown
+              className="hidden h-3.5 w-3.5 text-gray-500 lg:block"
+              aria-hidden="true"
+            />
+          </button>
+          <Link
+            href={account.href}
+            className="hidden h-11 items-center px-3 text-sm font-semibold text-foreground no-underline hover:text-brand-blue lg:inline-flex"
+          >
+            {account.label}
+          </Link>
+          <Link
+            href="/shipping-estimate"
+            className="hidden h-11 items-center rounded-xl bg-brand-blue px-5 text-sm font-bold text-white no-underline shadow-lg shadow-brand-blue/20 hover:bg-brand-blue-dark lg:inline-flex"
+          >
+            {copy.nav.quote}
+          </Link>
+          <button
+            type="button"
+            onClick={toggle("mobile")}
+            aria-expanded={open === "mobile"}
+            aria-controls="mobile-menu"
+            aria-label={open === "mobile" ? copy.nav.closeMenu : copy.nav.openMenu}
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gray-100 text-foreground lg:hidden"
+          >
+            {open === "mobile" ? (
+              <X className="h-5 w-5" aria-hidden="true" />
+            ) : (
+              <Menu className="h-5 w-5" aria-hidden="true" />
+            )}
+          </button>
         </div>
       </div>
+
+      {open === "services" && (
+        <div className="hidden lg:block">
+          <HeaderServicesMenu
+            copy={copy}
+            locale={locale}
+            services={services}
+            onNavigate={close}
+          />
+        </div>
+      )}
+      {open === "region" && (
+        <HeaderRegionMenu copy={copy} locale={locale} onClose={close} />
+      )}
+      {open === "mobile" && (
+        <HeaderMobileMenu
+          copy={copy}
+          services={services}
+          links={links}
+          account={account}
+          onNavigate={close}
+        />
+      )}
     </header>
   );
 };

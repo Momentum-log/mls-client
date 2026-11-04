@@ -10,6 +10,7 @@ import {
 import { StackedSection } from "@/components/shipment/stacked-section";
 import AddressForm from "@/components/shipment/address-form";
 import PackageForm from "@/components/shipment/package-form";
+import { toFiniteNumber, totalPackageWeight } from "@/utils/package-weight";
 import TierSelection from "@/components/shipment/tier-selection";
 import CustomsForm from "@/components/shipment/customs-form";
 import SummaryDrawer from "@/components/shipment/summary-drawer";
@@ -29,6 +30,7 @@ import {
 import { getOrSetGuestId } from "@/utils/auth-helper";
 import {
   CustomsData,
+  HandoverPreference,
   ShippingEstimateResponse,
   ShippingTier,
   TIER_KEYS,
@@ -46,6 +48,7 @@ import { AccountVerificationModal } from "@/components/shipment/account-verifica
 import { useVerification } from "@/hooks/shipments/useVerification";
 import { extractApiError } from "@/utils/error-handler";
 import useUserCountryCode from "@/hooks/use-user-country-code";
+import { customerTotal } from "@/utils/price";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -116,6 +119,13 @@ export default function NewShipmentPage() {
     () => (estimate?.errors ? deepTransformData(estimate.errors) : undefined),
     [estimate],
   );
+  // Some routes (Momentum's Nigeria <-> EU) are always charged in one
+  // currency set by staff; the server prices them in it whatever we ask for,
+  // so the switcher would do nothing there.
+  const laneCurrency = useMemo(() => {
+    const quoted = Object.values(estimate?.tiers ?? {})[0]?.currency;
+    return quoted && quoted !== activeCurrency ? quoted : null;
+  }, [estimate, activeCurrency]);
   const displaySelectedTier = useMemo(
     () => (selectedTier ? deepTransformData(selectedTier) : null),
     [selectedTier],
@@ -129,12 +139,17 @@ export default function NewShipmentPage() {
         setEstimate(data);
         setEstimateId(data.estimateId);
       },
-      onError: () => {
+      onError: (error: unknown) => {
         setIsFetchingRates(false);
+        // A 400 carries a reason meant for the customer, e.g. Nigeria <-> EU
+        // prices being unavailable; anything else gets the generic message.
+        const { statusCode, message } = extractApiError(error);
         addToast({
           title: "Calculation Failed",
           message:
-            "Unable to calculate shipping rates. Please check address details.",
+            statusCode === 400 && message
+              ? message
+              : "Unable to calculate shipping rates. Please check address details.",
           type: "error",
         });
       },
@@ -260,13 +275,13 @@ export default function NewShipmentPage() {
 
     const formattedPackages = packages.map((pkg) => ({
       weight: {
-        value: parseFloat(pkg.weight.toFixed(2)),
+        value: parseFloat(toFiniteNumber(pkg.weight).toFixed(2)),
         units: "KG",
       },
       dimensions: {
-        length: parseFloat(pkg.length.toFixed(1)),
-        width: parseFloat(pkg.width.toFixed(1)),
-        height: parseFloat(pkg.height.toFixed(1)),
+        length: parseFloat(toFiniteNumber(pkg.length).toFixed(1)),
+        width: parseFloat(toFiniteNumber(pkg.width).toFixed(1)),
+        height: parseFloat(toFiniteNumber(pkg.height).toFixed(1)),
         units: "CM",
       },
     }));
@@ -278,6 +293,8 @@ export default function NewShipmentPage() {
         stateOrProvinceCode: sender.stateOrProvinceCode || "",
         postalCode: sender.postalCode,
         streetLines: [sender.street],
+        personName: sender.name,
+        phoneNumber: sender.phone,
       },
       {
         city: recipient.city,
@@ -285,6 +302,8 @@ export default function NewShipmentPage() {
         stateOrProvinceCode: recipient.stateOrProvinceCode || "",
         postalCode: recipient.postalCode,
         streetLines: [recipient.street],
+        personName: recipient.name,
+        phoneNumber: recipient.phone,
       },
       formattedPackages,
       getOrSetGuestId(),
@@ -474,7 +493,10 @@ export default function NewShipmentPage() {
     });
   };
 
-  const handleFinalize = (paymentMethod: "stripe" | "payu") => {
+  const handleFinalize = (
+    paymentMethod: "stripe" | "payu",
+    handover: HandoverPreference,
+  ) => {
     if (
       !sender ||
       !recipient ||
@@ -513,6 +535,7 @@ export default function NewShipmentPage() {
       preferredPaymentOption: paymentMethod,
       invoiceId,
       currency: activeCurrency,
+      handover,
     });
 
     performCreateShipment(payload, {
@@ -549,6 +572,7 @@ export default function NewShipmentPage() {
         let msg = "Unable to create shipment. Please try again.";
         let isAddressRequired = false;
         let status: number | undefined;
+        let reason: string | undefined;
 
         if (error && typeof error === "object" && "response" in error) {
           const res = (
@@ -558,12 +582,14 @@ export default function NewShipmentPage() {
                 data?: {
                   error?: string;
                   details?: string;
+                  reason?: string;
                 };
               };
             }
           ).response;
 
           status = res?.status;
+          reason = res?.data?.reason;
 
           if (res?.data?.error) msg = res.data.error;
           isAddressRequired = res?.data?.error === "ADDRESS_REQUIRED";
@@ -596,10 +622,13 @@ export default function NewShipmentPage() {
           invalidateQuote();
           setIsSummaryOpen(false);
           setExpandedSection("service");
+          // W2c: the quote was priced for different packages.
+          const packagesChanged = reason === "QUOTE_MISMATCH";
           addToast({
-            title: "Prices Have Changed",
-            message:
-              "This quote has expired. We're fetching current prices — please choose again.",
+            title: packagesChanged ? "Packages Changed" : "Prices Have Changed",
+            message: packagesChanged
+              ? "Your packages changed since this price was quoted. We're fetching prices for the current packages — please choose again."
+              : "This quote has expired. We're fetching current prices — please choose again.",
             type: "error",
           });
           return;
@@ -758,7 +787,7 @@ export default function NewShipmentPage() {
                         {packages.length} package{packages.length > 1 ? "s" : ""}
                       </p>
                       <p className="text-xs text-gray-500 font-medium">
-                        Total weight: {packages.reduce((acc, p) => acc + p.weight, 0).toFixed(2)} kg
+                        Total weight: {totalPackageWeight(packages).toFixed(2)} kg
                       </p>
                     </div>
                     <div>
@@ -830,11 +859,17 @@ export default function NewShipmentPage() {
               isCompleted={completedSteps.includes("service")}
               onEdit={() => setExpandedSection("service")}
               headerAction={
-                <CurrencySwitcher
-                  currency={activeCurrency}
-                  onChange={setCurrency}
-                  disabled={isFetchingRates}
-                />
+                laneCurrency ? (
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Charged in {laneCurrency} on this route
+                  </span>
+                ) : (
+                  <CurrencySwitcher
+                    currency={activeCurrency}
+                    onChange={setCurrency}
+                    disabled={isFetchingRates}
+                  />
+                )
               }
               summary={
                 displaySelectedTier && (
@@ -848,7 +883,7 @@ export default function NewShipmentPage() {
                       </p>
                       <p className="text-xs text-brand-blue font-bold tracking-tight">
                         {formatCurrency(
-                          displaySelectedTier.actualPrice,
+                          customerTotal(displaySelectedTier),
                           displaySelectedTier.currency as SupportedCurrency,
                         )}
                       </p>
@@ -861,6 +896,7 @@ export default function NewShipmentPage() {
                 tiers={displayTiers}
                 hasRates={(estimate?.rates?.length ?? 0) > 0}
                 errors={displayErrors}
+                notices={estimate?.notices}
                 selectedRoutingRef={selectedTier?.routingRef ?? null}
                 onSelect={handleTierSelect}
                 isLoading={isFetchingRates}

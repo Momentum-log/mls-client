@@ -1,5 +1,6 @@
 "use client";
 
+import { BookOpen, Laptop, Luggage, Mail, Package as PackageIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { useFormik, FormikProvider, FieldArray, FormikErrors, FormikTouched } from "formik";
 import { z } from "zod";
@@ -13,35 +14,35 @@ const PACKAGE_PRESETS = [
   {
     id: "envelope",
     name: "Envelope",
-    icon: "✉️",
+    icon: Mail,
     dims: { length: 35, width: 25, height: 2 },
     weight: 0.5,
   },
   {
     id: "book-box",
     name: "Book Box",
-    icon: "📚",
+    icon: BookOpen,
     dims: { length: 30, width: 20, height: 15 },
     weight: 2,
   },
   {
     id: "laptop-box",
     name: "Laptop Box",
-    icon: "💻",
+    icon: Laptop,
     dims: { length: 45, width: 35, height: 10 },
     weight: 3,
   },
   {
     id: "luggage",
     name: "Luggage",
-    icon: "🧳",
+    icon: Luggage,
     dims: { length: 70, width: 50, height: 30 },
     weight: 20,
   },
   {
     id: "custom",
     name: "Custom",
-    icon: "📦",
+    icon: PackageIcon,
     dims: { length: 0, width: 0, height: 0 },
     weight: 0,
   },
@@ -275,7 +276,7 @@ export default function PackageForm({
                                 : "border-gray-100 hover:border-brand-blue/30 text-gray-500 bg-white"
                             }`}
                           >
-                            <span className="text-2xl mb-2">{preset.icon}</span>
+                            <preset.icon className="mb-2 h-6 w-6" aria-hidden="true" />
                             <span className="text-[10px] font-black uppercase tracking-widest">
                               {preset.name}
                             </span>
@@ -308,7 +309,7 @@ export default function PackageForm({
                                     ? "opacity-50 pointer-events-none bg-gray-50"
                                     : "border-gray-200"
                                 }`}
-                                placeholder={dim.label[0]}
+                                placeholder={dim.label}
                               />
                               <span className="text-[10px] uppercase font-black text-gray-400 block text-center tracking-widest">
                                 {dim.label}
@@ -337,7 +338,7 @@ export default function PackageForm({
                                     ? "opacity-50 pointer-events-none bg-gray-50"
                                     : "border-gray-200"
                                 }`}
-                                placeholder="0.00"
+                                placeholder="Weight"
                               />
                               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 uppercase tracking-widest">
                                 {formik.values.globalWeightUnit}
@@ -362,7 +363,7 @@ export default function PackageForm({
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 className="w-full px-5 py-3.5 rounded-2xl border border-gray-200 font-bold bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all"
-                                placeholder="0.00"
+                                placeholder="Value"
                               />
                               <span className="absolute right-5 top-1/2 -translate-y-1/2 text-xs font-black text-gray-400 uppercase tracking-widest">
                                 {currency}
@@ -390,7 +391,7 @@ export default function PackageForm({
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         className="w-full px-5 py-4 rounded-2xl border border-gray-200 font-medium bg-white focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/5 outline-none transition-all"
-                        placeholder="What's inside? (e.g. Cotton T-shirts, Electronics, etc.)"
+                        placeholder="What's inside?"
                       />
                       {touchedBag.description && errorsBag.description && (
                         <p className={errorStyles}>

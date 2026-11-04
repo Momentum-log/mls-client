@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Shared schemas
 export const contactSchema = z.object({
-  personName: z.string().default("Estimate"),
+  personName: z.string(),
   companyName: z.string().default(""),
   phoneNumber: z.string().default(""),
   email: z.string().email().optional().or(z.literal("")),
@@ -15,7 +15,8 @@ export const addressSchema = z.object({
   city: z.string().min(1, "City is required"),
   stateOrProvinceCode: z.string().min(2, "State/Province code is required"),
   residential: z.boolean().default(false),
-  contact: contactSchema,
+  // W2a: quotes carry a contact only when a real one is known.
+  contact: contactSchema.optional(),
 });
 
 export const weightSchema = z.object({

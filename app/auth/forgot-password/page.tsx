@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder="Email address"
                 disabled={isLoading}
               />
             </div>
@@ -158,7 +158,7 @@ export default function ForgotPasswordPage() {
                   required
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  placeholder="6-DIGIT CODE"
+                  placeholder="6-digit code"
                   className="text-center text-xl font-bold tracking-widest uppercase"
                   disabled={isLoading}
                   maxLength={6}

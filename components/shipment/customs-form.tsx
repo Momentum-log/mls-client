@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useFormik, FormikProvider, FieldArray } from "formik";
+import { totalPackageWeight } from "@/utils/package-weight";
 import { z } from "zod";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import {
 import { Package, Address } from "@/store/shipment-store";
 import { AccountVerificationModal } from "@/components/shipment/account-verification-modal";
 import HsCodeSuggestion from "@/components/shipment/hs-code-suggestion";
+import HsCodeCombobox from "@/components/shipment/hs-code-combobox";
 import { useVerification } from "@/hooks/shipments/useVerification";
 import {
   customsTypeForUser,
@@ -187,7 +189,7 @@ export default function CustomsForm({
     }));
   };
 
-  const totalPackagesWeight = packages.reduce((acc, p) => acc + p.weight, 0);
+  const totalPackagesWeight = totalPackageWeight(packages);
 
   const formik = useFormik({
     initialValues: {
@@ -387,7 +389,7 @@ export default function CustomsForm({
                   value={formik.values.firstName}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="Item Description (e.g., Cotton T-Shirt)"
+                  placeholder="Item description"
                 />
                 {formik.touched.firstName && formik.errors.firstName && (
                   <span className={errorStyles}>
@@ -402,7 +404,7 @@ export default function CustomsForm({
                   value={formik.values.secondaryName}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="Sender Last Name"
+                  placeholder="Last name"
                 />
                 {formik.touched.secondaryName &&
                   formik.errors.secondaryName && (
@@ -439,7 +441,7 @@ export default function CustomsForm({
                   value={formik.values.grossWeight}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="e.g. 2.5"
+                  placeholder="Gross weight"
                 />
                 {formik.touched.grossWeight && formik.errors.grossWeight && (
                   <span className={errorStyles}>
@@ -458,7 +460,7 @@ export default function CustomsForm({
                     value={formik.values.nipNr}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="e.g. 1234567890"
+                    placeholder="NIP number"
                   />
                   {formik.touched.nipNr && formik.errors.nipNr && (
                     <span className={errorStyles}>
@@ -509,7 +511,7 @@ export default function CustomsForm({
                               value={item.nameEn}
                               disabled
                               className="bg-gray-100 opacity-70 cursor-not-allowed font-semibold text-gray-600"
-                              placeholder="Pre-populated from Package"
+                              placeholder="Item name"
                             />
                             {(touchedBag as ItemDetail).nameEn &&
                               (errorBag as ItemDetail).nameEn && (
@@ -533,12 +535,17 @@ export default function CustomsForm({
                                 <FiHelpCircle className="mr-1" /> Find HS Code
                               </a>
                             </div>
-                            <Input
+                            <HsCodeCombobox
                               name={`customsItem.${index}.tariffCode`}
                               value={item.tariffCode}
-                              onChange={formik.handleChange}
+                              onChange={(code) =>
+                                formik.setFieldValue(
+                                  `customsItem.${index}.tariffCode`,
+                                  code,
+                                )
+                              }
                               onBlur={formik.handleBlur}
-                              placeholder="e.g. 610910"
+                              description={item.nameEn}
                             />
                             {(touchedBag as ItemDetail).tariffCode &&
                               (errorBag as ItemDetail).tariffCode && (

@@ -132,9 +132,18 @@ export interface EstimatePackageDetails {
  * Payload for getting shipping rates/estimates.
  * 'customs' is REQUIRED for international routes.
  */
+/** A quote needs no contact; when one is known it may be sent (W2a). */
+export interface EstimateContact {
+  personName: string;
+  phoneNumber?: string;
+  email?: string;
+}
+
+export type EstimateAddress = Omit<Address, "contact"> & { contact?: EstimateContact };
+
 export interface ShippingEstimatePayload {
-  pickup: Address;
-  dropoff: Address;
+  pickup: EstimateAddress;
+  dropoff: EstimateAddress;
   packages: EstimatePackageDetails[];
   guestId?: string; // Keep consistent with docs
   /** Optional ISO 3166-1 alpha-2 country code for currency determination (e.g., 'PL', 'DE') */
@@ -242,6 +251,23 @@ export interface RatedShipmentDetail {
   currency: string;
 }
 
+/**
+ * What the customer pays and why (W4). `total` is the price to show; the
+ * commission is always labelled "Handling fee" to customers.
+ */
+export interface PriceBreakdown {
+  carrier: number;
+  handlingFee: number;
+  net: number;
+  /** VAT rate in percent. */
+  vatRate: number;
+  vat: number;
+  /** Hide the line when 0. */
+  pickupFee: number;
+  total: number;
+  currency: string;
+}
+
 export interface Rate {
   // Common fields from various API responses
   serviceType: string;
@@ -262,6 +288,7 @@ export interface Rate {
   serviceDescription?: ServiceDescription;
   warnings?: string[];
   totalPrice?: number; // Kept for backward compat
+  breakdown?: PriceBreakdown;
 }
 
 /** The three tier keys the server may return, in the order they should render. */
@@ -292,6 +319,8 @@ export interface ShippingTier {
   transitDaysMax: number;
   deliveryDescription: string;
   warnings: string[];
+  /** Carrier price, handling fee, VAT and total (W4). */
+  breakdown?: PriceBreakdown;
 }
 
 /**
@@ -319,7 +348,25 @@ export interface ShippingEstimateResponse {
   rates: Rate[];
   tiers?: ShippingTiers;
   errors?: CarrierError[];
+  /** Messages that are not rates; absent when there are none. */
+  notices?: QuoteNotice[];
   guestId: string;
+}
+
+/**
+ * Momentum (Nigeria <-> EU, door to door).
+ * `EXPRESS_ON_REQUEST`: express exists but has no online price yet.
+ * `QUOTE_ON_REQUEST`: the shipment is over the online weight limit (30 kg),
+ * so there is no rate; offer "Request a quote".
+ */
+export interface QuoteNotice {
+  code: "EXPRESS_ON_REQUEST" | "QUOTE_ON_REQUEST";
+  carrier: string;
+  message: string;
+  /** WhatsApp chat with support; null means use the contact page. */
+  contactUrl: string | null;
+  transitDaysMin?: number;
+  transitDaysMax?: number;
 }
 
 export type FulfillmentType = "PICKUP" | "DROPOFF";
@@ -334,9 +381,11 @@ export type FulfillmentType = "PICKUP" | "DROPOFF";
 /**
  * `CARRIER`: the customer chooses pickup or drop-off. `MLS_COLLECTION`: MLS
  * collects the parcel and hands it to the carrier at the hub (DHL eCommerce
- * exports); pickup and drop-off are both unavailable.
+ * exports); pickup and drop-off are both unavailable. `MANUAL`: our team
+ * booked the label and the handover on the carrier's site (manual
+ * fulfilment); the customer sees what was booked and cannot change it here.
  */
-export type HandoverMode = "CARRIER" | "MLS_COLLECTION";
+export type HandoverMode = "CARRIER" | "MLS_COLLECTION" | "MANUAL";
 
 export type CollectionFeeStatus = "PENDING_PAYMENT" | "PAID" | "WAIVED";
 
@@ -362,7 +411,7 @@ export interface FulfillmentOptions {
   shipmentId: string;
   currentFulfillment: "NONE" | FulfillmentType;
   handoverMode: HandoverMode;
-  /** Present with `MLS_COLLECTION`: shown instead of pickup and drop-off. */
+  /** Present with `MLS_COLLECTION` and `MANUAL`: shown instead of pickup and drop-off. */
   handoverMessage?: string;
   /** Present with `MLS_COLLECTION`. */
   collection?: CollectionState;
@@ -569,6 +618,23 @@ export interface CreateShipmentPayload {
   /** Optional currency override (PLN or EUR) */
   currency?: string;
   billingAddress?: BillingAddress;
+  /** How the parcel leaves the sender, chosen before paying. */
+  handover?: HandoverPreference;
+}
+
+/**
+ * The customer's pickup or drop-off choice, made before paying. Staff use it
+ * to book shipments that our team fulfils by hand.
+ */
+export interface HandoverPreference {
+  method: "PICKUP" | "DROPOFF";
+  /** YYYY-MM-DD; required for PICKUP. */
+  pickupDate?: string;
+  /** HH:MM, 24-hour; required for PICKUP. */
+  readyTime?: string;
+  /** HH:MM, 24-hour; required for PICKUP. */
+  closeTime?: string;
+  notes?: string;
 }
 
 export type ShipmentMutationPayload = CreateShipmentPayload & {
@@ -637,6 +703,8 @@ export interface Shipment {
   // --- Tracking ---
   customTrackingNumber: string | null;
   carrierTrackingNumber: string | null;
+  /** The carrier's own tracking page, when staff added one with the label. */
+  carrierTrackingUrl?: string | null;
 
   // --- Status & Service ---
   shipmentStatus: ShipmentStatus;
@@ -704,4 +772,26 @@ export interface ContinueToPayResponse {
     id?: string;
     invoiceId?: string;
   };
+}
+
+/** One CN code suggestion from `GET /shipments/hs-codes/suggest` (W7). */
+export interface CnSuggestion {
+  /** 4 (heading), 6 (HS subheading) or 8+ (EU CN) digits. */
+  code: string;
+  hs6: string | null;
+  description: string;
+  level: number;
+  /** Only full codes may fill the tariff code; the rest are group labels. */
+  selectable: boolean;
+  url: string;
+}
+
+export interface HsCodeSuggestResponse {
+  status: "success";
+  query: string;
+  lang: "en" | "de" | "fr" | "es";
+  source: "tariffnumber" | "cache" | "mtech" | "none";
+  /** True when the live lookup failed and a fallback answered. */
+  degraded: boolean;
+  suggestions: CnSuggestion[];
 }

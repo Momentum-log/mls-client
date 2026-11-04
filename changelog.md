@@ -5,6 +5,120 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.56.0] - 2026-11-04 - Pickup or drop-off before paying, and labels our team prepares
+
+**Requires:** `mls-server` with manual fulfilment (migrations `20261104120000_add_manual_fulfilment` and `20261104150000_add_carrier_tracking_url`).
+
+- Added: **"Track on <carrier> site"** on the shipment page when staff added the carrier's tracking link with a label they prepared (`carrierTrackingUrl`). A label given as a link downloads through the existing "Download Label" button.
+- Added: **"How will the parcel leave you?" on the review step, before paying** (`components/shipment/handover-choice.tsx`, `utils/handover.ts`). Drop it off, or courier pickup with a day (next working day onwards) and a ready-from / until window. Sent with the booking as `handover`; changing the service asks again.
+- Added: **"Label Being Prepared"** for the new status `LABEL_PENDING` (our team books the label on the carrier's site). The shipment page, the payment success page and the status badge say "Our team is preparing your label", with no promised hours, and that it will be emailed. The shipment counts as active and can still be cancelled.
+- Added: **staff-booked handover** (`handoverMode: "MANUAL"`): after our team uploads the label, the shipment page shows the booked pickup day and window, or the drop-off instruction, instead of the carrier booking buttons.
+- Changed: the review step says the label is emailed after payment instead of asking for the handover afterwards.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors) and `bun run lint`.
+
+## [1.55.0] - 2026-11-04 - Fixed currency on Momentum routes
+
+**Requires:** `mls-server` with the Momentum charge-currency change.
+
+- Changed: **the booking form says "Charged in EUR on this route"** instead of the currency switcher when the server prices a route in a fixed currency (Momentum's Nigeria <-> EU lanes, set by staff per lane). Prices and checkout already use the rate's own currency.
+- Verification: eslint on the changed file and `tsc` (only the existing SVG import errors).
+
+## [1.54.2] - 2026-11-04 - Booking form no longer crashes when the weight is cleared
+
+- Fixed: **clearing a package's weight crashed the Create Shipment page** ("N.reduce(...).toFixed is not a function"). Formik stores an emptied number input as `""`, so the "Total weight" sum became a string and `.toFixed` threw. New `utils/package-weight.ts` (`toFiniteNumber`, `totalPackageWeight`) reads measurements as numbers (empty counts as 0) for the total weight, the customs gross weight, and the weight/dimension values sent for quotes on the booking form and the shipping estimate page.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors), eslint on the changed files, and a unit check of the helper.
+
+## [1.54.1] - 2026-11-04 - Clear message when Nigeria <-> EU has no price
+
+**Requires:** `mls-server` with the Nigeria-EU fall-through fix.
+
+- Fixed: **the rate error toast shows the server's reason.** On the booking form and the shipping estimate page, a `400` from the quote now shows the server's message (for example "Online prices for shipping between Nigeria and the EU are not available right now. Please contact us for a quote.") instead of "Unable to calculate shipping rates" or "Request failed with status code 400". Other errors keep the generic text.
+- Verification: eslint on the changed files and `tsc` (only the existing SVG import errors).
+
+## [1.54.0] - 2026-11-04 - Momentum notes and HS code suggestions
+
+**Requires:** `mls-server` with PR #25.
+
+- Added (W5): **"Express shipping also available".** When a quote carries an `EXPRESS_ON_REQUEST` notice (Momentum's door-to-door Nigeria <-> EU lanes while express has no price), the booking form, the Ship page and the home quote panel show the message with a contact button. Once staff price express it arrives as a normal rate and the note disappears.
+- Added (W5): **"Request a quote" over 30 kg.** Above Momentum's online weight limit (30 kg by default) the server returns no price and a `QUOTE_ON_REQUEST` notice, so those screens show a "Request a quote on WhatsApp" button instead of "No services available". Notices carry `contactUrl` (a WhatsApp chat with support, prefilled with weight and route); without it the buttons go to the contact page.
+- Added (W7): **HS code suggestions while typing.** The customs tariff code field is now a combobox. Type a product word (3+ characters) or the first digits of a code (2+), or focus the empty field to search the item's description. Debounced 400 ms, cached per term, superseded requests cancelled. Only full 8-digit CN codes can be picked; headings show as context. A picked code shows "Suggested code ... please check it matches your item" with a link to its details. Keyboard: arrows, Enter, Escape. "Suggest a code" (MTech) stays.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors, which `next build` resolves), eslint on the changed files, and `bun run build` pass. Not yet checked against a running server.
+
+## [1.53.0] - 2026-11-04 - November backlog, Phase A
+
+- Changed (W1): **Global wording.** "From Poland" and "across Europe" became "worldwide" / "ship globally" in the page titles, descriptions, home, ship, freight and about copy (EN and PL). The Łódź address and the mission line stay. The home subheading names "partners you already trust" instead of carriers, and the stat reads "trusted courier networks". The partner logos stay.
+- Changed (W1): **Insurance copy matches reality.** The Ship card reads "Insurance is your choice" and the FAQ explains that parcels travel under the carrier's standard liability.
+- Changed (W1): **About page.** The "Old way" card is gone and "The Momentum way" spans the full width. The nine confirmed values sit in a 3 x 3 grid, each with a one-line description for review.
+- Added (W1): **Photos in the Services menu.** The preview card shows a photo per service (Ship, Track and Freight share the hero photo with different crops until new photos arrive).
+- Changed (W1): **"Ship a parcel" for signed-in customers** goes straight to `/app/shipments/new`. Guests still see the Ship page (D11).
+- Fixed (W2a): quotes no longer send the placeholder contact "Estimate". A contact is sent only when it is real.
+- Changed (W2c): when the server refuses a quote because the packages changed (`409`, `reason: QUOTE_MISMATCH`), the booking form says so and fetches prices again.
+- Added (W2b): receipts say "Paid by Momentum staff" when staff recorded the payment (`paidBy: "STAFF"`).
+- Added (W4): **Price breakdown.** Rates, tiers and the checkout summary show the VAT-inclusive total, with carrier price, "Handling fee", VAT (with its rate), any pickup fee and the total. Without a `breakdown` from the server the old net price is shown as before.
+- Verification: `bunx tsc --noEmit`, `bun run lint`, `bun utils/site-locale.check.ts` and `bun run build` pass. The About page and Services menu were checked in a headless browser. The Polish wording has not been reviewed by a native speaker.
+
+## [1.52.5] - 2026-11-03 - Client copy feedback
+
+- Changed: Home hero reads "Ship globally, in minutes." (Polish "Wysyłaj globalnie"). Freight form hint says "the faster the quote". Mission reads "To be Europe's most trusted integrated logistics partner, taking the friction out of global trade." The "Global mindset" value is now "Reliability". Sustainability replaces the net-zero claim with "Working towards a lower-emission fleet" and the supplied text; the home, header and sustainability intro copy no longer promise net-zero.
+- Added: Footer shows "Momentum Logistics Services Sp. z o.o." with KRS 0001197173, NIP 7272893300 and REGON 542847107.
+- Removed: Home "Every shipment, one partner" section (`HomeShip`) and its copy. All "part of the Applespeed group" wording, in the footer and on the About page.
+- Files changed: `components/site/copy/{en,pl}.ts`, `components/site/home/home-sections.tsx`, `components/layout/footer.tsx`, `app/(marketing)/[lang]/{page.tsx,about/page.tsx}`.
+- Verification: `bun run build` succeeds, `bunx tsc --noEmit` and `bun run lint` clean, `bun utils/site-locale.check.ts` passes. Pages not reviewed in the browser. The Polish wording is my translation and has not been reviewed by a native speaker.
+
+## [1.52.4] - 2026-11-03 - Descriptive placeholders
+
+- Changed: **Form placeholders say what to type, not a sample value.** Names read "Full name", "First name" or "Last name" instead of "John Doe"; emails "Email address" instead of `name@example.com`; passwords "Password" and "Confirm password" instead of dots; company and tax fields "Company name" and "NIP / Tax Number"; codes "6-digit code" or "Verification code"; tracking fields "Tracking number"; addresses "Street address", "Country", "State or province", "City", "Postal code"; package and customs fields "Length", "Width", "Height", "Weight", "Value", "Item description", "Gross weight", "NIP number", "HS code"; the phone input "Phone number"; pickup notes "Notes for the driver". Covers sign-in, registration, password reset, account and verification modals, the address, package, customs and pickup forms, the instant quote, tracking, the 404 page and the home quick quote (`app/auth/forgot-password/page.tsx`, `app/(marketing)/shipping-estimate/page.tsx`, `components/{auth,account,shipment,shared,tracking,ui}/*`, `components/site/copy/{en,pl}.ts`).
+- Verification: `bun run build` succeeds, `bunx tsc --noEmit` and `bun run lint` clean, `bun utils/site-locale.check.ts` passes. Placeholder text was not reviewed screen by screen in the browser.
+
+## [1.52.3] - 2026-11-02 - Company film player
+
+- Changed: **About page film has Momentum's own controls** (`components/site/company-film.tsx`). A yellow play button over the poster, and a bar with play/pause, a seek slider, elapsed and total time, mute and full screen, replacing the browser's controls. The bar fades while the film plays and returns on hover or keyboard focus. Every control is a labelled button or range input, in English and Polish.
+- Changed: **Film frame spacing**. Even 16px padding on all four sides, the frame shrinks to the video's width, and the video's corner radius follows the nested-radius rule: inner radius = outer radius (32px) minus padding (16px) = 16px.
+- Verification: `bunx tsc --noEmit` and `bun run lint` clean. In the browser: measured 16px padding on every side with 32px and 16px radii; play, pause, seek (to 15s), mute and the label changes all worked.
+
+## [1.52.2] - 2026-11-02 - Quote loading state, About and Contact polish, package icons
+
+- Fixed: **Quick quote showed an empty space while prices loaded** (`components/shipping/quote-results.tsx`). The loading skeleton was white blocks inside a white panel. It now shows a spinner with "Calculating rates across our courier networks…" and three grey placeholder rows, announced to screen readers (`role="status"`), until the prices replace it.
+- Changed: **Company film is shown portrait (9:16)** on About (`app/(marketing)/[lang]/about/page.tsx`), in a navy patterned frame, instead of being cropped to 16:9.
+- Changed: **About cards**. "Why we exist" cards carry icons (target, telescope, hourglass, rocket) and patterns; the four value cards are coloured, patterned cards with a large faint icon.
+- Changed: **Contact channel cards** (WhatsApp, phone, email) have dot patterns and a large faint icon.
+- Changed: **Package size presets use icons instead of emoji** on the instant quote and in the new-shipment flow (`app/(marketing)/shipping-estimate/page.tsx`, `components/shipment/package-form.tsx`).
+- Verification: `bunx tsc --noEmit` and `bun run lint` clean. In the browser against the local API: the loading panel stayed on screen for the whole ~3 s request, then six prices replaced it; About and Contact checked at 1440px.
+
+## [1.52.1] - 2026-11-02 - Quick quote sends contact details
+
+- Fixed: **Home quick quote was rejected for guests** (`components/site/home/booking-panel.tsx`). The server answers 400 "Email and Phone are required for guest estimates", and the panel sent neither. It now has Email and Phone fields (the phone uses the shared country-code input, which now takes an `id` so its label is linked, `components/ui/phone-input.tsx`), prefilled for signed-in customers, sent as the pick-up contact. A phone shorter than 7 digits is stopped before the request, and server errors show their own message through `handleApiError`.
+- Verification: `bunx tsc --noEmit` and `bun run lint` clean. In the browser against the local API: Łódź to Berlin with the small box returned 200 and six options; the address fields showed only the street.
+
+## [1.52.0] - 2026-11-02 - Redesign feedback: brush headings, patterns, quick quote, auto language
+
+- Added: **Brush highlight** (`components/ui/brush-highlight.tsx`, `components/ui/brush-strokes.ts`, styles in `app/globals.css`). The three hand-painted strokes from the Momentum design system, with a choice of stroke (1-3), colour (`yellow`, `blue`, `sky`, `green` or any CSS colour), thickness and flip. `MarkerHeading` now uses it (`markerColor`, `brush`, `thickness`, and `after` for a brushed word mid-sentence). Every page heading carries one: home, Ship, Freight, Sustainability, About, Contact, "Your shipping options" and "Track a parcel".
+- Added: **Background patterns** (`.pattern-dots`, `.pattern-grid`, their `-light` versions and `.pattern-stripes-light` in `app/globals.css`) on every section and on the feature cards, plus decorative rings on the call-to-action, business, vision, ESG and headquarters cards (`components/site/rings.tsx`).
+- Changed: **Home quick quote** (`components/site/home/booking-panel.tsx`). "Pick up from" and "Drop off to" are Google Places fields: picking a suggestion shows only the street while the country, state, city and postcode go into the quote payload. A package size chip supplies weight and dimensions, and "See prices" calls the quote API and shows the options in the panel. Changing an address, size or currency clears stale prices.
+- Changed: **Courier logos** padded and contained so none is cropped; DPD uses its logo (`public/images/partners/dpd.png`).
+- Changed: **"Every shipment, one partner" cards** are coloured, patterned cards with a large icon and number, each linking to the instant quote.
+- Changed: **Contact**. The headquarters card is navy with icons and a "Get directions" link to Google Maps; the message form is shown disabled with a note to use WhatsApp, phone or email.
+- Added: **Automatic language** (`components/site/locale-auto-detect.tsx`, `utils/site-locale.ts`). On the first visit, a browser in Poland's time zone or with a Polish language goes to `/pl`, everyone else to `/en`, without any permission prompt; the result is saved in the `mls_lang` cookie, so a language picked in the header always wins. The `/` redirect also treats any `-PL` browser region as Polish.
+- Fixed: **Headings ignored `font-satoshi`** (`app/globals.css`). The global `h1`-`h6` WorkSans rule sat outside Tailwind's layers, so it beat every font class and the new pages showed WorkSans headings. It now lives in `@layer base`; headings without a font class are unchanged, and any heading that already carried a font class now gets that font.
+- Verification: `bun utils/site-locale.check.ts` passes, `bunx tsc --noEmit` clean, `bun run lint` clean, `bun run build` succeeds. Checked in the dev server at 1440px and 375px: brush strokes, patterns, logos and cards render, all headings use Satoshi, and no `/en`, `/pl`, quote or tracking page scrolls sideways at 375px. Not checked: address suggestions and live prices, because the API at `localhost:8000` was not running.
+
+## [1.51.0] - 2026-11-02 - Marketing site redesign
+
+Implements the "Momentum Logistics — Marketing Website" design canvas across the public site.
+
+- Added: **English and Polish pages under `/en` and `/pl`** (`app/(marketing)/[lang]/`, `utils/site-locale.ts`, `components/site/copy/{en,pl,index}.ts`). Home, Ship a parcel, Freight, Sustainability, About and FAQ, and Contact exist in both languages; the Polish dictionary is typed against the English one. `/` redirects to the saved language (`mls_lang` cookie) or the browser's (`proxy.ts`); `/about` and `/contact` redirect to `/en/...` (`next.config.ts`). Quote, tracking, auth and account screens stay unprefixed and English.
+- Added: **New pages** `/[lang]/ship`, `/[lang]/freight` (with the live freight enquiry form, `components/site/freight-enquiry-form.tsx`, posting to `POST /inquiries`) and `/[lang]/sustainability`.
+- Changed: **Header** (`components/layout/header*.tsx`). Services mega menu (Ship, Track, Freight, Sustainability), a language and region menu (language changes the URL and is remembered; region sets PLN or EUR in the country store), and a drop-down menu below `lg`. Footer rebuilt on navy with the new link columns and the current WhatsApp number.
+- Changed: **Home page** (`components/site/home/*`). Hero with a quote-or-track panel: "See prices" hands the countries and postcodes to `/shipping-estimate`, 70 kg or more points to the freight enquiry, tracking goes to `/track-shipment/<number>`.
+- Changed: **About** now holds the FAQ (`#faq`) with answers matching how the platform works (card or PayU, Fastest/Balanced/Economy); the old FAQ answers on `/legacy-home` are untouched.
+- Changed: **Instant quote** (`app/(marketing)/shipping-estimate/page.tsx`, `components/shipping/quote-results.tsx`). New page heading, selectable option cards with a "Continue to booking" bar, and a how-it-works strip. The form itself is unchanged.
+- Changed: **Public tracking** (`components/tracking/{track-shell,PublicTrackingResult}.tsx`). Inline search, four-stage progress, full event timeline, route summary, WhatsApp and email help prefilled with the tracking number, and "Copy share link".
+- Changed: **Contact form** submits through the visitor's mail app (`mailto:`) instead of doing nothing; office hours and the map are omitted until the client provides them.
+- Added: Theme tokens `brand-navy`, `brand-blue-dark`, `brand-blue-tint`, `navy-fg`, `navy-muted`, `eco-bg`, `warning-bg`, `warning-fg` (`app/globals.css`).
+- Removed: The previous landing sections, its EN/PL store and hook, the old About components, the header and footer country selectors, and the shipping hero (`components/landing/{landing-*,language-toggle,stat-tile,translations}`, `hooks/use-landing-copy.ts`, `store/language-store.ts`, `components/about/*`, `components/shared/{header-,}country-selector.tsx`, `components/shipping/shipping-{hero,process-showcase}.tsx`).
+- Notes: Design image slots without a supplied photo are left out (cards use icons instead); Google reviews, office hours and the map are not shown until the client supplies them; DPD shows as a wordmark until an official logo is provided.
+- Verification: `bunx tsc --noEmit` clean, `bun run lint` clean, `bun run build` succeeds with `/en` and `/pl` prerendered for all six pages. Not checked in a browser.
+
 ## [1.50.0] - 2026-10-17 - DPD
 
 - Added: **DPD shipments display like the other carriers** (`utils/carrier-branding.ts`). "DPD" in service names is shown as "MLS", as FedEx and DHL already are. DPD labels arrive as a PDF and download as `MLS-<TRACKING>.pdf` through the existing path (`utils/label-link.ts`).

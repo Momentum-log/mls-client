@@ -39,7 +39,7 @@ const TrackingSearch: React.FC<TrackingSearchProps> = ({
           <Input
             value={trackingId}
             onChange={(e) => setTrackingId(e.target.value)}
-            placeholder="Enter MLS Tracking ID (e.g. MLS-TRK-F84B00...)"
+            placeholder="Tracking number"
             className="pl-12 h-14 text-lg border-gray-200 focus:border-brand-blue ring-0 font-bold font-work-sans uppercase"
             disabled={isLoading}
           />

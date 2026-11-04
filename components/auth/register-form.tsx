@@ -223,7 +223,7 @@ const RegisterForm = () => {
               id="companyName"
               name="companyName"
               type="text"
-              placeholder="Kowalski Sp. z o.o."
+              placeholder="Company name"
               value={formik.values.companyName}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -247,7 +247,7 @@ const RegisterForm = () => {
               id="nip"
               name="nip"
               type="text"
-              placeholder="1234563218"
+              placeholder="NIP / Tax Number"
               value={formik.values.nip}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -273,7 +273,7 @@ const RegisterForm = () => {
           id="name"
           name="name"
           type="text"
-          placeholder="John Doe"
+          placeholder="Full name"
           value={formik.values.name}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
@@ -293,7 +293,7 @@ const RegisterForm = () => {
           id="email"
           name="email"
           type="email"
-          placeholder="name@example.com"
+          placeholder="Email address"
           value={formik.values.email}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
@@ -324,7 +324,7 @@ const RegisterForm = () => {
         <PasswordInput
           id="password"
           name="password"
-          placeholder="••••••••"
+          placeholder="Password"
           value={formik.values.password}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
@@ -345,7 +345,7 @@ const RegisterForm = () => {
         <PasswordInput
           id="confirmPassword"
           name="confirmPassword"
-          placeholder="••••••••"
+          placeholder="Confirm password"
           value={formik.values.confirmPassword}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}

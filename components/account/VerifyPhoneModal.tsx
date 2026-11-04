@@ -120,7 +120,7 @@ const VerifyPhoneModal: React.FC<VerifyPhoneModalProps> = ({
           <Input
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            placeholder="000000"
+            placeholder="6-digit code"
             className="text-center text-2xl tracking-[0.5em] font-black h-16"
             maxLength={6}
             disabled={isVerifying}
