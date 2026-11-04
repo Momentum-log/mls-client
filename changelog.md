@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed: **the booking form says "Charged in EUR on this route"** instead of the currency switcher when the server prices a route in a fixed currency (Momentum's Nigeria <-> EU lanes, set by staff per lane). Prices and checkout already use the rate's own currency.
 - Verification: eslint on the changed file and `tsc` (only the existing SVG import errors).
 
+## [1.54.2] - 2026-11-04 - Booking form no longer crashes when the weight is cleared
+
+- Fixed: **clearing a package's weight crashed the Create Shipment page** ("N.reduce(...).toFixed is not a function"). Formik stores an emptied number input as `""`, so the "Total weight" sum became a string and `.toFixed` threw. New `utils/package-weight.ts` (`toFiniteNumber`, `totalPackageWeight`) reads measurements as numbers (empty counts as 0) for the total weight, the customs gross weight, and the weight/dimension values sent for quotes on the booking form and the shipping estimate page.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors), eslint on the changed files, and a unit check of the helper.
+
 ## [1.54.1] - 2026-11-04 - Clear message when Nigeria <-> EU has no price
 
 **Requires:** `mls-server` with the Nigeria-EU fall-through fix.
