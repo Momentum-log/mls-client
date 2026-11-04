@@ -15,6 +15,8 @@ import { ShippingTier } from "@/types/shipping";
 import Button from "@/components/ui/button";
 import { formatCurrencyCompact } from "@/utils/currency-formatter";
 import { SupportedCurrency } from "@/types/country";
+import { customerTotal } from "@/utils/price";
+import PriceBreakdown from "@/components/shipping/price-breakdown";
 
 interface SummaryDrawerProps {
   isOpen: boolean;
@@ -203,7 +205,7 @@ export default function SummaryDrawer({
                     <div className="mt-6 flex items-baseline gap-2 border-t border-white/10 pt-4">
                       <span className="text-3xl font-black text-white">
                         {formatCurrencyCompact(
-                          tier?.actualPrice as number,
+                          tier ? customerTotal(tier) : 0,
                           tier?.currency as SupportedCurrency,
                         )}
                       </span>
@@ -211,6 +213,9 @@ export default function SummaryDrawer({
                         {tier?.currency}
                       </span>
                     </div>
+                    {tier?.breakdown && (
+                      <PriceBreakdown breakdown={tier.breakdown} tone="dark" className="mt-4" />
+                    )}
                   </div>
                 </div>
 

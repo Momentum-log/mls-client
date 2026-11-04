@@ -5,6 +5,19 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.53.0] - 2026-11-04 - November backlog, Phase A
+
+- Changed (W1): **Global wording.** "From Poland" and "across Europe" became "worldwide" / "ship globally" in the page titles, descriptions, home, ship, freight and about copy (EN and PL). The Łódź address and the mission line stay. The home subheading names "partners you already trust" instead of carriers, and the stat reads "trusted courier networks". The partner logos stay.
+- Changed (W1): **Insurance copy matches reality.** The Ship card reads "Insurance is your choice" and the FAQ explains that parcels travel under the carrier's standard liability.
+- Changed (W1): **About page.** The "Old way" card is gone and "The Momentum way" spans the full width. The nine confirmed values sit in a 3 x 3 grid, each with a one-line description for review.
+- Added (W1): **Photos in the Services menu.** The preview card shows a photo per service (Ship, Track and Freight share the hero photo with different crops until new photos arrive).
+- Changed (W1): **"Ship a parcel" for signed-in customers** goes straight to `/app/shipments/new`. Guests still see the Ship page (D11).
+- Fixed (W2a): quotes no longer send the placeholder contact "Estimate". A contact is sent only when it is real.
+- Changed (W2c): when the server refuses a quote because the packages changed (`409`, `reason: QUOTE_MISMATCH`), the booking form says so and fetches prices again.
+- Added (W2b): receipts say "Paid by Momentum staff" when staff recorded the payment (`paidBy: "STAFF"`).
+- Added (W4): **Price breakdown.** Rates, tiers and the checkout summary show the VAT-inclusive total, with carrier price, "Handling fee", VAT (with its rate), any pickup fee and the total. Without a `breakdown` from the server the old net price is shown as before.
+- Verification: `bunx tsc --noEmit`, `bun run lint`, `bun utils/site-locale.check.ts` and `bun run build` pass. The About page and Services menu were checked in a headless browser. The Polish wording has not been reviewed by a native speaker.
+
 ## [1.52.5] - 2026-11-03 - Client copy feedback
 
 - Changed: Home hero reads "Ship globally, in minutes." (Polish "Wysyłaj globalnie"). Freight form hint says "the faster the quote". Mission reads "To be Europe's most trusted integrated logistics partner, taking the friction out of global trade." The "Global mindset" value is now "Reliability". Sustainability replaces the net-zero claim with "Working towards a lower-emission fleet" and the supplied text; the home, header and sustainability intro copy no longer promise net-zero.

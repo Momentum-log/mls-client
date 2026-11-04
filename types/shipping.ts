@@ -251,6 +251,23 @@ export interface RatedShipmentDetail {
   currency: string;
 }
 
+/**
+ * What the customer pays and why (W4). `total` is the price to show; the
+ * commission is always labelled "Handling fee" to customers.
+ */
+export interface PriceBreakdown {
+  carrier: number;
+  handlingFee: number;
+  net: number;
+  /** VAT rate in percent. */
+  vatRate: number;
+  vat: number;
+  /** Hide the line when 0. */
+  pickupFee: number;
+  total: number;
+  currency: string;
+}
+
 export interface Rate {
   // Common fields from various API responses
   serviceType: string;
@@ -271,6 +288,7 @@ export interface Rate {
   serviceDescription?: ServiceDescription;
   warnings?: string[];
   totalPrice?: number; // Kept for backward compat
+  breakdown?: PriceBreakdown;
 }
 
 /** The three tier keys the server may return, in the order they should render. */
@@ -301,6 +319,8 @@ export interface ShippingTier {
   transitDaysMax: number;
   deliveryDescription: string;
   warnings: string[];
+  /** Carrier price, handling fee, VAT and total (W4). */
+  breakdown?: PriceBreakdown;
 }
 
 /**

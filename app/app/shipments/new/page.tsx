@@ -46,6 +46,7 @@ import { AccountVerificationModal } from "@/components/shipment/account-verifica
 import { useVerification } from "@/hooks/shipments/useVerification";
 import { extractApiError } from "@/utils/error-handler";
 import useUserCountryCode from "@/hooks/use-user-country-code";
+import { customerTotal } from "@/utils/price";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -858,7 +859,7 @@ export default function NewShipmentPage() {
                       </p>
                       <p className="text-xs text-brand-blue font-bold tracking-tight">
                         {formatCurrency(
-                          displaySelectedTier.actualPrice,
+                          customerTotal(displaySelectedTier),
                           displaySelectedTier.currency as SupportedCurrency,
                         )}
                       </p>
