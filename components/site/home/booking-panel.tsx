@@ -184,7 +184,7 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
               <button
                 key={code}
                 type="button"
-                onClick={changed(() => setCurrency(code))}
+                onClick={() => setCurrency(code)}
                 aria-pressed={code === currency}
                 className={cn(
                   "h-8 min-w-[52px] rounded-full px-3 text-[13px] font-bold",
@@ -280,6 +280,9 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
               rates={quote?.rates}
               errors={quote?.errors}
               notices={quote?.notices}
+              footnote={quote?.footnote}
+              reverseChargeFootnote={quote?.reverseChargeFootnote}
+              currency={currency}
               hasResult={!!quote}
               isLoading={isPending}
               onReviewAddresses={() => reset()}

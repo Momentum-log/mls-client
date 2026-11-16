@@ -213,6 +213,15 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
           },
         ];
 
+  // EUR invoices print the VAT in PLN at the NBP rate of the last working day
+  // before the invoice date. Shown only when the server sends all three values.
+  const nbpRate = getNumberish(rawInvoice.exchangeRateValue);
+  const nbpRateDate = getString("exchangeRateDate");
+  const vatInPln = getNumberish(rawInvoice.vatAmountPln);
+  const showNbpRate =
+    normalizedCurrency === "EUR" && nbpRate > 0 && !!nbpRateDate && vatInPln > 0;
+  const isReverseCharge = displayLineItems.some((item) => item.taxCode === "RC");
+
   const paymentLinks = Array.isArray(rawInvoice.paymentLinks)
     ? (rawInvoice.paymentLinks as InvoicePaymentLink[])
     : [];
@@ -422,6 +431,17 @@ export const InvoiceReceiptView: React.FC<InvoiceReceiptViewProps> = ({
                 {formatCurrency(totalVATAmount ?? 0, normalizedCurrency)}
               </span>
             </div>
+            {showNbpRate && (
+              <p className="m-0 text-xs text-gray-500">
+                VAT in PLN: {formatCurrency(vatInPln, "PLN")} at the NBP rate{" "}
+                {nbpRate.toFixed(4)} of {formatInvoiceDate(nbpRateDate, false)}.
+              </p>
+            )}
+            {isReverseCharge && (
+              <p className="m-0 text-xs text-gray-500">
+                Reverse charge – VAT to be accounted for by the customer.
+              </p>
+            )}
             <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-baseline">
               <span className="text-lg font-black text-gray-900">
                 Total Due

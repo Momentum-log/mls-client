@@ -103,6 +103,14 @@ export const useCountryStore = create<CountryStore>()(
       },
 
       /**
+       * Suggest a currency; a manual choice always wins.
+       */
+      suggestCurrency: (currency: SupportedCurrency) => {
+        if (get().isManualOverride || get().currency === currency) return;
+        set({ currency });
+      },
+
+      /**
        * Detect country via browser locale metadata.
        * Only runs if not already detected or manually overridden.
        */

@@ -20,6 +20,7 @@ import {
   FiTruck,
   FiCheckCircle,
   FiClipboard,
+  FiFileText,
 } from "react-icons/fi";
 import { useToast } from "@/hooks/use-toast";
 import Button from "@/components/ui/button";
@@ -35,8 +36,7 @@ import {
   ShippingTier,
   TIER_KEYS,
 } from "@/types/shipping";
-import { formatCurrency } from "@/utils/currency-formatter";
-import { SupportedCurrency } from "@/types/country";
+import { formatCurrency, getCurrencyForCountry } from "@/utils/currency-formatter";
 import { getEstimatePayload } from "@/app/(marketing)/shipping-estimate/utils";
 import { useCountryStore } from "@/store/country-store";
 import CurrencySwitcher from "@/components/shipment/currency-switcher";
@@ -48,7 +48,13 @@ import { AccountVerificationModal } from "@/components/shipment/account-verifica
 import { useVerification } from "@/hooks/shipments/useVerification";
 import { extractApiError } from "@/utils/error-handler";
 import useUserCountryCode from "@/hooks/use-user-country-code";
-import { customerTotal } from "@/utils/price";
+import { displayPrice } from "@/utils/price";
+import BillingForm from "@/components/billing/billing-form";
+import { useBillingProfile, billingKeys } from "@/hooks/billing/use-billing";
+import { BILLING_BLOCK_REASONS, type BillingProfile } from "@/types/billing";
+import { isTaxCheckPending } from "@/utils/billing";
+import { useAuthStore } from "@/store/auth-store";
+import { useQueryClient } from "@tanstack/react-query";
 
 /** Weight threshold for heavy shipment modal (in kg) */
 const HEAVY_SHIPMENT_THRESHOLD = 70;
@@ -90,7 +96,17 @@ export default function NewShipmentPage() {
     sender.country !== recipient.country;
 
   const { countryCode } = useUserCountryCode(sender?.country);
-  const { currency: activeCurrency, setCurrency } = useCountryStore();
+  const {
+    currency: activeCurrency,
+    setCurrency,
+    suggestCurrency,
+  } = useCountryStore();
+  const queryClient = useQueryClient();
+  const authUser = useAuthStore((state) => state.user);
+  const { data: billing } = useBillingProfile();
+  const billingReady = !!billing?.complete;
+  // Set when the server sends the customer back to billing, to say why.
+  const [billingNotice, setBillingNotice] = useState<string | null>(null);
 
   const [estimate, setEstimate] = useState<ShippingEstimateResponse | null>(
     null,
@@ -119,13 +135,27 @@ export default function NewShipmentPage() {
     () => (estimate?.errors ? deepTransformData(estimate.errors) : undefined),
     [estimate],
   );
-  // Some routes (Momentum's Nigeria <-> EU) are always charged in one
-  // currency set by staff; the server prices them in it whatever we ask for,
-  // so the switcher would do nothing there.
+  // A quote carries its price in every offered currency, so the switcher only
+  // changes which total is shown. Some routes (Momentum's Nigeria <-> EU) are
+  // charged in one currency set by staff, and an older server quotes in one
+  // only: there the switcher would do nothing, so the currency is stated.
   const laneCurrency = useMemo(() => {
-    const quoted = Object.values(estimate?.tiers ?? {})[0]?.currency;
-    return quoted && quoted !== activeCurrency ? quoted : null;
-  }, [estimate, activeCurrency]);
+    const quoted = Object.values(estimate?.tiers ?? {})[0];
+    if (!quoted) return null;
+    if (quoted.price && Object.keys(quoted.price.totals).length > 1) return null;
+    return quoted.price?.currency ?? quoted.currency;
+  }, [estimate]);
+  // What the customer is charged in: the currency shown for the chosen tier.
+  const chargeCurrency = selectedTier
+    ? displayPrice(selectedTier, activeCurrency).currency
+    : activeCurrency;
+
+  // Default currency when the customer has not chosen one: the billing country,
+  // then the pickup country, else EUR. Never read from an IP address.
+  const defaultCountry = billing?.profile?.countryCode || sender?.country;
+  useEffect(() => {
+    if (defaultCountry) suggestCurrency(getCurrencyForCountry(defaultCountry));
+  }, [defaultCountry, suggestCurrency]);
   const displaySelectedTier = useMemo(
     () => (selectedTier ? deepTransformData(selectedTier) : null),
     [selectedTier],
@@ -215,7 +245,8 @@ export default function NewShipmentPage() {
 
   /**
    * Everything that changes what is being shipped, or what it should cost.
-   * Used both to skip redundant re-quotes and to detect a stale one.
+   * Used both to skip redundant re-quotes and to detect a stale one. The
+   * currency is deliberately not part of it: the quote holds every currency.
    */
   const shipmentSignature = useMemo(
     () =>
@@ -226,17 +257,8 @@ export default function NewShipmentPage() {
         countryCode: countryCode || null,
         customs: customs || null,
         isInternational,
-        currency: activeCurrency,
       }),
-    [
-      sender,
-      recipient,
-      packages,
-      countryCode,
-      customs,
-      isInternational,
-      activeCurrency,
-    ],
+    [sender, recipient, packages, countryCode, customs, isInternational],
   );
 
   const invalidateQuote = useCallback(() => {
@@ -389,8 +411,21 @@ export default function NewShipmentPage() {
             : "pending",
     });
 
+    if (completedSteps.includes("service")) {
+      arr.push({
+        id: "billing",
+        label: "Billing Details",
+        status:
+          expandedSection === "billing"
+            ? "current"
+            : billingReady
+              ? "completed"
+              : "pending",
+      });
+    }
+
     return arr;
-  }, [expandedSection, completedSteps]);
+  }, [expandedSection, completedSteps, billingReady]);
 
   const isSectionVisible = (id: string) => {
     if (id === "pickup") return true;
@@ -403,6 +438,7 @@ export default function NewShipmentPage() {
         ? completedSteps.includes("customs")
         : completedSteps.includes("package");
     }
+    if (id === "billing") return completedSteps.includes("service");
     return false;
   };
 
@@ -485,12 +521,45 @@ export default function NewShipmentPage() {
 
     setSelectedTier(rawTier);
     markSectionCompleted("service");
-    setIsSummaryOpen(true);
+    if (billingReady) {
+      setIsSummaryOpen(true);
+    } else {
+      // Billing details come before the review: who the invoice is for.
+      setExpandedSection("billing");
+    }
     addToast({
       title: "Service Selected",
-      message: `${tier.label} chosen. Review your shipment to continue.`,
+      message: billingReady
+        ? `${tier.label} chosen. Review your shipment to continue.`
+        : `${tier.label} chosen. Add your billing details to continue.`,
       type: "success",
     });
+  };
+
+  const handleBillingSaved = (saved: BillingProfile) => {
+    setBillingNotice(null);
+    setExpandedSection(null);
+    addToast({
+      title: "Billing Details Saved",
+      message: isTaxCheckPending(saved)
+        ? "We will verify your tax number and send your invoice once it is confirmed."
+        : "Your billing details are saved.",
+      type: "success",
+    });
+    if (completedSteps.includes("service") && selectedTier) {
+      setIsSummaryOpen(true);
+    }
+  };
+
+  /** Back to the billing section, with the reason the server gave. */
+  const requireBilling = (message: string) => {
+    setIsSummaryOpen(false);
+    setBillingNotice(message);
+    setExpandedSection("billing");
+    void queryClient.invalidateQueries({ queryKey: billingKeys.profile });
+    document
+      .getElementById("billing")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const handleFinalize = (
@@ -510,6 +579,11 @@ export default function NewShipmentPage() {
         message: "Please ensure all steps are completed before finalizing.",
         type: "error",
       });
+      return;
+    }
+
+    if (!billingReady) {
+      requireBilling("Add your billing details before creating the shipment.");
       return;
     }
 
@@ -534,7 +608,7 @@ export default function NewShipmentPage() {
       userCountryCode: countryCode,
       preferredPaymentOption: paymentMethod,
       invoiceId,
-      currency: activeCurrency,
+      currency: chargeCurrency,
       handover,
     });
 
@@ -597,6 +671,20 @@ export default function NewShipmentPage() {
           if (isAddressRequired && res?.data?.details) {
             msg = res?.data.details as string;
           }
+        }
+
+        // Billing details are required before shipping. The server may know
+        // something the cached profile does not, so go back and ask again.
+        if (
+          reason &&
+          (BILLING_BLOCK_REASONS as readonly string[]).includes(reason)
+        ) {
+          requireBilling(
+            reason === "ADDRESS_PROOF_REQUIRED"
+              ? "We need to verify your billing address before we can create this shipment. Please contact support."
+              : "Add your billing details before creating the shipment.",
+          );
+          return;
         }
 
         // An unverified account is refused in the service layer, and the throw
@@ -883,8 +971,8 @@ export default function NewShipmentPage() {
                       </p>
                       <p className="text-xs text-brand-blue font-bold tracking-tight">
                         {formatCurrency(
-                          customerTotal(displaySelectedTier),
-                          displaySelectedTier.currency as SupportedCurrency,
+                          displayPrice(displaySelectedTier, activeCurrency).total,
+                          chargeCurrency,
                         )}
                       </p>
                     </div>
@@ -897,6 +985,9 @@ export default function NewShipmentPage() {
                 hasRates={(estimate?.rates?.length ?? 0) > 0}
                 errors={displayErrors}
                 notices={estimate?.notices}
+                footnote={estimate?.footnote}
+                reverseChargeFootnote={estimate?.reverseChargeFootnote}
+                currency={activeCurrency}
                 selectedRoutingRef={selectedTier?.routingRef ?? null}
                 onSelect={handleTierSelect}
                 isLoading={isFetchingRates}
@@ -907,8 +998,65 @@ export default function NewShipmentPage() {
             </StackedSection>
           )}
 
+          {/* 6. Billing Details: who the invoice is for, before the review */}
+          {isSectionVisible("billing") && (
+            <StackedSection
+              id="billing"
+              title="Billing Details"
+              icon={<FiFileText className="w-5 h-5" />}
+              isExpanded={expandedSection === "billing"}
+              isCompleted={billingReady}
+              onEdit={() => setExpandedSection("billing")}
+              summary={
+                billing?.profile && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                        Invoice to
+                      </p>
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {billing.profile.isBusiness && billing.profile.companyName
+                          ? billing.profile.companyName
+                          : billing.profile.fullName}
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {billing.profile.email}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">
+                        Address
+                      </p>
+                      <p className="font-bold text-gray-900 leading-tight">
+                        {billing.profile.city}, {billing.profile.countryCode}
+                      </p>
+                      <p className="text-xs text-gray-500 font-medium line-clamp-1">
+                        {billing.profile.street}
+                      </p>
+                    </div>
+                    {isTaxCheckPending(billing.profile) && (
+                      <p className="col-span-2 m-0 text-xs text-gray-600">
+                        We will verify your tax number and send your invoice
+                        once it is confirmed.
+                      </p>
+                    )}
+                  </div>
+                )
+              }
+            >
+              <BillingForm
+                profile={billing?.profile ?? null}
+                prefill={billing?.prefill ?? null}
+                defaultPhone={authUser?.phone}
+                submitLabel="Save and review shipment"
+                onSaved={handleBillingSaved}
+                notice={billingNotice}
+              />
+            </StackedSection>
+          )}
+
           {/* Action Button for Summary (if not already open) */}
-          {completedSteps.includes("service") && !isSummaryOpen && (
+          {completedSteps.includes("service") && billingReady && !isSummaryOpen && (
             <Button
               variant="primary"
               size="lg"
@@ -928,6 +1076,9 @@ export default function NewShipmentPage() {
           recipient={recipient}
           packages={packages}
           tier={displaySelectedTier}
+          currency={activeCurrency}
+          footnote={estimate?.footnote}
+          reverseChargeFootnote={estimate?.reverseChargeFootnote}
           onFinalize={handleFinalize}
           isLoading={isCreatingShipment}
         />
