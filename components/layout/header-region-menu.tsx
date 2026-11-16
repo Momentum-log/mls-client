@@ -14,9 +14,6 @@ import {
 
 type Region = "pl" | "intl";
 
-/** Matches `HeaderCountrySelector`: any non-Polish country prices in EUR. */
-const REGION_COUNTRY: Record<Region, string> = { pl: "PL", intl: "US" };
-
 const LANGUAGE_NAMES: Record<SiteLocale, string> = {
   en: "English",
   pl: "Polski",
@@ -39,15 +36,17 @@ const HeaderRegionMenu: FC<HeaderRegionMenuProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname() ?? "/";
-  const { countryCode, setCountry } = useCountryStore();
+  const { currency, setCountry, setCurrency } = useCountryStore();
 
   const [language, setLanguage] = useState<SiteLocale>(locale);
   const [region, setRegion] = useState<Region>(
-    countryCode === "PL" ? "pl" : "intl",
+    currency === "PLN" ? "pl" : "intl",
   );
 
   const save = (): void => {
-    setCountry(REGION_COUNTRY[region]);
+    // Poland prices in PLN; any other region in EUR, without naming a country.
+    if (region === "pl") setCountry("PL");
+    else setCurrency("EUR");
     document.cookie = `${LOCALE_COOKIE}=${language}; path=/; max-age=31536000; samesite=lax`;
     onClose();
     if (language !== locale) router.push(switchLocalePath(pathname, language));

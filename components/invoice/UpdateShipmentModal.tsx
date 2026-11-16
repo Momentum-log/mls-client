@@ -36,6 +36,8 @@ import { getOrSetGuestId } from "@/utils/auth-helper";
 import { useToast } from "@/hooks/use-toast";
 import { deepTransformData } from "@/utils/data-transform";
 import Button from "@/components/ui/button";
+import { displayPrice } from "@/utils/price";
+import { BILLING_BLOCK_REASONS } from "@/types/billing";
 
 interface ShipmentModalAddress {
   city?: string;
@@ -165,7 +167,11 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
   // PayU settles in PLN only, so a EUR quote must not offer it. The
   // new-shipment drawer already enforces this; without it here the same
   // shipment could be re-submitted through a gateway that cannot take it.
-  const isEUR = selectedTier?.currency === "EUR";
+  // The renewal is quoted in one currency; every tier shows its price in it.
+  const quotedCurrency =
+    Object.values(estimate?.tiers ?? {})[0]?.currency ?? "EUR";
+  const isEUR =
+    !!selectedTier && displayPrice(selectedTier, quotedCurrency).currency === "EUR";
 
   // Rate estimation
   const { mutate: getRates, isPending: isCalculatingRates } =
@@ -297,7 +303,10 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
 
     setSelectedTier(rawTier);
 
-    if (rawTier.currency === "EUR" && paymentMethod === "payu") {
+    if (
+      displayPrice(rawTier, quotedCurrency).currency === "EUR" &&
+      paymentMethod === "payu"
+    ) {
       setPaymentMethod("stripe");
     }
   };
@@ -388,6 +397,18 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
           if (res?.data?.error) msg = res.data.error;
         }
 
+        // Billing details are needed before shipping: they are edited on the
+        // account page, so say so rather than show a raw code.
+        if ((BILLING_BLOCK_REASONS as readonly string[]).includes(msg)) {
+          addToast({
+            title: "Billing Details Needed",
+            message:
+              "Add your billing details on the Account page, then try again.",
+            type: "error",
+          });
+          return;
+        }
+
         // The quote aged out while the modal was open. Re-run the estimate the
         // modal already fetches on open; retrying the same routingRef cannot
         // succeed.
@@ -458,6 +479,9 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
                   tiers={displayTiers}
                   hasRates={(estimate?.rates?.length ?? 0) > 0}
                   errors={displayErrors}
+                  footnote={estimate?.footnote}
+                  reverseChargeFootnote={estimate?.reverseChargeFootnote}
+                  currency={quotedCurrency}
                   selectedRoutingRef={selectedTier?.routingRef ?? null}
                   onSelect={handleTierSelect}
                   isLoading={isCalculatingRates}

@@ -7,16 +7,16 @@ import { getUserCountryCode } from "@/utils/address-country-helper";
  * Integrates:
  * - Fallback to browser-detected country from useCountryStore
  * - Fallback to pickup country code (passed as parameter) if browser country is not detected
- * - Default fallback to "US" if browser country is not detected
+ * - No guess when neither is known: `countryCode` is then undefined
  *
  * @param {string} [fallbackCountryCode] - Optional fallback country code (e.g. pickup country)
- * @returns { countryCode: string }
+ * @returns { countryCode: string | undefined }
  */
 const useUserCountryCode = (fallbackCountryCode?: string) => {
   const { countryCode: browserCountryCode } = useCountryStore();
 
   const resolvedCountryCode = getUserCountryCode(
-    browserCountryCode || "US",
+    browserCountryCode,
     fallbackCountryCode,
   );
 

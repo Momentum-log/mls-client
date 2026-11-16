@@ -111,10 +111,15 @@ export function printAddressResolutionLogs(): void {
   }
 }
 
+/**
+ * The customer's country as far as it is known, or undefined. It is a hint for
+ * display and defaults only: tax never reads it, and there is no guess when
+ * neither source knows.
+ */
 export function getUserCountryCode(
-  browserCountryCode: string,
+  browserCountryCode: string | undefined,
   fallbackCountryCode?: string
-): string {
+): string | undefined {
   // Use browser country code if available and valid (not empty and not "EU")
   if (browserCountryCode && browserCountryCode !== "EU") {
     logResolution("info", "Using browser country code.", {
@@ -135,11 +140,10 @@ export function getUserCountryCode(
     return fallbackCountryCode;
   }
 
-  // Final fallback to US
-  logResolution("warn", "Neither browser nor fallback country available. Defaulting to US.", {
+  logResolution("warn", "Neither browser nor fallback country available.", {
     mode: "DEFAULT",
     browserCountry: browserCountryCode || "",
-    resolvedCountry: "US",
+    resolvedCountry: "",
   });
-  return "US";
+  return undefined;
 }
