@@ -6,16 +6,20 @@ import { CircleAlert, LoaderCircle } from "lucide-react";
 import { cn } from "@/utils/cn";
 import Button from "@/components/ui/button";
 import { formatCurrency } from "@/utils/currency-formatter";
-import type { SupportedCurrency } from "@/types/country";
-import type { QuoteNotice, Rate } from "@/types/shipping";
-import { customerTotal } from "@/utils/price";
-import PriceBreakdown from "./price-breakdown";
+import type { QuoteNotice, Rate, RouteFootnote as Footnote } from "@/types/shipping";
+import { displayPrice } from "@/utils/price";
+import PriceSummary from "./price-summary";
+import RouteFootnote from "./route-footnote";
 import QuoteNotices, { needsQuoteRequest } from "./quote-notices";
 
 interface QuoteResultsProps {
   rates?: Rate[];
   errors?: { details?: string }[];
   notices?: QuoteNotice[];
+  footnote?: Footnote;
+  reverseChargeFootnote?: Footnote;
+  /** Preferred currency; the quote already carries every offered one. */
+  currency?: string;
   /** True once a quote has come back, even with no rates. */
   hasResult: boolean;
   isLoading: boolean;
@@ -24,8 +28,10 @@ interface QuoteResultsProps {
 
 const panelClass = "rounded-3xl border border-gray-200 bg-white p-5 sm:p-6";
 
-const priceOf = (rate: Rate): string =>
-  formatCurrency(customerTotal(rate), (rate.currency as SupportedCurrency) || "EUR");
+const priceOf = (rate: Rate, currency?: string): string => {
+  const price = displayPrice(rate, currency);
+  return formatCurrency(price.total, price.currency);
+};
 
 /**
  * Shipping options for the instant quote: pick one, then continue to booking.
@@ -35,6 +41,9 @@ const QuoteResults: FC<QuoteResultsProps> = ({
   rates = [],
   errors = [],
   notices,
+  footnote,
+  reverseChargeFootnote,
+  currency,
   hasResult,
   isLoading,
   onReviewAddresses,
@@ -151,7 +160,7 @@ const QuoteResults: FC<QuoteResultsProps> = ({
                 ))}
               </span>
               <span className="whitespace-nowrap text-xl font-extrabold text-gray-900">
-                {priceOf(rate)}
+                {priceOf(rate, currency)}
               </span>
             </button>
           );
@@ -161,9 +170,10 @@ const QuoteResults: FC<QuoteResultsProps> = ({
       <div className={cn(panelClass, "flex flex-col gap-4")}>
         <div className="flex flex-col gap-0.5">
           <span className="text-sm font-medium text-gray-500">Selected: {chosen.serviceName}</span>
-          <span className="text-[28px] font-extrabold leading-[34px] text-gray-900">{priceOf(chosen)}</span>
+          <span className="text-[28px] font-extrabold leading-[34px] text-gray-900">{priceOf(chosen, currency)}</span>
         </div>
-        {chosen.breakdown && <PriceBreakdown breakdown={chosen.breakdown} />}
+        <PriceSummary price={displayPrice(chosen, currency)} />
+        <RouteFootnote footnote={footnote} reverseCharge={reverseChargeFootnote} />
         <span className="text-[13px] leading-[18px] text-gray-500">
           Booking needs a free account. Prices are held for a limited time, then refreshed.
         </span>

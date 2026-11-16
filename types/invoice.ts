@@ -109,6 +109,8 @@ export interface InvoiceLineItem {
   taxRate: number;
   /** Calculated VAT amount */
   vatAmount: number;
+  /** VAT code of the line: 23, 0, RC (reverse charge), NP or NP_REVIEW. */
+  taxCode?: string | null;
 
   // Pricing (gross)
   /** Total gross value (net + VAT) */

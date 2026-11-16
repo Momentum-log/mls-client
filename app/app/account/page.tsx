@@ -7,6 +7,7 @@ import VerificationBanner from "@/components/account/VerificationBanner";
 import LogoutAction from "@/components/account/LogoutAction";
 import ChangePasswordForm from "@/components/account/ChangePasswordForm";
 import SessionSecurityCard from "@/components/account/SessionSecurityCard";
+import BillingAccountCard from "@/components/billing/billing-account-card";
 import { useAuthStore } from "@/store/auth-store";
 
 /**
@@ -46,6 +47,8 @@ export default function AccountPage() {
         >
           <ProfileForm />
         </AccountCard>
+
+        <BillingAccountCard />
 
         <AccountCard
           title="Security"

@@ -8,7 +8,10 @@ interface QuoteNoticesProps {
   notices?: QuoteNotice[];
 }
 
-const COPY: Record<QuoteNotice["code"], { title: string; action: string }> = {
+const COPY: Record<
+  Exclude<QuoteNotice["code"], "CURRENCY_UNAVAILABLE">,
+  { title: string; action: string }
+> = {
   EXPRESS_ON_REQUEST: {
     title: "Express shipping also available",
     action: "Contact us for express",
@@ -35,6 +38,15 @@ export default function QuoteNotices({ notices }: QuoteNoticesProps) {
   return (
     <ul className="m-0 flex list-none flex-col gap-3 p-0">
       {notices.map((notice) => {
+        // No exchange rate right now: the prices are in zloty only. Nothing to
+        // click, just say so.
+        if (notice.code === "CURRENCY_UNAVAILABLE") {
+          return (
+            <li key={notice.code} role="status" className="text-[13px] leading-[18px] text-gray-600">
+              {notice.message}
+            </li>
+          );
+        }
         const copy = COPY[notice.code] ?? COPY.EXPRESS_ON_REQUEST;
         const Icon = notice.code === "QUOTE_ON_REQUEST" ? FiMessageCircle : FiZap;
         const buttonClass =
