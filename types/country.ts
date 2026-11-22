@@ -26,6 +26,11 @@ export interface CountryActions {
   setCountry: (code: string) => void;
   /** Set currency manually */
   setCurrency: (currency: SupportedCurrency) => void;
+  /**
+   * Suggest a currency from what we know about the customer (billing country,
+   * pickup country). Ignored once the customer has chosen one.
+   */
+  suggestCurrency: (currency: SupportedCurrency) => void;
   /** Detect country via Browser geolocation */
   detectCountry: () => Promise<void>;
   /** Reset to auto-detect mode */

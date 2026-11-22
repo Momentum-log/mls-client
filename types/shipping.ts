@@ -7,8 +7,9 @@ export interface ShippingRate {
   carrier: "FedEx" | "DHL" | "InPost" | string;
   serviceType: string;
   serviceName: string;
-  carrierPrice: number;
-  actualPrice: number;
+  carrierPrice?: number;
+  actualPrice?: number;
+  price?: PublicPrice;
   currency: string;
   deliveryDate?: string;
   deliveryDescription?: string;
@@ -252,18 +253,48 @@ export interface RatedShipmentDetail {
 }
 
 /**
- * What the customer pays and why (W4). `total` is the price to show; the
- * commission is always labelled "Handling fee" to customers.
+ * What the customer pays: one all-inclusive total with the VAT it contains.
+ * `total` is in `currency`; `totals` carries the same price in every offered
+ * currency from one exchange-rate snapshot, so switching currency never needs
+ * a new quote. A single-currency route (Momentum) carries only its own.
  */
-export interface PriceBreakdown {
-  carrier: number;
-  handlingFee: number;
-  net: number;
+export interface PublicPrice {
+  total: number;
+  currency: string;
+  vat: {
+    /** `23` Polish VAT inside the total; every other code shows VAT 0.00. */
+    code: "0" | "23" | "RC" | "NP" | "NP_REVIEW";
+    ratePercent: number;
+    amount: number;
+  };
+  totals: Record<string, { total: number; vat: number }>;
+}
+
+/**
+ * The route's price footnote, in both languages. The client shows the one
+ * matching the site language.
+ */
+export interface RouteFootnote {
+  code:
+    | "POLAND_TO_POLAND"
+    | "WITHIN_EU"
+    | "NIGERIA_TO_EU"
+    | "POLAND_TO_NON_EU"
+    | "NON_EU_TO_POLAND"
+    | "OTHER_NON_EU"
+    | "REVERSE_CHARGE";
+  en: string;
+  pl: string;
+}
+
+/**
+ * The older price shape, sent only while the server still has
+ * `LEGACY_PRICE_FIELDS` on. Read for its total and VAT, never its parts.
+ */
+export interface LegacyPriceBreakdown {
   /** VAT rate in percent. */
   vatRate: number;
   vat: number;
-  /** Hide the line when 0. */
-  pickupFee: number;
   total: number;
   currency: string;
 }
@@ -274,9 +305,10 @@ export interface Rate {
   serviceName: string;
   carrier: string;
   carrierSlug?: string;
-  actualPrice: number; // The user-facing price
-  carrierPrice?: number; // The cost price
-  price?: number; // Kept for generic compatibility if needed
+  /** Net amount; only while the server sends its older fields. */
+  actualPrice?: number;
+  /** The all-inclusive price. Older servers send `breakdown` instead. */
+  price?: PublicPrice;
   currency: string;
   deliveryDate?: string;
   deliveryDescription?: string;
@@ -287,8 +319,7 @@ export interface Rate {
   signatureOptionType?: string;
   serviceDescription?: ServiceDescription;
   warnings?: string[];
-  totalPrice?: number; // Kept for backward compat
-  breakdown?: PriceBreakdown;
+  breakdown?: LegacyPriceBreakdown;
 }
 
 /** The three tier keys the server may return, in the order they should render. */
@@ -312,15 +343,16 @@ export interface ShippingTier {
    */
   routingRef: string;
   label: "Fastest" | "Balanced" | "Economy";
-  /** Total price for the whole journey, in `currency`. */
-  actualPrice: number;
+  /** Net amount; only while the server sends its older fields. */
+  actualPrice?: number;
+  /** The all-inclusive price for the whole journey. */
+  price?: PublicPrice;
   currency: string;
   transitDaysMin: number;
   transitDaysMax: number;
   deliveryDescription: string;
   warnings: string[];
-  /** Carrier price, handling fee, VAT and total (W4). */
-  breakdown?: PriceBreakdown;
+  breakdown?: LegacyPriceBreakdown;
 }
 
 /**
@@ -350,6 +382,10 @@ export interface ShippingEstimateResponse {
   errors?: CarrierError[];
   /** Messages that are not rates; absent when there are none. */
   notices?: QuoteNotice[];
+  /** The route's VAT and customs wording; absent on older servers. */
+  footnote?: RouteFootnote;
+  /** Present when the quote's VAT code is reverse charge. */
+  reverseChargeFootnote?: RouteFootnote;
   guestId: string;
 }
 
@@ -360,7 +396,7 @@ export interface ShippingEstimateResponse {
  * so there is no rate; offer "Request a quote".
  */
 export interface QuoteNotice {
-  code: "EXPRESS_ON_REQUEST" | "QUOTE_ON_REQUEST";
+  code: "EXPRESS_ON_REQUEST" | "QUOTE_ON_REQUEST" | "CURRENCY_UNAVAILABLE";
   carrier: string;
   message: string;
   /** WhatsApp chat with support; null means use the contact page. */

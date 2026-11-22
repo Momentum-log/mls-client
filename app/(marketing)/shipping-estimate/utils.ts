@@ -27,9 +27,6 @@ const humanizeServiceTerms = (text: string): string => {
     "Priority Express",
   );
 
-  // "International First" -> "First Class"
-  result = result.replace(/International First/gi, "First Class");
-
   // "International Priority" -> "Priority"
   // (Watch out not to break Priority Express if not matched above, but 'Priority Express' replaces 'International Priority Express' first)
   // To be safe against "MLS Priority Express", "International Priority" substring presence:

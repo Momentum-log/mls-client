@@ -5,6 +5,21 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.58.0] - 2026-11-16 - One all-inclusive price, billing details before shipping
+
+**Requires:** `mls-server` PRs #45 (VAT matrix, all-inclusive `price`, both-currency quote, route footnotes) and #46 (billing profile, tax ID checks). Merge both first. Until then the price block falls back to the older `breakdown` total, and the billing step shows an error because the endpoints do not exist yet.
+
+- Changed: **one all-inclusive price.** Quotes, the service list and the review drawer show "Total 130,00 zł" with "incl. 23% VAT 24,31 zł" under it, and "VAT 0,00 zł" when no VAT applies (`components/shipping/price-summary.tsx`, `utils/price.ts`). The Carrier and Handling fee rows are gone; nothing about how the price was built is shown.
+- Changed: **switching PLN and EUR no longer asks for a new quote.** The quote carries the price in both currencies (`price.totals`), so the switcher only changes which total is read, on the home quote panel and in the booking form. The currency is no longer part of the quote signature, so a switch does not clear the chosen service. A route charged in one currency still says "Charged in EUR on this route". The booking is created in the currency on screen.
+- Added: **route footnote** from the server in the site language (English or Polish), under the quote, the service list and the review drawer, plus the reverse-charge line when the server sends it (`components/shipping/route-footnote.tsx`).
+- Added: **billing details step** after service selection in `/app/shipments/new`, required before the review and payment (`components/billing/billing-form.tsx`). Name, street, postcode, city, country, email and phone; "I'm ordering as a business" adds company name and NIP / EU VAT number, checked on blur with the official register. A register that is down says "we will verify it for you" and does not block the order. A number the register does not know shows a warning and the order is invoiced as a private customer. Prefilled from the account, saved on the account, and sent back to the step if the server refuses a booking for missing billing details. The same form is a card on `/app/account`.
+- Added: the invoice page shows the VAT in PLN with the NBP rate and date on EUR invoices, and the reverse-charge line, when the server sends them.
+- Changed: the currency list in the header region menu no longer names the United States; EUR is chosen as a currency.
+- Removed: the `"US"` country fallbacks (`utils/address-country-helper.ts`, `hooks/use-user-country-code.ts`). With no browser or pickup country the country is simply unknown. Default currency: the customer's choice, then billing country, then pickup country (PL gives PLN), else EUR. Tax never reads it.
+- Removed: the client-side "International First" to "First Class" rename (`app/(marketing)/shipping-estimate/utils.ts`); the server now sends the right name.
+- Not included: address-proof upload (the company does not want it). If the server answers `ADDRESS_PROOF_REQUIRED` the billing step shows a generic "contact support" message.
+- Verification: `bunx tsc --noEmit` (only the existing SVG import errors), `bun run lint`, `bun run build`.
+
 ## [1.57.0] - 2026-11-04 - Momentum shipments with no label
 
 **Requires:** `mls-server` with Momentum tracking steps (no migration of its own). Merge the server first.

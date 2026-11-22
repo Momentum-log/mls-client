@@ -6,15 +6,16 @@ import { FiTruck, FiClock, FiAlertTriangle, FiZap, FiAward, FiTag } from "react-
 import {
   CarrierError,
   QuoteNotice,
+  RouteFootnote as Footnote,
   ShippingTier,
   ShippingTiers,
   TIER_KEYS,
   TierKey,
 } from "@/types/shipping";
 import { formatCurrency } from "@/utils/currency-formatter";
-import { SupportedCurrency } from "@/types/country";
-import { customerTotal } from "@/utils/price";
+import { displayPrice } from "@/utils/price";
 import QuoteNotices, { needsQuoteRequest } from "@/components/shipping/quote-notices";
+import RouteFootnote from "@/components/shipping/route-footnote";
 
 interface TierSelectionProps {
   tiers?: ShippingTiers;
@@ -23,6 +24,10 @@ interface TierSelectionProps {
   errors?: CarrierError[];
   /** Shown under the options, e.g. "express on request". */
   notices?: QuoteNotice[];
+  footnote?: Footnote;
+  reverseChargeFootnote?: Footnote;
+  /** Preferred currency; each tier already carries every offered one. */
+  currency: string;
   selectedRoutingRef: string | null;
   onSelect: (tier: ShippingTier) => void;
   isLoading: boolean;
@@ -73,6 +78,9 @@ export default function TierSelection({
   hasRates,
   errors,
   notices,
+  footnote,
+  reverseChargeFootnote,
+  currency,
   selectedRoutingRef,
   onSelect,
   isLoading,
@@ -160,6 +168,7 @@ export default function TierSelection({
         {available.map(({ key, tier }) => {
           const isSelected = selectedRoutingRef === tier.routingRef;
           const presentation = TIER_PRESENTATION[key];
+          const price = displayPrice(tier, currency);
 
           return (
             <button
@@ -204,13 +213,12 @@ export default function TierSelection({
 
                 <div className="text-right">
                   <div className="text-xl font-black text-gray-900 tabular-nums">
-                    {formatCurrency(
-                      customerTotal(tier),
-                      tier.currency as SupportedCurrency,
-                    )}
+                    {formatCurrency(price.total, price.currency)}
                   </div>
-                  <div className="text-[9px] font-black text-brand-blue uppercase tracking-widest mt-0.5">
-                    {tier.breakdown ? "Total incl. VAT" : "Est. Total"}
+                  <div className="text-[10px] font-bold text-gray-500 mt-0.5">
+                    {price.vat === null
+                      ? "Est. total"
+                      : `${price.vatCode === "23" ? `incl. ${price.ratePercent}% VAT` : "VAT"} ${formatCurrency(price.vat, price.currency)}`}
                   </div>
                 </div>
               </div>
@@ -243,6 +251,7 @@ export default function TierSelection({
       </div>
 
       <QuoteNotices notices={notices} />
+      <RouteFootnote footnote={footnote} reverseCharge={reverseChargeFootnote} />
 
       <div className="flex justify-between items-center pt-8 border-t border-gray-100">
         <Button

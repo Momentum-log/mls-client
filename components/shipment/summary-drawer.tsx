@@ -12,7 +12,11 @@ import {
   FiHome,
 } from "react-icons/fi";
 import { Address, Package } from "@/store/shipment-store";
-import { HandoverPreference, ShippingTier } from "@/types/shipping";
+import {
+  HandoverPreference,
+  RouteFootnote as Footnote,
+  ShippingTier,
+} from "@/types/shipping";
 import HandoverChoice from "@/components/shipment/handover-choice";
 import {
   defaultHandover,
@@ -20,10 +24,10 @@ import {
   toHandoverPayload,
 } from "@/utils/handover";
 import Button from "@/components/ui/button";
-import { formatCurrencyCompact } from "@/utils/currency-formatter";
-import { SupportedCurrency } from "@/types/country";
-import { customerTotal } from "@/utils/price";
-import PriceBreakdown from "@/components/shipping/price-breakdown";
+import { displayPrice } from "@/utils/price";
+import PriceSummary from "@/components/shipping/price-summary";
+import RouteFootnote from "@/components/shipping/route-footnote";
+import { formatCurrency } from "@/utils/currency-formatter";
 
 interface SummaryDrawerProps {
   isOpen: boolean;
@@ -32,6 +36,10 @@ interface SummaryDrawerProps {
   recipient: Address | null;
   packages: Package[];
   tier: ShippingTier | null;
+  /** The currency the customer chose; the tier carries every offered one. */
+  currency: string;
+  footnote?: Footnote;
+  reverseChargeFootnote?: Footnote;
   onFinalize: (
     paymentMethod: "stripe" | "payu",
     handover: HandoverPreference,
@@ -50,11 +58,15 @@ export default function SummaryDrawer({
   recipient,
   packages = [],
   tier,
+  currency,
+  footnote,
+  reverseChargeFootnote,
   onFinalize,
   isLoading,
 }: SummaryDrawerProps) {
   const isPolishUser = sender?.country?.toUpperCase() === "PL";
-  const isEUR = tier?.currency === "EUR";
+  const price = tier ? displayPrice(tier, currency) : null;
+  const isEUR = price?.currency === "EUR";
   const [paymentMethod, setPaymentMethod] = React.useState<"stripe" | "payu">(
     "stripe",
   );
@@ -234,20 +246,23 @@ export default function SummaryDrawer({
                     </p>
                     <div className="mt-6 flex items-baseline gap-2 border-t border-white/10 pt-4">
                       <span className="text-3xl font-black text-white">
-                        {formatCurrencyCompact(
-                          tier ? customerTotal(tier) : 0,
-                          tier?.currency as SupportedCurrency,
-                        )}
+                        {price ? formatCurrency(price.total, price.currency) : null}
                       </span>
                       <span className="text-sm font-bold opacity-60 uppercase">
-                        {tier?.currency}
+                        {price?.currency}
                       </span>
                     </div>
-                    {tier?.breakdown && (
-                      <PriceBreakdown breakdown={tier.breakdown} tone="dark" className="mt-4" />
+                    {price && (
+                      <PriceSummary price={price} tone="dark" className="mt-4" />
                     )}
                   </div>
                 </div>
+
+                <RouteFootnote
+                  footnote={footnote}
+                  reverseCharge={reverseChargeFootnote}
+                  className="px-1"
+                />
 
                 <p className="text-xs text-gray-500 font-medium leading-relaxed px-1">
                   After payment we&apos;ll email your printable label and add

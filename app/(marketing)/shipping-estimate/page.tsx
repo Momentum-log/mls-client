@@ -528,6 +528,8 @@ function ShippingEstimateContent() {
                     rates={estimateData?.rates}
                     errors={estimateData?.errors}
                     notices={estimateData?.notices}
+                    footnote={estimateData?.footnote}
+                    reverseChargeFootnote={estimateData?.reverseChargeFootnote}
                     hasResult={!!estimateData}
                     isLoading={isEstimating}
                     onReviewAddresses={() =>
