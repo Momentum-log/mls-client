@@ -2,11 +2,10 @@
 
 import React from "react";
 import Button from "@/components/ui/button";
-import { FiTruck, FiClock, FiAlertTriangle, FiZap, FiAward, FiTag } from "react-icons/fi";
+import { FiTruck, FiClock, FiZap, FiAward, FiTag } from "react-icons/fi";
 import {
   CarrierError,
   QuoteNotice,
-  RouteFootnote as Footnote,
   ShippingTier,
   ShippingTiers,
   TIER_KEYS,
@@ -15,7 +14,6 @@ import {
 import { formatCurrency } from "@/utils/currency-formatter";
 import { displayPrice } from "@/utils/price";
 import QuoteNotices, { needsQuoteRequest } from "@/components/shipping/quote-notices";
-import RouteFootnote from "@/components/shipping/route-footnote";
 
 interface TierSelectionProps {
   tiers?: ShippingTiers;
@@ -24,8 +22,6 @@ interface TierSelectionProps {
   errors?: CarrierError[];
   /** Shown under the options, e.g. "express on request". */
   notices?: QuoteNotice[];
-  footnote?: Footnote;
-  reverseChargeFootnote?: Footnote;
   /** Preferred currency; each tier already carries every offered one. */
   currency: string;
   selectedRoutingRef: string | null;
@@ -78,8 +74,6 @@ export default function TierSelection({
   hasRates,
   errors,
   notices,
-  footnote,
-  reverseChargeFootnote,
   currency,
   selectedRoutingRef,
   onSelect,
@@ -223,20 +217,6 @@ export default function TierSelection({
                 </div>
               </div>
 
-              {tier.warnings.length > 0 && (
-                <ul className="mt-4 space-y-1 relative z-10">
-                  {tier.warnings.map((warning, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-1.5 text-[11px] text-gray-500 font-medium"
-                    >
-                      <FiAlertTriangle className="w-3 h-3 mt-0.5 shrink-0 text-amber-500" />
-                      <span>{warning}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
               {/* Selection Indicator */}
               <div
                 className={`absolute top-0 right-0 w-2 h-full transition-all ${
@@ -251,7 +231,6 @@ export default function TierSelection({
       </div>
 
       <QuoteNotices notices={notices} />
-      <RouteFootnote footnote={footnote} reverseCharge={reverseChargeFootnote} />
 
       <div className="flex justify-between items-center pt-8 border-t border-gray-100">
         <Button

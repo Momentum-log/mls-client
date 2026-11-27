@@ -56,7 +56,7 @@ export default function Footer() {
           <div className="col-span-2 flex flex-col gap-4 md:col-span-1">
             <Image
               src="/images/logo-landscape-white.svg"
-              alt="Momentum Logistics Service"
+              alt="Momentum Logistics Services"
               width={160}
               height={44}
               className="h-11 w-auto self-start"

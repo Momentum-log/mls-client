@@ -213,3 +213,42 @@ export const getAddressStatus = async () => {
       : null,
   } as AddressStatusResponse;
 };
+
+/** Where the account stands on a business change, and what it may ask for. */
+export interface AccountChangeStatus {
+  accountType: "INDIVIDUAL" | "BUSINESS" | null;
+  companyName: string | null;
+  nip: string | null;
+  canRequestUpgrade: boolean;
+  /** True only while an admin allows business accounts to return to individual. */
+  canRequestDowngrade: boolean;
+  latestRequest: {
+    id: string;
+    status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+    direction: "UPGRADE" | "DOWNGRADE";
+    reason: string | null;
+    companyName: string | null;
+    nip: string | null;
+    createdAt: string;
+    reviewedAt: string | null;
+    adminFeedback: string | null;
+  } | null;
+}
+
+/** `GET`-style status of the signed-in account's business change requests. */
+export const getAccountChangeStatus = async (): Promise<AccountChangeStatus> => {
+  const response = await apiClient.get<AccountChangeStatus>("/auth/account-upgrade/status");
+  return response.data;
+};
+
+/** Individual to business: company details, reviewed by an admin. */
+export const requestBusinessAccount = (data: { companyName: string; nip: string }) =>
+  apiClient.post("/auth/account-upgrade/request", data);
+
+/** Business to individual: only offered when `canRequestDowngrade` is true. */
+export const requestIndividualAccount = (data: { reason: string }) =>
+  apiClient.post("/auth/account-upgrade/downgrade-request", data);
+
+/** Withdraw the request that is waiting for review. */
+export const cancelAccountChange = (requestId: string) =>
+  apiClient.post(`/auth/account-upgrade/requests/${requestId}/cancel`);

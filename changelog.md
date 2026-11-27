@@ -5,6 +5,19 @@ All notable changes to this project "Momentum Logistics Service" will be documen
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.59.0] - 2026-11-27 - Client meeting fixes: one footnote, currency switch, contact form, business accounts
+
+**Requires:** `mls-server` PR #48 (contact endpoint, account change endpoints, hide rules). Merge it first. Until then the contact form shows an error and the account page hides the business card.
+
+- Changed: **footnotes move into the summary of the selected option.** Rate and service cards no longer carry notes; the selected-rate panel (home quote, Get Quote page) and the review drawer (Create Shipment) show that option's notes and the route footnote. The home summary is the pattern for all three places.
+- Changed: **no VAT amount at quote stage.** The quote shows the all-inclusive total and says VAT is confirmed at booking, because VAT depends on the billing details given then. The service list and review drawer on Create Shipment still show VAT.
+- Added: **PLN / EUR switch on the Get Quote page** (shared `currency-toggle.tsx`, also used on the home panel). The region menu in the header now applies its currency as soon as a region is picked, so open price lists change at once.
+- Added: **custom size** in Instant Quote: length, width, height and weight with cm/in and kg/lb, sent with its own units; 70 kg or more points to the freight team.
+- Changed: company name "Momentum Logistics Services Sp. z o.o." on the contact page, terms, privacy, cookies and invoice placeholders; logo alt texts say "Momentum Logistics Services".
+- Added: **contact form is live** (`POST /contact`) with success and error states and a hidden honeypot. Messages reach the admin inbox and the company mailbox.
+- Added: **Business account card** on the account page: request a business account (company, NIP), withdraw a pending request, and, only while an admin allows it, switch back to an individual account.
+- Changed: business signup shows that the business details are under review. The billing form offers the business section only to approved business accounts.
+
 ## [1.58.0] - 2026-11-16 - One all-inclusive price, billing details before shipping
 
 **Requires:** `mls-server` PRs #45 (VAT matrix, all-inclusive `price`, both-currency quote, route footnotes) and #46 (billing profile, tax ID checks). Merge both first. Until then the price block falls back to the older `breakdown` total, and the billing step shows an error because the endpoints do not exist yet.

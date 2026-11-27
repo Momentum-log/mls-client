@@ -128,8 +128,10 @@ const RegisterForm = () => {
         addToast({
           type: "success",
           title: "Registration Successful",
-          message: "Account created! Redirecting to login...",
-          duration: 3000,
+          message: isBusiness
+            ? "Account created! Your business details are waiting for review. Until approved, you can use the account as an individual."
+            : "Account created! Redirecting to login...",
+          duration: isBusiness ? 6000 : 3000,
         });
 
         // Small delay to let user see the success message before redirecting

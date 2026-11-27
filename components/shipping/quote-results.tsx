@@ -153,11 +153,6 @@ const QuoteResults: FC<QuoteResultsProps> = ({
                 {rate.deliveryDescription && (
                   <span className="text-sm text-gray-600">{rate.deliveryDescription}</span>
                 )}
-                {rate.warnings?.map((warning) => (
-                  <span key={warning} className="text-xs text-warning-fg">
-                    {warning}
-                  </span>
-                ))}
               </span>
               <span className="whitespace-nowrap text-xl font-extrabold text-gray-900">
                 {priceOf(rate, currency)}
@@ -172,8 +167,20 @@ const QuoteResults: FC<QuoteResultsProps> = ({
           <span className="text-sm font-medium text-gray-500">Selected: {chosen.serviceName}</span>
           <span className="text-[28px] font-extrabold leading-[34px] text-gray-900">{priceOf(chosen, currency)}</span>
         </div>
-        <PriceSummary price={displayPrice(chosen, currency)} />
+        <PriceSummary price={displayPrice(chosen, currency)} showVat={false} />
+        {chosen.warnings && chosen.warnings.length > 0 && (
+          <ul className="m-0 flex list-none flex-col gap-1 p-0">
+            {chosen.warnings.map((warning) => (
+              <li key={warning} className="text-xs leading-relaxed text-warning-fg">
+                {warning}
+              </li>
+            ))}
+          </ul>
+        )}
         <RouteFootnote footnote={footnote} reverseCharge={reverseChargeFootnote} />
+        <span className="text-xs leading-relaxed text-gray-500">
+          The price is all-inclusive. VAT is confirmed at booking from your billing details.
+        </span>
         <span className="text-[13px] leading-[18px] text-gray-500">
           Booking needs a free account. Prices are held for a limited time, then refreshed.
         </span>

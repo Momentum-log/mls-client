@@ -18,7 +18,7 @@ import {
   getEstimatePayload,
   transformShippingData,
 } from "@/app/(marketing)/shipping-estimate/utils";
-import type { SupportedCurrency } from "@/types/country";
+import CurrencyToggle from "@/components/shipping/currency-toggle";
 import type { PlaceDetails } from "@/types/location";
 import type { SiteCopy } from "@/components/site/copy";
 import { localePath, type SiteLocale } from "@/utils/site-locale";
@@ -30,10 +30,30 @@ const PRESETS = [
   { id: "large", dims: { length: 60, width: 40, height: 40 }, weight: 20 },
 ] as const;
 
-type PresetId = (typeof PRESETS)[number]["id"];
-type Tab = "quote" | "track";
+type PresetId = (typeof PRESETS)[number]["id"] | "custom";
 
-const CURRENCIES: SupportedCurrency[] = ["PLN", "EUR"];
+interface CustomSize {
+  length: string;
+  width: string;
+  height: string;
+  weight: string;
+  dimUnit: "CM" | "IN";
+  weightUnit: "KG" | "LB";
+}
+
+const EMPTY_CUSTOM: CustomSize = {
+  length: "",
+  width: "",
+  height: "",
+  weight: "",
+  dimUnit: "CM",
+  weightUnit: "KG",
+};
+
+/** Parcels this heavy go to the freight team (the "Over 70 kg?" link). */
+const MAX_WEIGHT_KG = 70;
+const KG_PER_LB = 0.45359237;
+type Tab = "quote" | "track";
 
 /** Shortest plausible international number, in digits without the `+`. */
 const MIN_PHONE_DIGITS = 7;
@@ -84,7 +104,7 @@ interface BookingPanelProps {
  */
 const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
   const router = useRouter();
-  const { currency, setCurrency, countryCode } = useCountryStore();
+  const { currency, countryCode } = useCountryStore();
   const { mutate: getQuote, data, isPending, reset } = useGetShippingQuote();
   const { user } = useAuthStore();
 
@@ -92,6 +112,7 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
   const [pickup, setPickup] = useState<PlaceDetails | null>(null);
   const [dropoff, setDropoff] = useState<PlaceDetails | null>(null);
   const [preset, setPreset] = useState<PresetId>("small");
+  const [custom, setCustom] = useState<CustomSize>(EMPTY_CUSTOM);
   // Guest estimates need a contact; signed-in customers start with their own.
   const [email, setEmail] = useState(user?.email ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
@@ -110,8 +131,35 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
       setError(copy.phoneRequired);
       return;
     }
+    let pkg: {
+      weight: { value: number; units: "KG" | "LB" };
+      dimensions: { length: number; width: number; height: number; units: "CM" | "IN" };
+    };
+    if (preset === "custom") {
+      const num = (value: string): number => Number(value.replace(",", "."));
+      const dims = { length: num(custom.length), width: num(custom.width), height: num(custom.height) };
+      const weight = num(custom.weight);
+      if (![...Object.values(dims), weight].every((n) => Number.isFinite(n) && n > 0)) {
+        setError(copy.customInvalid);
+        return;
+      }
+      const weightKg = custom.weightUnit === "LB" ? weight * KG_PER_LB : weight;
+      if (weightKg >= MAX_WEIGHT_KG) {
+        setError(copy.customHeavy);
+        return;
+      }
+      pkg = {
+        weight: { value: weight, units: custom.weightUnit },
+        dimensions: { ...dims, units: custom.dimUnit },
+      };
+    } else {
+      const size = PRESETS.find((p) => p.id === preset) ?? PRESETS[1];
+      pkg = {
+        weight: { value: size.weight, units: "KG" },
+        dimensions: { ...size.dims, units: "CM" },
+      };
+    }
     setError(null);
-    const size = PRESETS.find((p) => p.id === preset) ?? PRESETS[1];
     const payload = getEstimatePayload(
       {
         ...toLocation(pickup),
@@ -121,12 +169,7 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
         personName: user?.name,
       },
       toLocation(dropoff),
-      [
-        {
-          weight: { value: size.weight, units: "KG" },
-          dimensions: { ...size.dims, units: "CM" },
-        },
-      ],
+      [pkg],
       getOrSetGuestId(),
       countryCode || undefined,
       undefined,
@@ -179,22 +222,7 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
           ))}
         </div>
         {tab === "quote" && (
-          <div role="group" aria-label={copy.currency} className="inline-flex rounded-full bg-gray-100 p-[3px]">
-            {CURRENCIES.map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => setCurrency(code)}
-                aria-pressed={code === currency}
-                className={cn(
-                  "h-8 min-w-[52px] rounded-full px-3 text-[13px] font-bold",
-                  code === currency ? "bg-white text-brand-blue" : "text-gray-600",
-                )}
-              >
-                {code}
-              </button>
-            ))}
-          </div>
+          <CurrencyToggle label={copy.currency} />
         )}
       </div>
 
@@ -259,6 +287,19 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
                   {item.weight} kg
                 </button>
               ))}
+              <button
+                type="button"
+                aria-pressed={preset === "custom"}
+                onClick={changed(() => setPreset("custom"))}
+                className={cn(
+                  "h-9 rounded-full px-3 text-[13px] font-semibold",
+                  preset === "custom"
+                    ? "border-2 border-brand-blue bg-brand-blue-tint text-brand-blue"
+                    : "border border-gray-200 bg-white text-gray-700",
+                )}
+              >
+                {copy.customSize}
+              </button>
               <span className="text-[13px] text-gray-500">
                 {copy.heavy}{" "}
                 <Link
@@ -269,6 +310,59 @@ const BookingPanel: FC<BookingPanelProps> = ({ copy, locale }) => {
                 </Link>
               </span>
             </fieldset>
+            {preset === "custom" && (
+              <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 p-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {(["length", "width", "height", "weight"] as const).map((key) => (
+                    <Input
+                      key={key}
+                      id={`quick-quote-${key}`}
+                      label={`${copy[key]} (${key === "weight" ? custom.weightUnit.toLowerCase() : custom.dimUnit.toLowerCase()})`}
+                      inputMode="decimal"
+                      value={custom[key]}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setCustom((prev) => ({ ...prev, [key]: value }));
+                        reset();
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {(
+                    [
+                      { name: "dimUnit", options: ["CM", "IN"], label: copy.dimUnitLabel },
+                      { name: "weightUnit", options: ["KG", "LB"], label: copy.weightUnitLabel },
+                    ] as const
+                  ).map((group) => (
+                    <div
+                      key={group.name}
+                      role="group"
+                      aria-label={group.label}
+                      className="inline-flex rounded-full bg-gray-100 p-[3px]"
+                    >
+                      {group.options.map((unit) => (
+                        <button
+                          key={unit}
+                          type="button"
+                          aria-pressed={custom[group.name] === unit}
+                          onClick={() => {
+                            setCustom((prev) => ({ ...prev, [group.name]: unit }));
+                            reset();
+                          }}
+                          className={cn(
+                            "h-8 min-w-[44px] rounded-full px-3 text-[13px] font-bold",
+                            custom[group.name] === unit ? "bg-white text-brand-blue" : "text-gray-600",
+                          )}
+                        >
+                          {unit.toLowerCase()}
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {error && (
               <p role="alert" className="m-0 rounded-xl bg-warning-bg px-3.5 py-3 text-sm font-medium text-warning-fg">
                 {error}

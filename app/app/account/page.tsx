@@ -1,6 +1,7 @@
 "use client";
 
 import ProfileForm from "@/components/account/ProfileForm";
+import AccountTypeCard from "@/components/account/AccountTypeCard";
 import ProfileCard from "@/components/account/ProfileCard";
 import AccountStack, { AccountCard } from "@/components/account/AccountStack";
 import VerificationBanner from "@/components/account/VerificationBanner";
@@ -47,6 +48,8 @@ export default function AccountPage() {
         >
           <ProfileForm />
         </AccountCard>
+
+        <AccountTypeCard />
 
         <BillingAccountCard />
 

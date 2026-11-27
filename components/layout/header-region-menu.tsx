@@ -43,10 +43,16 @@ const HeaderRegionMenu: FC<HeaderRegionMenuProps> = ({
     currency === "PLN" ? "pl" : "intl",
   );
 
-  const save = (): void => {
-    // Poland prices in PLN; any other region in EUR, without naming a country.
-    if (region === "pl") setCountry("PL");
+  // Poland prices in PLN; any other region in EUR, without naming a country.
+  // Applied the moment a region is picked, so open price lists switch live.
+  const applyRegion = (next: Region): void => {
+    setRegion(next);
+    if (next === "pl") setCountry("PL");
     else setCurrency("EUR");
+  };
+
+  const save = (): void => {
+    applyRegion(region);
     document.cookie = `${LOCALE_COOKIE}=${language}; path=/; max-age=31536000; samesite=lax`;
     onClose();
     if (language !== locale) router.push(switchLocalePath(pathname, language));
@@ -101,7 +107,7 @@ const HeaderRegionMenu: FC<HeaderRegionMenuProps> = ({
           <button
             key={option.id}
             type="button"
-            onClick={() => setRegion(option.id)}
+            onClick={() => applyRegion(option.id)}
             aria-pressed={option.id === region}
             className={cn(
               "flex min-h-[60px] items-center justify-between gap-3 rounded-xl bg-white px-3.5 py-2.5",
