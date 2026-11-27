@@ -18,6 +18,7 @@ import {
 
 import MarkerHeading from "@/components/landing/marker-heading";
 import QuoteResults from "@/components/shipping/quote-results";
+import CurrencyToggle from "@/components/shipping/currency-toggle";
 import QuoteHowItWorks from "@/components/shipping/quote-how-it-works";
 import AddressFields from "@/components/shared/address-fields";
 import { shippingFormSchema, ShippingFormValues } from "./schema";
@@ -117,7 +118,7 @@ function ShippingEstimateContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addToast } = useToast();
-  const { countryCode: userCountryCode } = useCountryStore();
+  const { countryCode: userCountryCode, currency } = useCountryStore();
   const { user } = useAuthStore();
   const [isHeavyShipmentModalOpen, setIsHeavyShipmentModalOpen] =
     useState(false);
@@ -524,12 +525,16 @@ function ShippingEstimateContent() {
 
               <div className="lg:col-span-2">
                 <div className="lg:sticky lg:top-8">
+                  <div className="mb-3 flex justify-end">
+                    <CurrencyToggle />
+                  </div>
                   <QuoteResults
                     rates={estimateData?.rates}
                     errors={estimateData?.errors}
                     notices={estimateData?.notices}
                     footnote={estimateData?.footnote}
                     reverseChargeFootnote={estimateData?.reverseChargeFootnote}
+                    currency={currency}
                     hasResult={!!estimateData}
                     isLoading={isEstimating}
                     onReviewAddresses={() =>

@@ -258,6 +258,16 @@ export default function SummaryDrawer({
                   </div>
                 </div>
 
+                {tier && tier.warnings.length > 0 && (
+                  <ul className="m-0 list-none space-y-1 p-0 px-1">
+                    {tier.warnings.map((warning) => (
+                      <li key={warning} className="text-xs font-medium leading-relaxed text-gray-500">
+                        {warning}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 <RouteFootnote
                   footnote={footnote}
                   reverseCharge={reverseChargeFootnote}

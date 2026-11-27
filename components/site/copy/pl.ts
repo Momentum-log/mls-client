@@ -153,6 +153,15 @@ const pl: SiteCopy = {
       quickSizes: "Rozmiar paczki",
       heavy: "Ponad 70 kg?",
       heavyLink: "Zapytaj dział frachtu",
+      customSize: "Własny rozmiar",
+      length: "Długość",
+      width: "Szerokość",
+      height: "Wysokość",
+      weight: "Waga",
+      dimUnitLabel: "Jednostka rozmiaru",
+      weightUnitLabel: "Jednostka wagi",
+      customInvalid: "Podaj długość, szerokość, wysokość i wagę jako liczby większe od zera.",
+      customHeavy: "Przy 70 kg lub więcej zapytaj nasz dział frachtu.",
       presets: {
         envelope: "Koperta",
         small: "Małe pudełko",
@@ -498,8 +507,12 @@ const pl: SiteCopy = {
       "W czym możemy pomóc? Podaj numer przesyłki, jeśli go masz.",
     replyNote: "Odpowiadamy e-mailem, zwykle w ciągu jednego dnia roboczego.",
     send: "Wyślij wiadomość",
-    formDisabled:
-      "Wiadomości online nie są jeszcze dostępne. Prosimy o kontakt przez WhatsApp, telefon lub e-mail.",
+    subject: "Temat",
+    subjectPlaceholder: "Czego dotyczy wiadomość?",
+    sending: "Wysyłanie…",
+    sentTitle: "Wiadomość wysłana",
+    sentBody:
+      "Dziękujemy. Otrzymaliśmy Twoją wiadomość i odpowiemy e-mailem, zwykle w ciągu jednego dnia roboczego.",
     directions: "Wyznacz trasę",
   },
 };

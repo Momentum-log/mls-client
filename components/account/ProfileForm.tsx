@@ -259,7 +259,7 @@ const ProfileForm = () => {
               </span>
             </div>
             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-              Set at sign-up. Contact support to change it
+              Change it with a request in the Business account section below
             </p>
           </div>
 

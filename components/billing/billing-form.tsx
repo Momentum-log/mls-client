@@ -17,6 +17,8 @@ import type {
 } from "@/types/billing";
 import { taxCheckNotice, taxIdLabel } from "@/utils/billing";
 import { extractApiError } from "@/utils/error-handler";
+import { useAuthStore } from "@/store/auth-store";
+import { isBusinessAccount } from "@/utils/account-type";
 
 interface BillingFormValues {
   fullName: string;
@@ -101,6 +103,7 @@ export default function BillingForm({
   onSaved,
   notice,
 }: BillingFormProps) {
+  const businessAccount = isBusinessAccount(useAuthStore((state) => state.user));
   const { data: countries = [] } = useCountries();
   const { mutateAsync: save } = useSaveBillingProfile();
   const { mutateAsync: check, isPending: isChecking } = useValidateTaxId();
@@ -114,7 +117,7 @@ export default function BillingForm({
   const formik = useFormik<BillingFormValues>({
     initialValues: {
       fullName: profile?.fullName ?? prefill?.fullName ?? "",
-      isBusiness: profile?.isBusiness ?? prefill?.isBusiness ?? false,
+      isBusiness: businessAccount && (profile?.isBusiness ?? prefill?.isBusiness ?? false),
       companyName: profile?.companyName ?? prefill?.companyName ?? "",
       taxId: profile?.taxId ?? prefill?.taxId ?? "",
       street: profile?.street ?? "",
@@ -309,6 +312,14 @@ export default function BillingForm({
         </div>
       </div>
 
+      {!businessAccount && (
+        <p className="m-0 rounded-2xl border border-gray-100 bg-gray-50 p-5 text-sm text-gray-600">
+          Invoices are issued to you as a private customer. Ordering for a company? Request a business
+          account from your account page.
+        </p>
+      )}
+
+      {businessAccount && (
       <div className="space-y-4 rounded-2xl border border-gray-100 bg-gray-50 p-5">
         <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold text-gray-900">
           <input
@@ -367,6 +378,7 @@ export default function BillingForm({
           </div>
         )}
       </div>
+      )}
 
       {serverError && (
         <p role="alert" className="m-0 rounded-xl bg-warning-bg px-4 py-3 text-sm font-medium text-warning-fg">

@@ -30,7 +30,7 @@ export const SITE_CONTACT = {
   phoneHref: "tel:+48579306288",
   whatsappHref: "https://wa.me/48579306288",
   addressLines: [
-    "Momentum Logistics Service",
+    "Momentum Logistics Services Sp. z o.o.",
     "ul. kpt. pilota Żwirki 17",
     "90-539 Łódź, Poland",
   ],
