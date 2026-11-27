@@ -23,7 +23,7 @@ const normalizePaymentInvoice = (
     customerId: "",
     customerName: "",
     customerEmail: "",
-    sellerCompanyName: "Momentum Logistics Service",
+    sellerCompanyName: "Momentum Logistics Services Sp. z o.o.",
     sellerStreet: "",
     sellerBuildingNumber: "",
     sellerCity: "",

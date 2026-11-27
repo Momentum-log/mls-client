@@ -81,7 +81,7 @@ const Header: FC = () => {
         >
           <Image
             src={logoLandscape}
-            alt="Momentum Logistics Service"
+            alt="Momentum Logistics Services"
             className="h-[30px] w-auto lg:h-10"
             priority
           />

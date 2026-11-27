@@ -32,7 +32,7 @@ export default function CookiesPage() {
             <h2 className="text-lg font-bold text-gray-900">
               2. How We Use Cookies
             </h2>
-            <p>Momentum Logistics Service uses cookies to:</p>
+            <p>Momentum Logistics Services Sp. z o.o. uses cookies to:</p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Ensure the website functions properly</li>
               <li>Remember your preferences and settings</li>

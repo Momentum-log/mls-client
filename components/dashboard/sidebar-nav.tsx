@@ -50,7 +50,7 @@ export function SidebarNav({ onClose, className }: SidebarNavProps) {
           <div className="relative w-32 h-8">
             <Image
               src={logoLandscape}
-              alt="Momentum Logistics Service Logo"
+              alt="Momentum Logistics Services Logo"
               fill
               className="object-contain"
             />

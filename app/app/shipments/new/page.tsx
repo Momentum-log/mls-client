@@ -985,8 +985,6 @@ export default function NewShipmentPage() {
                 hasRates={(estimate?.rates?.length ?? 0) > 0}
                 errors={displayErrors}
                 notices={estimate?.notices}
-                footnote={estimate?.footnote}
-                reverseChargeFootnote={estimate?.reverseChargeFootnote}
                 currency={activeCurrency}
                 selectedRoutingRef={selectedTier?.routingRef ?? null}
                 onSelect={handleTierSelect}

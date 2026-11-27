@@ -154,6 +154,15 @@ const en = {
       quickSizes: "Package size",
       heavy: "Over 70 kg?",
       heavyLink: "Ask our freight team",
+      customSize: "Custom size",
+      length: "Length",
+      width: "Width",
+      height: "Height",
+      weight: "Weight",
+      dimUnitLabel: "Size unit",
+      weightUnitLabel: "Weight unit",
+      customInvalid: "Enter length, width, height and weight as numbers above zero.",
+      customHeavy: "For 70 kg or more, please ask our freight team.",
       presets: {
         envelope: "Envelope",
         small: "Small box",
@@ -492,8 +501,12 @@ const en = {
       "How can we help? Include a tracking number if you have one.",
     replyNote: "We reply by email, usually within one business day.",
     send: "Send message",
-    formDisabled:
-      "Online messages are not open yet. Please WhatsApp, call or email us for now.",
+    subject: "Subject",
+    subjectPlaceholder: "What is this about?",
+    sending: "Sending…",
+    sentTitle: "Message sent",
+    sentBody:
+      "Thank you. We received your message and will reply by email, usually within one business day.",
     directions: "Get directions",
   },
 };

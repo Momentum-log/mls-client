@@ -9,8 +9,7 @@ import {
 } from "lucide-react";
 import Eyebrow from "@/components/landing/eyebrow";
 import MarkerHeading from "@/components/landing/marker-heading";
-import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import ContactForm from "@/components/site/contact-form";
 import { SiteContainer } from "@/components/site/ui";
 import Rings from "@/components/site/rings";
 import {
@@ -31,7 +30,7 @@ const cardTitle =
 
 /** Contact channels, headquarters and a message form. */
 export default async function ContactPage({ params }: LocalePageProps) {
-  const { copy } = await resolveLocalePage(params);
+  const { copy, locale } = await resolveLocalePage(params);
   const t = copy.contact;
 
   const channels = [
@@ -175,66 +174,15 @@ export default async function ContactPage({ params }: LocalePageProps) {
             </a>
           </div>
 
-          {/* Not wired to a backend yet: kept visible but disabled until it is. */}
-          <form
+          <section
             aria-labelledby="msg-h"
             className="flex min-w-0 flex-[1_1_480px] flex-col gap-[18px] rounded-3xl border border-gray-200 bg-white p-6 sm:p-8"
           >
             <h2 id="msg-h" className={cardTitle}>
               {t.formTitle}
             </h2>
-            <p className="m-0 rounded-xl bg-warning-bg px-4 py-3 text-sm font-medium text-warning-fg">
-              {t.formDisabled}
-            </p>
-            <fieldset
-              disabled
-              className="m-0 flex flex-col gap-[18px] border-0 p-0 opacity-60"
-            >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Input
-                  name="first_name"
-                  label={t.firstName}
-                  placeholder={t.firstName}
-                  required
-                />
-                <Input
-                  name="last_name"
-                  label={t.lastName}
-                  placeholder={t.lastName}
-                  required
-                />
-              </div>
-              <Input
-                name="email"
-                type="email"
-                label={copy.contact.email}
-                placeholder={t.emailPlaceholder}
-                required
-              />
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="msg-body"
-                  className="text-sm font-semibold text-gray-700"
-                >
-                  {t.message}
-                </label>
-                <textarea
-                  id="msg-body"
-                  name="message"
-                  rows={6}
-                  required
-                  placeholder={t.messagePlaceholder}
-                  className="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-[15px] leading-[22px] text-foreground placeholder:text-gray-400 focus-visible:border-brand-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/20"
-                />
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="text-[13px] text-gray-500">{t.replyNote}</span>
-                <Button type="submit" size="lg">
-                  {t.send}
-                </Button>
-              </div>
-            </fieldset>
-          </form>
+            <ContactForm copy={t} locale={locale} />
+          </section>
         </div>
       </SiteContainer>
     </main>

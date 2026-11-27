@@ -22,7 +22,7 @@ export default function TermsPage() {
           <div className="prose prose-gray max-w-none space-y-6 text-gray-700 text-sm leading-relaxed">
             <h2 className="text-lg font-bold text-gray-900">1. Introduction</h2>
             <p>
-              Welcome to Momentum Logistics Service (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). By
+              Welcome to Momentum Logistics Services Sp. z o.o. (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). By
               accessing or using our website and services, you agree to be bound
               by these Terms and Conditions. If you do not agree with any part
               of these terms, please do not use our services.
@@ -42,7 +42,7 @@ export default function TermsPage() {
               3. Shipment and Delivery
             </h2>
             <p>
-              Momentum Logistics Service acts as an intermediary between you and
+              Momentum Logistics Services Sp. z o.o. acts as an intermediary between you and
               third-party shipping carriers. While we strive to provide accurate
               delivery estimates, we are not liable for delays, damages, or
               losses caused by third-party carriers. All shipments are subject
@@ -74,7 +74,7 @@ export default function TermsPage() {
               6. Limitation of Liability
             </h2>
             <p>
-              To the fullest extent permitted by law, Momentum Logistics Service
+              To the fullest extent permitted by law, Momentum Logistics Services Sp. z o.o.
               shall not be liable for any indirect, incidental, special, or
               consequential damages arising from your use of our services. Our
               total liability shall not exceed the amount paid by you for the

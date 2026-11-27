@@ -25,6 +25,7 @@ import {
   buildCreateShipmentPayload,
   type FlatAddress,
 } from "@/utils/create-shipment-payload";
+import RouteFootnote from "@/components/shipping/route-footnote";
 import TierSelection from "@/components/shipment/tier-selection";
 import useUserCountryCode from "@/hooks/use-user-country-code";
 import {
@@ -479,14 +480,27 @@ export const UpdateShipmentModal: React.FC<UpdateShipmentModalProps> = ({
                   tiers={displayTiers}
                   hasRates={(estimate?.rates?.length ?? 0) > 0}
                   errors={displayErrors}
-                  footnote={estimate?.footnote}
-                  reverseChargeFootnote={estimate?.reverseChargeFootnote}
                   currency={quotedCurrency}
                   selectedRoutingRef={selectedTier?.routingRef ?? null}
                   onSelect={handleTierSelect}
                   isLoading={isCalculatingRates}
                   onBack={onClose}
                 />
+
+                {/* Notes for the selected option, then the route footnote */}
+                {selectedTier && (
+                  <div className="space-y-1">
+                    {selectedTier.warnings.map((warning) => (
+                      <p key={warning} className="m-0 text-xs leading-relaxed text-gray-500">
+                        {warning}
+                      </p>
+                    ))}
+                    <RouteFootnote
+                      footnote={estimate?.footnote}
+                      reverseCharge={estimate?.reverseChargeFootnote}
+                    />
+                  </div>
+                )}
 
                 {/* Payment Method Selector */}
                 {selectedTier && (
