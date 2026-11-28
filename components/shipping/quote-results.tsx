@@ -168,15 +168,6 @@ const QuoteResults: FC<QuoteResultsProps> = ({
           <span className="text-[28px] font-extrabold leading-[34px] text-gray-900">{priceOf(chosen, currency)}</span>
         </div>
         <PriceSummary price={displayPrice(chosen, currency)} showVat={false} />
-        {chosen.warnings && chosen.warnings.length > 0 && (
-          <ul className="m-0 flex list-none flex-col gap-1 p-0">
-            {chosen.warnings.map((warning) => (
-              <li key={warning} className="text-xs leading-relaxed text-warning-fg">
-                {warning}
-              </li>
-            ))}
-          </ul>
-        )}
         <RouteFootnote footnote={footnote} reverseCharge={reverseChargeFootnote} />
         <span className="text-xs leading-relaxed text-gray-500">
           The price is all-inclusive. VAT is confirmed at booking from your billing details.
